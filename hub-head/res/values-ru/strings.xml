@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--AppString-->
+    <string name="app_name">Hub-head</string>
+
+    <!--AuthAtivity-->
+    <string name="button_signin">Войти</string>
+    <string name="hint_password">Пароль</string>
+    <string name="hint_email">Адрес электронной почты</string>
+
+    <!--Errors-->
+    <string name="error_undefined_error_network">Неизвестная ошибка сети</string>
+    <string name="error_invalid_email_or_pass">Неверный адрес электронной почты/пароль</string>
+    <string name="error_google_account_not_found">Google аккаунт не найден</string>
+    <string name="error_invalid_data_response_server">С сервера поступили неверные данные</string>
+
+    <!--AlertDialogWindow-->
+    <string name="alert_dialog_title_error">Ошибка</string>
+    <string name="alert_dialog_title_notice">Уведомление</string>
+    <string name="alert_dialog_title_select_google_account">Выберите Google аккаунт</string>
+    <string name="alert_dialog_close_button">Закрыть</string>
+    <string name="alert_dialog_message_signing_process">Выполняется вход…</string>
+    <string name="alert_dialog_message_signing_google_process">Выполняется вход в Google…</string>
+    <string name="alert_dialog_message_load_circles_data">Загрузка кругов…</string>
+    <string name="alert_dialog_message_load_notifications">Загрузка уведомлений…</string>
+    <string name="alert_dialog_message_invalid_google_auth">Ошибка авторизации Google</string>
+
+    <!--ActionBar-->
+    <string name="action_sign_out">Выйти</string>
+
+    <!--Words-->
+    <string name="word_or">или</string>
+    <string name="word_notifications">Уведомления</string>
+    <string name="word_overview">Напоминания</string>
+    <string name="word_undefined">Неизвестно</string>
+
+
+    <!--NavigationDrawer-->
+    <string name="drawer_open">Выберите круг</string>
+    <string name="drawer_close">Закрыть меню</string>
+
+
+</resources>
