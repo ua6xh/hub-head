@@ -23,7 +23,6 @@ public class AuthGoogleActionCommand extends SFHttpCommand {
     private final String mToken;
     private String mAccountName;
 
-
     public void doExecute(Intent intent, Context context, ResultReceiver callback) {
         Bundle data = new Bundle();
         HashMap<String, String> postData = new HashMap<String, String>();
