@@ -13,12 +13,13 @@ import java.util.List;
 public class DBHelper extends SQLiteOpenHelper {
 
     private static final String TAG = "hub-head: DBHelper";
-    private static final int DB_VERSION = 1;
+    private static final int DB_VERSION = 2;
     private static final String DB_NAME = "hubhead";
-    private static final String CIRCLES = "circles";
-    private static final String SPHERES = "spheres";
-    private static final String CONTACTS = "contacts";
-    private static final String REMINDERS = "reminders";
+    private static final String CIRCLES_TABLE_NAME = "circles";
+    private static final String SPHERES_TABLE_NAME = "spheres";
+    private static final String CONTACTS_TABLE_NAME = "contacts";
+    private static final String REMINDERS_TABLE_NAME = "reminders";
+    private static final String NOTIFICATIONS_TABLE_NAME = "notifications";
 
     public DBHelper(Context context) {
         super(context, DB_NAME, null, DB_VERSION);
@@ -27,39 +28,53 @@ public class DBHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         try {
-            Log.d(TAG, "--- onCreate " + CIRCLES + " ---");
-            db.execSQL("create table " + CIRCLES + " ("
-                    + "_id integer primary key,"
-                    + "name text,"
-                    + "user_id integer,"
-                    + "contact_id integer,"
-                    + "status integer"
+            Log.d(TAG, "--- onCreate " + CIRCLES_TABLE_NAME + " ---");
+            db.execSQL("CREATE TABLE " + CIRCLES_TABLE_NAME + " ("
+                    + "_id INTEGER PRIMARY KEY,"
+                    + "name TEXT,"
+                    + "user_id INTEGER,"
+                    + "contact_id INTEGER,"
+                    + "status INTEGER"
                     + ");");
 
-            Log.d(TAG, "--- onCreate " + SPHERES + " ---");
-            db.execSQL("create table " + SPHERES + " ("
-                    + "_id integer primary key,"
-                    + "name text,"
-                    + "circle_id integer"
+            Log.d(TAG, "--- onCreate " + SPHERES_TABLE_NAME + " ---");
+            db.execSQL("CREATE TABLE " + SPHERES_TABLE_NAME + " ("
+                    + "_id INTEGER PRIMARY KEY,"
+                    + "name TEXT,"
+                    + "circle_id INTEGER"
                     + ");");
 
-            Log.d(TAG, "--- onCreate " + CONTACTS + " ---");
-            db.execSQL("create table " + CONTACTS + " ("
-                    + "_id integer primary key,"
-                    + "name text,"
-                    + "circle_id integer,"
-                    + "account_id integer"
+            Log.d(TAG, "--- onCreate " + CONTACTS_TABLE_NAME + " ---");
+            db.execSQL("CREATE TABLE " + CONTACTS_TABLE_NAME + " ("
+                    + "_id INTEGER PRIMARY KEY,"
+                    + "name TEXT,"
+                    + "circle_id INTEGER,"
+                    + "account_id INTEGER"
                     + ");");
 
-            Log.d(TAG, "--- onCreate " + REMINDERS + " ---");
-            db.execSQL("create table " + REMINDERS + " ("
-                    + "_id integer primary key,"
-                    + "circle_id integer,"
-                    + "sphere_id integer,"
-                    + "task_name text,"
-                    + "start_time integer,"
-                    + "deadline integer"
+            Log.d(TAG, "--- onCreate " + REMINDERS_TABLE_NAME + " ---");
+            db.execSQL("CREATE TABLE " + REMINDERS_TABLE_NAME + " ("
+                    + "_id INTEGER PRIMARY KEY,"
+                    + "circle_id INTEGER,"
+                    + "sphere_id INTEGER,"
+                    + "task_name TEXT,"
+                    + "start_time INTEGER,"
+                    + "deadline INTEGER"
                     + ");");
+
+            Log.d(TAG, "--- onCreate " + NOTIFICATIONS_TABLE_NAME + " ---");
+            db.execSQL("CREATE TABLE " + NOTIFICATIONS_TABLE_NAME + " ("
+                    + "_id INTEGER PRIMARY KEY,"
+                    + "type_notification INTEGER,"
+                    + "messages_count INTEGER,"
+                    + "circle_id INTEGER,"
+                    + "sphere_id INTEGER,"
+                    + "model_name TEXT,"
+                    + "groups TEXT,"
+                    + "create_date INTEGER,"
+                    + "dt INTEGER"
+                    + ");");
+
         } catch (Exception e) {
             Log.d(TAG, e.getLocalizedMessage());
         }
@@ -74,19 +89,21 @@ public class DBHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS " + CIRCLES);
-        db.execSQL("DROP TABLE IF EXISTS " + SPHERES);
-        db.execSQL("DROP TABLE IF EXISTS " + CONTACTS);
-        db.execSQL("DROP TABLE IF EXISTS " + REMINDERS);
+        db.execSQL("DROP TABLE IF EXISTS " + CIRCLES_TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + SPHERES_TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + CONTACTS_TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + REMINDERS_TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + NOTIFICATIONS_TABLE_NAME);
         onCreate(db);
     }
 
     public void truncateDB(SQLiteDatabase db) {
 
-        db.execSQL("DELETE FROM " + CIRCLES);
-        db.execSQL("DELETE FROM " + SPHERES);
-        db.execSQL("DELETE FROM " + CONTACTS);
-        db.execSQL("DELETE FROM " + REMINDERS);
+        db.execSQL("DELETE FROM " + CIRCLES_TABLE_NAME);
+        db.execSQL("DELETE FROM " + SPHERES_TABLE_NAME);
+        db.execSQL("DELETE FROM " + CONTACTS_TABLE_NAME);
+        db.execSQL("DELETE FROM " + REMINDERS_TABLE_NAME);
+        db.execSQL("DELETE FROM " + NOTIFICATIONS_TABLE_NAME);
         Log.d(TAG, "--- truncateDB ---");
         db.close();
 
@@ -94,7 +111,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
     public String[] getCirclesNames(SQLiteDatabase db) {
         List<String> result = new ArrayList<String>();
-        Cursor c = db.query(CIRCLES, null, null, null, null, null, null);
+        Cursor c = db.query(CIRCLES_TABLE_NAME, null, null, null, null, null, null);
 
         if (c.moveToFirst()) {
             int nameColIndex = c.getColumnIndex("name");
@@ -102,7 +119,9 @@ public class DBHelper extends SQLiteOpenHelper {
                 result.add(c.getString(nameColIndex));
             } while (c.moveToNext());
         }
-        result.add("test circle");
+        for(int i = 0; i< 10; i++){
+            result.add("circle " + i);
+        }
         c.close();
         String[] names = new String[result.size()];
         return result.toArray(names);

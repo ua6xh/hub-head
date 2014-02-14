@@ -32,7 +32,17 @@
         <service
             android:name="com.hubhead.service.SFCommandExecutorService"
             android:exported="false" />
-        <meta-data android:name="com.google.android.gms.version" android:value="4132500" />
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="4132500" />
+        <provider
+            android:name="com.hubhead.contentprovider.NotificationsContentProvider"
+            android:authorities="com.hubhead.contentproviders.NotificationsContentProvider"
+            android:exported="false"/>
+        <provider
+            android:name="com.hubhead.contentprovider.CirclesContentProvider"
+            android:authorities="com.hubhead.contentproviders.CirclesContentProvider"
+            android:exported="false"/>
     </application>
 
 </manifest>

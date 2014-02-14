@@ -27,6 +27,9 @@
 
     <!--ActionBar-->
     <string name="action_sign_out">Sign out</string>
+    <string name="action_refresh">Refresh</string>
+    <string name="action_delete_record">Delete</string>
+    <string name="action_add">Add</string>
 
     <!--Words-->
     <string name="word_or">or</string>

@@ -27,6 +27,9 @@
 
     <!--ActionBar-->
     <string name="action_sign_out">Выйти</string>
+    <string name="action_delete_record">Удалить</string>
+    <string name="action_refresh">Обновить</string>
+    <string name="action_add">Добавить</string>
 
     <!--Words-->
     <string name="word_or">или</string>
