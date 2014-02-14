@@ -13,7 +13,7 @@ import java.util.List;
 public class DBHelper extends SQLiteOpenHelper {
 
     private static final String TAG = "hub-head: DBHelper";
-    private static final int DB_VERSION = 2;
+    private static final int DB_VERSION = 3;
     private static final String DB_NAME = "hubhead";
     private static final String CIRCLES_TABLE_NAME = "circles";
     private static final String SPHERES_TABLE_NAME = "spheres";
@@ -109,21 +109,9 @@ public class DBHelper extends SQLiteOpenHelper {
 
     }
 
-    public String[] getCirclesNames(SQLiteDatabase db) {
-        List<String> result = new ArrayList<String>();
+    public Cursor getAllCircles(SQLiteDatabase db) {
         Cursor c = db.query(CIRCLES_TABLE_NAME, null, null, null, null, null, null);
+        return c;
 
-        if (c.moveToFirst()) {
-            int nameColIndex = c.getColumnIndex("name");
-            do {
-                result.add(c.getString(nameColIndex));
-            } while (c.moveToNext());
-        }
-        for(int i = 0; i< 10; i++){
-            result.add("circle " + i);
-        }
-        c.close();
-        String[] names = new String[result.size()];
-        return result.toArray(names);
     }
 }

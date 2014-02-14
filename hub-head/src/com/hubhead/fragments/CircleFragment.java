@@ -49,10 +49,10 @@ public class CircleFragment extends Fragment {
         mPagerTabStrip.setDrawFullUnderline(true);
 
         int i = getArguments().getInt(ARG_CIRCLE_ID);
-        CirclesActivity circlesActivity = (CirclesActivity) getActivity();
-        String[] names  = circlesActivity.getCirclesTitles();
-        String circle = names[i];
-        getActivity().setTitle(circle);
+//        CirclesActivity circlesActivity = (CirclesActivity) getActivity();
+//        String[] names  = circlesActivity.getCirclesTitles();
+//        String circle = names[i];
+//        getActivity().setTitle(circle);
 
         return rootView;
     }

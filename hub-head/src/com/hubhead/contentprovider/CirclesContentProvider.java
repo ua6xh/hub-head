@@ -45,7 +45,7 @@ public class CirclesContentProvider extends ContentProvider {
     }
 
     private static final String TAG = "CirclesContentProvider";
-    private static final String CIRCLE_NAME = "model_name";
+    private static final String CIRCLE_NAME = "name";
     private static final String CIRCLE_ID = "_id";
     private static final String CIRCLE_TABLE = "circles";
 
@@ -85,7 +85,9 @@ public class CirclesContentProvider extends ContentProvider {
             }
         }
         db = dbHelper.getWritableDatabase();
-        Cursor cursor = db.query(CIRCLE_TABLE, projection, selection, selectionArgs, null, null, sortOrder);
+
+        //Cursor cursor = db.query(CIRCLE_TABLE, projection, selection, selectionArgs, null, null, sortOrder);
+        Cursor cursor = db.rawQuery("SELECT _id, name FROM circles", null);
         // просим ContentResolver уведомлять этот курсор
         // об изменениях данных в CIRCLE_CONTENT_URI
         cursor.setNotificationUri(getContext().getContentResolver(), CIRCLE_CONTENT_URI);
