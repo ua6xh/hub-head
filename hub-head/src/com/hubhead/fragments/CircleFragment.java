@@ -13,11 +13,13 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.hubhead.R;
-import com.hubhead.ui.CirclesActivity;
 
 public class CircleFragment extends Fragment {
     private static final String TAG = "CircleFragment";
-    public static final String ARG_CIRCLES_NAMES = "circles_names";
+    public static final String ARG_CIRCLE_ID = "circle_id";
+    public static final String ARG_CIRCLE_NAME = "circle_name";
+    public int mCircleIdSelected;
+    private String mCircleNameSelected;
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide fragments representing
@@ -26,14 +28,13 @@ public class CircleFragment extends Fragment {
      * state in the process. This is important to conserve memory and is a best practice when
      * allowing navigation between objects in a potentially large collection.
      */
-    TabsCollectionPagerAdapter mTabsCollectionPagerAdapter;
+    private TabsCollectionPagerAdapter mTabsCollectionPagerAdapter;
 
     /**
      * The {@link android.support.v4.view.ViewPager} that will display the object collection.
      */
     ViewPager mViewPager;
 
-    public static final String ARG_CIRCLE_ID = "circle_id";
 
     public CircleFragment() {
     }
@@ -48,11 +49,9 @@ public class CircleFragment extends Fragment {
         PagerTabStrip mPagerTabStrip = (PagerTabStrip) rootView.findViewById(R.id.pager_title_strip);
         mPagerTabStrip.setDrawFullUnderline(true);
 
-        int i = getArguments().getInt(ARG_CIRCLE_ID);
-//        CirclesActivity circlesActivity = (CirclesActivity) getActivity();
-//        String[] names  = circlesActivity.getCirclesTitles();
-//        String circle = names[i];
-//        getActivity().setTitle(circle);
+        mCircleIdSelected = getArguments().getInt(ARG_CIRCLE_ID);
+        mCircleNameSelected = getArguments().getString(ARG_CIRCLE_NAME);
+        getActivity().setTitle(mCircleNameSelected);
 
         return rootView;
     }
@@ -61,7 +60,7 @@ public class CircleFragment extends Fragment {
      * A {@link android.support.v4.app.FragmentStatePagerAdapter} that returns a fragment
      * representing an object in the collection.
      */
-    public static class TabsCollectionPagerAdapter extends FragmentStatePagerAdapter {
+    public class TabsCollectionPagerAdapter extends FragmentStatePagerAdapter {
 
         private final Context mContext;
 
@@ -72,11 +71,16 @@ public class CircleFragment extends Fragment {
 
         @Override
         public Fragment getItem(int i) {
+            Bundle args = getBundleArgs();
             switch (i) {
                 case 0:
-                    return new NotificationsListFragment();
+                    NotificationsListFragment nfr = new NotificationsListFragment();
+                    nfr.setArguments(args);
+                    return nfr;
                 case 1:
-                    return new OverviewListFragment();
+                    OverviewListFragment ofr = new OverviewListFragment();
+                    ofr.setArguments(args);
+                    return ofr;
                 default:
                     return new Fragment();
             }
@@ -98,5 +102,12 @@ public class CircleFragment extends Fragment {
                     return mContext.getResources().getString(R.string.word_undefined).toUpperCase();
             }
         }
+    }
+
+    public Bundle getBundleArgs() {
+        Bundle args = new Bundle();
+        args.putInt(CircleFragment.ARG_CIRCLE_ID, mCircleIdSelected);
+        args.putString(CircleFragment.ARG_CIRCLE_NAME, mCircleNameSelected);
+        return args;
     }
 }

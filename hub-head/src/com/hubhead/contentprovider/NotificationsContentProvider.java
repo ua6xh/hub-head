@@ -14,7 +14,6 @@ import com.hubhead.helpers.DBHelper;
 
 public class NotificationsContentProvider extends ContentProvider {
     static final String AUTHORITY = "com.hubhead.contentproviders.NotificationsContentProvider";
-
     // path
     static final String NOTIFICATIONS_PATH = "notifications";
 
@@ -48,6 +47,7 @@ public class NotificationsContentProvider extends ContentProvider {
     private static final String NOTIFICATION_NAME = "model_name";
     private static final String NOTIFICATION_ID = "_id";
     private static final String NOTIFICATION_TABLE = "notifications";
+    private final String[] mProjection = new String[]{NOTIFICATION_ID, NOTIFICATION_NAME};
 
     DBHelper dbHelper;
     SQLiteDatabase db;
@@ -85,7 +85,7 @@ public class NotificationsContentProvider extends ContentProvider {
             }
         }
         db = dbHelper.getWritableDatabase();
-        Cursor cursor = db.query(NOTIFICATION_TABLE, projection, selection, selectionArgs, null, null, sortOrder);
+        Cursor cursor = db.query(NOTIFICATION_TABLE, mProjection, selection, selectionArgs, null, null, sortOrder);
         // просим ContentResolver уведомлять этот курсор
         // об изменениях данных в NOTIFICATION_CONTENT_URI
         cursor.setNotificationUri(getContext().getContentResolver(), NOTIFICATION_CONTENT_URI);
@@ -128,6 +128,7 @@ public class NotificationsContentProvider extends ContentProvider {
             }
         }
         db = dbHelper.getWritableDatabase();
+        Log.d(TAG, NOTIFICATION_TABLE + " " + selection + " " + selectionArgs);
         int cnt = db.delete(NOTIFICATION_TABLE, selection, selectionArgs);
         getContext().getContentResolver().notifyChange(uri, null);
         return cnt;

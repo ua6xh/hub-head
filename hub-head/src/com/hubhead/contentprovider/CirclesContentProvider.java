@@ -45,9 +45,11 @@ public class CirclesContentProvider extends ContentProvider {
     }
 
     private static final String TAG = "CirclesContentProvider";
-    private static final String CIRCLE_NAME = "name";
     private static final String CIRCLE_ID = "_id";
+    private static final String CIRCLE_NAME = "name";
+    private static final String CIRCLE_COUNT_NOTIFICATIONS = "count_notifications";
     private static final String CIRCLE_TABLE = "circles";
+    private final String[] mProjection = new String[]{CIRCLE_ID, CIRCLE_NAME, CIRCLE_COUNT_NOTIFICATIONS};
 
     DBHelper dbHelper;
     SQLiteDatabase db;
@@ -65,6 +67,7 @@ public class CirclesContentProvider extends ContentProvider {
         switch (uriMatcher.match(uri)) {
             case URI_CIRCLES: // общий Uri
                 Log.d(TAG, "URI_CIRCLES");
+
                 // если сортировка не указана, ставим свою - по имени
                 if (TextUtils.isEmpty(sortOrder)) {
                     sortOrder = CIRCLE_NAME + " ASC";
@@ -86,8 +89,8 @@ public class CirclesContentProvider extends ContentProvider {
         }
         db = dbHelper.getWritableDatabase();
 
-        //Cursor cursor = db.query(CIRCLE_TABLE, projection, selection, selectionArgs, null, null, sortOrder);
-        Cursor cursor = db.rawQuery("SELECT _id, name FROM circles", null);
+        Cursor cursor = db.query(CIRCLE_TABLE, mProjection, selection, selectionArgs, null, null, sortOrder);
+        //Cursor cursor = db.rawQuery("SELECT _id, name FROM circles", null);
         // просим ContentResolver уведомлять этот курсор
         // об изменениях данных в CIRCLE_CONTENT_URI
         cursor.setNotificationUri(getContext().getContentResolver(), CIRCLE_CONTENT_URI);

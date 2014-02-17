@@ -3,7 +3,11 @@ package com.hubhead.fragments;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v4.widget.SimpleCursorAdapter;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -14,33 +18,30 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.hubhead.R;
+import com.hubhead.contentprovider.NotificationsContentProvider;
 
-public class NotificationsListFragment extends android.support.v4.app.ListFragment  {
+public class NotificationsListFragment extends android.support.v4.app.ListFragment implements LoaderManager.LoaderCallbacks<Cursor>  {
 
     private static final int CM_DELETE_ID = 1;
     private static final String TAG = "NotificationsListFragment";
-    private static final Uri NOTIFICATIONS_URI = Uri.parse("content://com.hubhead.contentproviders.NotificationsContentProvider/notifications");
+    private static final int NOTIFICATIONS_LOADER_DELTA = 10000;
+    private SimpleCursorAdapter mNotificationsAdapter;
+    private int mCircleIdSelected;
 
     public NotificationsListFragment() {
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        Cursor cursor = getActivity().getContentResolver().query(NOTIFICATIONS_URI, null, null, null, null);
-        getActivity().startManagingCursor(cursor);
+        mCircleIdSelected = getArguments().getInt(CircleFragment.ARG_CIRCLE_ID);
+        Log.d(TAG, "mCircleIdSelected: " + mCircleIdSelected);
 
-        String from[] = {"model_name"};
-        int to[] = {android.R.id.text1};
-        SimpleCursorAdapter mAdapter = new SimpleCursorAdapter(getActivity(), android.R.layout.simple_list_item_1, cursor, from, to);
+        mNotificationsAdapter = new SimpleCursorAdapter(getActivity(), android.R.layout.simple_list_item_1, null, new String[]{"model_name"}, new int[]{android.R.id.text1}, 0);
+        getActivity().getSupportLoaderManager().initLoader(NOTIFICATIONS_LOADER_DELTA + mCircleIdSelected, null, this);
 
-        /** Setting the list mAdapter for the ListFragment */
-        setListAdapter(mAdapter);
+        /** Setting the list mNotificationsAdapter for the ListFragment */
+        setListAdapter(mNotificationsAdapter);
         return super.onCreateView(inflater, container, savedInstanceState);
-    }
-
-    public void onActivityCreated(Bundle savedState) {
-        registerForContextMenu(getListView());
-        super.onActivityCreated(savedState);
     }
 
     public void onListItemClick(ListView l, View v, int position, long id) {
@@ -65,6 +66,31 @@ public class NotificationsListFragment extends android.support.v4.app.ListFragme
         }
         return super.onContextItemSelected(item);
     }
+
+    public void onActivityCreated(Bundle savedState) {
+        registerForContextMenu(getListView());
+        super.onActivityCreated(savedState);
+    }
     /*----------------------End Create Context Menu --------------------------*/
+
+    /*------------------------------LoaderCallbacks Override---------------------------*/
+    @Override
+    public android.support.v4.content.Loader<Cursor> onCreateLoader(int id, Bundle bundle) {
+
+        String[] args = {Integer.toString(mCircleIdSelected)};
+        Log.d(TAG, "CreateLoader: " + mCircleIdSelected);
+        return new CursorLoader(getActivity(), NotificationsContentProvider.NOTIFICATION_CONTENT_URI, new String[]{"model_name"}, "circle_id=?", args,null);
+    }
+
+    @Override
+    public void onLoaderReset(android.support.v4.content.Loader<Cursor> loader) {
+        mNotificationsAdapter.swapCursor(null);
+    }
+
+    @Override
+    public void onLoadFinished(android.support.v4.content.Loader<Cursor> loader, Cursor cursor) {
+        mNotificationsAdapter.swapCursor(cursor);
+    }
+    /*------------------------------End LoaderCallbacks---------------------------*/
 
 }

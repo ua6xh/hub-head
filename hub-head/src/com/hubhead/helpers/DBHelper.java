@@ -13,7 +13,7 @@ import java.util.List;
 public class DBHelper extends SQLiteOpenHelper {
 
     private static final String TAG = "hub-head: DBHelper";
-    private static final int DB_VERSION = 3;
+    private static final int DB_VERSION = 4;
     private static final String DB_NAME = "hubhead";
     private static final String CIRCLES_TABLE_NAME = "circles";
     private static final String SPHERES_TABLE_NAME = "spheres";
@@ -32,6 +32,7 @@ public class DBHelper extends SQLiteOpenHelper {
             db.execSQL("CREATE TABLE " + CIRCLES_TABLE_NAME + " ("
                     + "_id INTEGER PRIMARY KEY,"
                     + "name TEXT,"
+                    + "count_notifications INTEGER,"
                     + "user_id INTEGER,"
                     + "contact_id INTEGER,"
                     + "status INTEGER"
