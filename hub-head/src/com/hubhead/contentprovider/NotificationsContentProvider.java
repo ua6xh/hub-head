@@ -60,19 +60,16 @@ public class NotificationsContentProvider extends ContentProvider {
 
     // чтение
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
-        Log.d(TAG, "query, " + uri.toString());
         // проверяем Uri
         switch (uriMatcher.match(uri)) {
             case URI_NOTIFICATIONS: // общий Uri
-                Log.d(TAG, "URI_NOTIFICATIONS");
                 // если сортировка не указана, ставим свою - по имени
                 if (TextUtils.isEmpty(sortOrder)) {
-                    sortOrder = NOTIFICATION_NAME + " ASC";
+                    sortOrder = "dt DESC";
                 }
                 break;
             case URI_NOTIFICATIONS_ID: // Uri с ID
                 String id = uri.getLastPathSegment();
-                Log.d(TAG, "URI_NOTIFICATIONS_ID, " + id);
                 // добавляем ID к условию выборки
                 if (TextUtils.isEmpty(selection)) {
                     selection = NOTIFICATION_ID + " = " + id;
