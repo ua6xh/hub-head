@@ -49,7 +49,7 @@ public class CirclesContentProvider extends ContentProvider {
     private static final String CIRCLE_NAME = "name";
     private static final String CIRCLE_COUNT_NOTIFICATIONS = "count_notifications";
     private static final String CIRCLE_TABLE = "circles";
-    private final String[] mProjection = new String[]{CIRCLE_ID, CIRCLE_NAME, CIRCLE_COUNT_NOTIFICATIONS};
+    private final String[] mProjection = new String[]{CIRCLE_ID, CIRCLE_NAME, "(SELECT COUNT(*) FROM notifications n WHERE circles._id = n.circle_id ) as " + CIRCLE_COUNT_NOTIFICATIONS};
 
     DBHelper dbHelper;
     SQLiteDatabase db;
@@ -83,14 +83,15 @@ public class CirclesContentProvider extends ContentProvider {
                     selection = selection + " AND " + CIRCLE_ID + " = " + id;
                 }
                 break;
-            default:{
+            default: {
                 throw new IllegalArgumentException("Wrong URI: " + uri);
             }
         }
         db = dbHelper.getWritableDatabase();
 
+
         Cursor cursor = db.query(CIRCLE_TABLE, mProjection, selection, selectionArgs, null, null, sortOrder);
-        //Cursor cursor = db.rawQuery("SELECT _id, name FROM circles", null);
+        //  Cursor cursor = db.rawQuery("SELECT , name, _id FROM circles c;", null);
         // просим ContentResolver уведомлять этот курсор
         // об изменениях данных в CIRCLE_CONTENT_URI
         cursor.setNotificationUri(getContext().getContentResolver(), CIRCLE_CONTENT_URI);
@@ -105,6 +106,7 @@ public class CirclesContentProvider extends ContentProvider {
 
         db = dbHelper.getWritableDatabase();
         long rowID = db.insert(CIRCLE_TABLE, null, values);
+
         Uri resultUri = ContentUris.withAppendedId(CIRCLE_CONTENT_URI, rowID);
         // уведомляем ContentResolver, что данные по адресу resultUri изменились
         getContext().getContentResolver().notifyChange(resultUri, null);

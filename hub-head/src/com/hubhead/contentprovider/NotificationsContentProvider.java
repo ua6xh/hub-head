@@ -80,7 +80,7 @@ public class NotificationsContentProvider extends ContentProvider {
                     selection = selection + " AND " + NOTIFICATION_ID + " = " + id;
                 }
                 break;
-            default:{
+            default: {
                 throw new IllegalArgumentException("Wrong URI: " + uri);
             }
         }
@@ -103,6 +103,9 @@ public class NotificationsContentProvider extends ContentProvider {
         Uri resultUri = ContentUris.withAppendedId(NOTIFICATION_CONTENT_URI, rowID);
         // уведомляем ContentResolver, что данные по адресу resultUri изменились
         getContext().getContentResolver().notifyChange(resultUri, null);
+        Log.d(TAG, "Insert notification, update circles");
+        getContext().getContentResolver().notifyChange(CirclesContentProvider.CIRCLE_CONTENT_URI, null);
+
         return resultUri;
     }
 
@@ -131,6 +134,8 @@ public class NotificationsContentProvider extends ContentProvider {
         Log.d(TAG, NOTIFICATION_TABLE + " " + selection + " " + selectionArgs);
         int cnt = db.delete(NOTIFICATION_TABLE, selection, selectionArgs);
         getContext().getContentResolver().notifyChange(uri, null);
+        Log.d(TAG, "Delete notification, update circles");
+        getContext().getContentResolver().notifyChange(CirclesContentProvider.CIRCLE_CONTENT_URI, null);
         return cnt;
     }
 

@@ -34,7 +34,7 @@
             android:exported="false" />
         <meta-data
             android:name="com.google.android.gms.version"
-            android:value="4132500" />
+            android:value="4242000" />
         <provider
             android:name="com.hubhead.contentprovider.NotificationsContentProvider"
             android:authorities="com.hubhead.contentproviders.NotificationsContentProvider"

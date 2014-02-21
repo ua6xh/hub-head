@@ -13,6 +13,7 @@
     <string name="error_invalid_email_or_pass">Неверный адрес электронной почты/пароль</string>
     <string name="error_google_account_not_found">Google аккаунт не найден</string>
     <string name="error_invalid_data_response_server">С сервера поступили неверные данные</string>
+    <string name="error_empty_list_notifications">Нет уведомлений</string>
 
     <!--AlertDialogWindow-->
     <string name="alert_dialog_title_error">Ошибка</string>

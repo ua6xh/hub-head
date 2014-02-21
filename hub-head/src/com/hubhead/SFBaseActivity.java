@@ -43,7 +43,6 @@ public abstract class SFBaseActivity extends FragmentActivity implements SFServi
     }
 
 
-
     @Override
     protected void onPause() {
         super.onPause();

@@ -3,14 +3,11 @@ package com.hubhead.ui;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
-import android.content.ContentUris;
-import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -23,25 +20,25 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.test.IsolatedContext;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.Toast;
 
+import com.hubhead.parsers.AllDataStructureJson;
+import com.hubhead.parsers.ParseHelper;
+import com.hubhead.parsers.SaverHelper;
 import com.hubhead.R;
 import com.hubhead.SFBaseActivity;
 import com.hubhead.SFServiceCallbackListener;
 import com.hubhead.contentprovider.CirclesContentProvider;
-import com.hubhead.contentprovider.NotificationsContentProvider;
 import com.hubhead.fragments.CircleFragment;
 import com.hubhead.handlers.impl.LoadCirclesData;
 import com.hubhead.handlers.impl.LoadNotifications;
 import com.hubhead.helpers.DBHelper;
-
-import java.util.Random;
 
 
 public class CirclesActivity extends SFBaseActivity implements SFServiceCallbackListener, ListView.OnItemClickListener, LoaderManager.LoaderCallbacks<Cursor> {
@@ -62,16 +59,18 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
     SimpleCursorAdapter mDrawerAdapter;
     private int mCircleId = -1;
     private int mCircleCountNotifications = 0;
+    private Bundle mSavedInstanceState = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mSavedInstanceState = savedInstanceState;
         setContentView(R.layout.circles_activity);
 
         createNavigationDrawer();
 
         if (savedInstanceState == null) {
-            //loadCirclesDataFromServer();
+            loadCirclesDataFromServer("");
         }
     }
 
@@ -81,7 +80,7 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
 
-        mDrawerAdapter = new SimpleCursorAdapter(this, R.layout.drawer_list_item, null, new String[]{"name","count_notifications"}, new int[]{R.id.text1, R.id.text2}, 0);
+        mDrawerAdapter = new SimpleCursorAdapter(this, R.layout.drawer_list_item, null, new String[]{"name", "count_notifications"}, new int[]{R.id.text1, R.id.text2}, 0);
         getSupportLoaderManager().initLoader(CIRCLE_LOADER_ID, null, this);
 
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
@@ -118,64 +117,61 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         boolean drawerOpen = mDrawerLayout.isDrawerOpen(mDrawerList);
-        menu.findItem(R.id.action_add_circle).setVisible(true);
-        menu.findItem(R.id.action_add_notification).setVisible(!drawerOpen);
         menu.findItem(R.id.action_sign_out).setVisible(!drawerOpen);
         return super.onPrepareOptionsMenu(menu);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // The action bar home/up action should open or close the drawer.
-        // ActionBarDrawerToggle will take care of this.
         if (mDrawerToggle.onOptionsItemSelected(item)) {
             return true;
         }
         // Handle action buttons
         switch (item.getItemId()) {
-            case R.id.action_add_circle: {
-
-                Random r = new Random();
-                int i1 = r.nextInt(1000);
-
-                ContentValues cv = new ContentValues();
-                cv.put("name", "name Circle " + i1);
-                cv.put("_id", i1);
-                Uri newUri2 = getContentResolver().insert(CirclesContentProvider.CIRCLE_CONTENT_URI, cv);
-
-                Toast.makeText(this, "Add actions:" + newUri2.toString(), Toast.LENGTH_SHORT).show();
-                return true;
-            }
-            case R.id.action_add_notification: {
-                ContentValues cv = new ContentValues();
-                cv.put("model_name", "name Notify " + mCircleId);
-                cv.put("circle_id", mCircleId);
-                Uri newUri = getContentResolver().insert(NotificationsContentProvider.NOTIFICATION_CONTENT_URI, cv);
-                Toast.makeText(this, "Add actions:" + newUri.toString(), Toast.LENGTH_SHORT).show();
-
-                cv = new ContentValues();
-                cv.put("count_notifications", ++mCircleCountNotifications);
-                Uri itemUri = ContentUris.withAppendedId(CirclesContentProvider.CIRCLE_CONTENT_URI, mCircleId);
-                int cnt = getContentResolver().update(itemUri, cv, null, null);
-
-                Toast.makeText(this, "Update circle:" + cnt, Toast.LENGTH_SHORT).show();
-                Toast.makeText(this, "Update circle:" + cnt, Toast.LENGTH_SHORT).show();
-                return true;
-            }
+//            case R.id.action_add_circle: {
+//
+//                Random r = new Random();
+//                int i1 = r.nextInt(1000);
+//
+//                ContentValues cv = new ContentValues();
+//                cv.put("name", "name Circle " + i1);
+//                cv.put("_id", i1);
+//                Uri newUri2 = getContentResolver().insert(CirclesContentProvider.CIRCLE_CONTENT_URI, cv);
+//
+//                Toast.makeText(this, "Add actions:" + newUri2.toString(), Toast.LENGTH_SHORT).show();
+//                return true;
+//            }
+//            case R.id.action_add_notification: {
+//                ContentValues cv = new ContentValues();
+//                cv.put("model_name", "name Notify " + mCircleId);
+//                cv.put("circle_id", mCircleId);
+//                Uri newUri = getContentResolver().insert(NotificationsContentProvider.NOTIFICATION_CONTENT_URI, cv);
+//                Toast.makeText(this, "Add actions:" + newUri.toString(), Toast.LENGTH_SHORT).show();
+//
+//                cv = new ContentValues();
+//                cv.put("count_notifications", ++mCircleCountNotifications);
+//                Uri itemUri = ContentUris.withAppendedId(CirclesContentProvider.CIRCLE_CONTENT_URI, mCircleId);
+//                int cnt = getContentResolver().update(itemUri, cv, null, null);
+//                return true;
+//            }
             case R.id.action_sign_out: {
-                SharedPreferences.Editor editor = this.getSharedPreferences(MY_PREF, IsolatedContext.MODE_PRIVATE).edit();
-                editor.clear();
-                editor.commit();
-                DBHelper mDbHelper = new DBHelper(this);
-                mDbHelper.truncateDB(mDbHelper.getWritableDatabase());
-                Intent intent = new Intent(this, AuthActivity.class);
-                startActivity(intent);
-                finish();
+                signOutAction();
                 return true;
             }
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    private void signOutAction() {
+        SharedPreferences.Editor editor = this.getSharedPreferences(MY_PREF, IsolatedContext.MODE_PRIVATE).edit();
+        editor.clear();
+        editor.commit();
+        DBHelper mDbHelper = new DBHelper(this);
+        mDbHelper.truncateDB(mDbHelper.getWritableDatabase());
+        Intent intent = new Intent(this, AuthActivity.class);
+        startActivity(intent);
+        finish();
     }
 
     @Override
@@ -189,7 +185,7 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         int columnIndexName = cursor.getColumnIndex("name");
         int columnIndexCount = cursor.getColumnIndex("count_notifications");
         // update the main content by replacing fragments
-        mCircleId = cursor.getInt(columnIndexId);
+        mCircleId = cursor.getInt(columnIndexId);//
         mCircleCountNotifications = cursor.getInt(columnIndexCount);
         String circleName = cursor.getString(columnIndexName);
         CircleFragment circleFragment = new CircleFragment();
@@ -203,7 +199,7 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
 
         // update selected item and title, then close the drawer
         mDrawerList.setItemChecked(position, true);
-        //setTitle(mCirclesTitles[position]);
+        setTitle(circleName);
         mDrawerLayout.closeDrawer(mDrawerList);
     }
 
@@ -231,6 +227,14 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         // Загрузка кругов
         if (getServiceHelper().check(requestIntent, LoadCirclesData.class)) {
             if (resultCode == LoadCirclesData.RESPONSE_SUCCESS) {
+                AllDataStructureJson allDataStructureJson = ParseHelper.parseAllData(resultData.getString("response"));
+                SaverHelper saverHelper = new SaverHelper(this);
+                saverHelper.saveCircles(allDataStructureJson.data.circles);
+                saverHelper.saveSpheres(allDataStructureJson.data.spheres);
+//                saverHelper.saveContacts(allDataStructureJson.data.contacts);
+//                saverHelper.saveReminders(allDataStructureJson.data.reminders);
+                setSharedPrefUpdateTime(Long.toString(allDataStructureJson.data.last_get_time));
+
                 dismissProgressDialog(PROGRESS_DIALOG_LOAD_CIRCLES_DATA);
                 loadNotificationsFromServer();
             } else if (resultCode == LoadCirclesData.RESPONSE_FAILURE) {
@@ -242,12 +246,24 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         // Загрузка уведомлений
         if (getServiceHelper().check(requestIntent, LoadNotifications.class)) {
             if (resultCode == LoadNotifications.RESPONSE_SUCCESS) {
+                ParseHelper parseHelper = new ParseHelper(this);
+                parseHelper.parseNotifications(resultData.getString("response"));
                 dismissProgressDialog(PROGRESS_DIALOG_LOAD_NOTIFICATIONS);
             } else if (resultCode == LoadNotifications.RESPONSE_FAILURE) {
                 dismissProgressDialog(PROGRESS_DIALOG_LOAD_NOTIFICATIONS);
                 сreateAlertDialogSingIn(this.getResources().getString(R.string.alert_dialog_title_error), resultData.getString("error"));
             }
         }
+    }
+
+    private void setSharedPrefUpdateTime(String update_time) {
+        SharedPreferences.Editor editor = this.getSharedPreferences(MY_PREF, IsolatedContext.MODE_PRIVATE).edit();
+        editor.putString("update_time", update_time);
+        editor.commit();
+    }
+
+    private String getSharedPrefUpdateTime() {
+        return getSharedPreferences(MY_PREF, IsolatedContext.MODE_PRIVATE).getString("update_time", "");
     }
 
 
@@ -265,10 +281,10 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         alert.show();
     }
 
-    private void loadCirclesDataFromServer() {
+    private void loadCirclesDataFromServer(String updateTime) {
         ProgressDialogFragment progress = new ProgressDialogFragment(this.getResources().getString(R.string.alert_dialog_message_load_circles_data));
         progress.show(getSupportFragmentManager(), PROGRESS_DIALOG_LOAD_CIRCLES_DATA);
-        mRequestCirclesDataId = getServiceHelper().loadCirclesDataFromServer();
+        mRequestCirclesDataId = getServiceHelper().loadCirclesDataFromServer(updateTime);
     }
 
     private void loadNotificationsFromServer() {
@@ -289,6 +305,8 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         }
 
         getSupportLoaderManager().restartLoader(CIRCLE_LOADER_ID, null, CirclesActivity.this);
+        Log.d(TAG, "onResume:invalidateOptionsMenu");
+        invalidateOptionsMenu();
     }
 
     /*------------------------------LoaderCallbacks Override---------------------------*/
@@ -305,7 +323,7 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
     @Override
     public void onLoadFinished(android.support.v4.content.Loader<Cursor> loader, Cursor cursor) {
         mDrawerAdapter.swapCursor(cursor);
-        if(cursor.getCount()>0 && mCircleId == -1){
+        if (cursor.getCount() > 0 && mCircleId == -1) {
             handler.sendEmptyMessage(2);
         }
     }
@@ -367,11 +385,12 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
     private Handler handler = new Handler()  // handler for commiting fragment after data is loaded
     {
         @Override
-        public void handleMessage(Message msg)
-        {
-            if(msg.what == 2)
-            {
-                selectItem(0);
+        public void handleMessage(Message msg) {
+            if (msg.what == 2) {
+                if(mSavedInstanceState == null){
+                    selectItem(0);
+                }
+                invalidateOptionsMenu();
             }
         }
     };

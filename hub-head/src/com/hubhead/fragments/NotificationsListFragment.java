@@ -1,11 +1,13 @@
 package com.hubhead.fragments;
 
+import android.content.ContentUris;
+import android.content.ContentValues;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
-import android.support.v4.content.Loader;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -18,9 +20,11 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.hubhead.R;
+import com.hubhead.contentprovider.CirclesContentProvider;
 import com.hubhead.contentprovider.NotificationsContentProvider;
+import com.hubhead.helpers.DBHelper;
 
-public class NotificationsListFragment extends android.support.v4.app.ListFragment implements LoaderManager.LoaderCallbacks<Cursor>  {
+public class NotificationsListFragment extends android.support.v4.app.ListFragment implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private static final int CM_DELETE_ID = 1;
     private static final String TAG = "NotificationsListFragment";
@@ -62,12 +66,19 @@ public class NotificationsListFragment extends android.support.v4.app.ListFragme
             AdapterView.AdapterContextMenuInfo acmi = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
             // извлекаем id записи и удаляем соответствующую запись в БД
             Toast.makeText(getActivity(), "Id record:" + acmi.id, Toast.LENGTH_SHORT).show();
+
+            Uri itemUri = ContentUris.withAppendedId(NotificationsContentProvider.NOTIFICATION_CONTENT_URI, acmi.id);
+            getActivity().getContentResolver().delete(itemUri, null, null);
+            Log.d(TAG, "Delete notification: " + acmi.id);
+
+
             return true;
         }
         return super.onContextItemSelected(item);
     }
 
     public void onActivityCreated(Bundle savedState) {
+        setEmptyText(getActivity().getResources().getString(R.string.error_empty_list_notifications));
         registerForContextMenu(getListView());
         super.onActivityCreated(savedState);
     }
@@ -79,7 +90,7 @@ public class NotificationsListFragment extends android.support.v4.app.ListFragme
 
         String[] args = {Integer.toString(mCircleIdSelected)};
         Log.d(TAG, "CreateLoader: " + mCircleIdSelected);
-        return new CursorLoader(getActivity(), NotificationsContentProvider.NOTIFICATION_CONTENT_URI, new String[]{"model_name"}, "circle_id=?", args,null);
+        return new CursorLoader(getActivity(), NotificationsContentProvider.NOTIFICATION_CONTENT_URI, new String[]{"model_name"}, "circle_id=?", args, null);
     }
 
     @Override

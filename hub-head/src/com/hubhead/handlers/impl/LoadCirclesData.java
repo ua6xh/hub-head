@@ -40,7 +40,7 @@ public class LoadCirclesData extends SFHttpCommand {
         HashMap<String, String> postData = new HashMap<String, String>();
         String response = "";
 
-        if(!mUpdateTime.isEmpty()) {
+        if (!mUpdateTime.isEmpty()) {
             postData.put("update_time", mUpdateTime);
         }
         response = sendHttpQuery(DOMAINE + "/api/get-all-data", postData, context);

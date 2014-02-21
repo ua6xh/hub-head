@@ -13,6 +13,7 @@
     <string name="error_invalid_email_or_pass">Invalid email/password</string>
     <string name="error_google_account_not_found">Stored Google accounts not found</string>
     <string name="error_invalid_data_response_server">Invalid data response server</string>
+    <string name="error_empty_list_notifications">Empty notifications</string>
 
     <!--AlertDialogWindow-->
     <string name="alert_dialog_title_error">Error</string>

@@ -72,9 +72,10 @@ public class SFServiceHelper {
         return runRequest(requestId, i);
     }
 
-    public int loadCirclesDataFromServer() {
+    public int loadCirclesDataFromServer(String updateTime) {
         final int requestId = createId();
-        Intent i = createIntent(application, new LoadCirclesData("update_time"), requestId);
+
+        Intent i = createIntent(application, new LoadCirclesData(updateTime), requestId);
         return runRequest(requestId, i);
     }
 

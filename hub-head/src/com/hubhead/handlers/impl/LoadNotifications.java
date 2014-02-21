@@ -36,7 +36,7 @@ public class LoadNotifications extends SFHttpCommand {
         Bundle data = new Bundle();
 
 
-        String response = sendHttpQuery(url, new HashMap<String,String>(), context);
+        String response = sendHttpQuery(url, new HashMap<String, String>(), context);
 
         if (response.isEmpty()) {
             data.putString("error", "Empty notifications");

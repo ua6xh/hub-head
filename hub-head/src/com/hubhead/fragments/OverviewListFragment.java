@@ -8,7 +8,8 @@ import android.widget.ArrayAdapter;
 
 public class OverviewListFragment extends android.support.v4.app.ListFragment {
 
-    public OverviewListFragment(){}
+    public OverviewListFragment() {
+    }
 
     String[] overviews = new String[]{"O1", "O2", "O2", "O2", "O2", "O2", "O2", "O2", "O2", "O2", "O2", "O2", "O2", "O2", "O2", "O2", "O2", "O2", "O2", "O2", "O2", "O2"};
 

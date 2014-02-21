@@ -104,7 +104,7 @@ public class AuthActivity extends SFBaseActivity implements OnEditorActionListen
         mRequestAuthId = getServiceHelper().signInAction(mEditEmail.getText().toString(), mEditPassword.getText().toString());
     }
 
-    private void startMainActivity(){
+    private void startMainActivity() {
         Intent i = new Intent(this, CirclesActivity.class);
         startActivity(i);
         finish();
@@ -172,7 +172,7 @@ public class AuthActivity extends SFBaseActivity implements OnEditorActionListen
     public static class ProgressDialogFragment extends DialogFragment {
         private String mMessage = "";
 
-        public ProgressDialogFragment(){
+        public ProgressDialogFragment() {
 
         }
 
@@ -311,10 +311,10 @@ public class AuthActivity extends SFBaseActivity implements OnEditorActionListen
     }
 
     private void dismissProgressDialog(String tag) {
-            ProgressDialogFragment progress = (ProgressDialogFragment) getSupportFragmentManager().findFragmentByTag(tag);
-            if (progress != null) {
-                progress.dismiss();
-            }
+        ProgressDialogFragment progress = (ProgressDialogFragment) getSupportFragmentManager().findFragmentByTag(tag);
+        if (progress != null) {
+            progress.dismiss();
+        }
     }
 
     private final TextWatcher mTextWatcher = new TextWatcher() {

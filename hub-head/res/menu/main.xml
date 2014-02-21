@@ -5,14 +5,4 @@
         android:id="@+id/action_sign_out"
         android:title="@string/action_sign_out"
         android:showAsAction="never" />
-    <item
-        android:id="@+id/action_add_circle"
-        android:title="@string/action_add"
-        android:showAsAction="always"
-        android:icon="@android:drawable/ic_menu_add" />
-    <item
-        android:id="@+id/action_add_notification"
-        android:title="@string/action_add"
-        android:showAsAction="always"
-        android:icon="@android:drawable/ic_input_add" />
 </menu>
