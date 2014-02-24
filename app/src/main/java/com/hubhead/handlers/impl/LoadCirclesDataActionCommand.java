@@ -26,12 +26,15 @@ import android.util.Log;
 
 import com.hubhead.R;
 import com.hubhead.handlers.SFHttpCommand;
+import com.hubhead.parsers.AllDataStructureJson;
+import com.hubhead.parsers.ParseHelper;
+import com.hubhead.parsers.SaverHelper;
 
 import java.util.HashMap;
 
-public class LoadCirclesData extends SFHttpCommand {
+public class LoadCirclesDataActionCommand extends SFHttpCommand {
 
-    private static final String TAG = "LoadCirclesData";
+    private static final String TAG = "LoadCirclesDataActionCommand";
     private String mUpdateTime;
 
 
@@ -52,6 +55,13 @@ public class LoadCirclesData extends SFHttpCommand {
         } else if (checkResponse(response)) {
             data.putString("data", "ok");
             data.putString("response", response);
+            AllDataStructureJson allDataStructureJson = ParseHelper.parseAllData(response);
+            SaverHelper saverHelper = new SaverHelper(context);
+            saverHelper.saveCircles(allDataStructureJson.data.circles);
+            saverHelper.saveSpheres(allDataStructureJson.data.spheres);
+//                saverHelper.saveContacts(allDataStructureJson.data.contacts);
+//                saverHelper.saveReminders(allDataStructureJson.data.reminders);
+            //setSharedPrefUpdateTime(Long.toString(allDataStructureJson.data.last_get_time));
             notifySuccess(data);
         } else {
             data.putString("error", context.getResources().getString(R.string.error_invalid_email_or_pass));
@@ -70,21 +80,21 @@ public class LoadCirclesData extends SFHttpCommand {
         dest.writeString(mUpdateTime);
     }
 
-    public static final Parcelable.Creator<LoadCirclesData> CREATOR = new Parcelable.Creator<LoadCirclesData>() {
-        public LoadCirclesData createFromParcel(Parcel in) {
-            return new LoadCirclesData(in);
+    public static final Parcelable.Creator<LoadCirclesDataActionCommand> CREATOR = new Parcelable.Creator<LoadCirclesDataActionCommand>() {
+        public LoadCirclesDataActionCommand createFromParcel(Parcel in) {
+            return new LoadCirclesDataActionCommand(in);
         }
 
-        public LoadCirclesData[] newArray(int size) {
-            return new LoadCirclesData[size];
+        public LoadCirclesDataActionCommand[] newArray(int size) {
+            return new LoadCirclesDataActionCommand[size];
         }
     };
 
-    private LoadCirclesData(Parcel in) {
+    private LoadCirclesDataActionCommand(Parcel in) {
         mUpdateTime = in.readString();
     }
 
-    public LoadCirclesData(String arg1) {
+    public LoadCirclesDataActionCommand(String arg1) {
         this.mUpdateTime = arg1;
     }
 

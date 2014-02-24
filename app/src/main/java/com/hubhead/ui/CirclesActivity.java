@@ -33,8 +33,8 @@ import com.hubhead.SFBaseActivity;
 import com.hubhead.SFServiceCallbackListener;
 import com.hubhead.contentprovider.CirclesContentProvider;
 import com.hubhead.fragments.CircleFragment;
-import com.hubhead.handlers.impl.LoadCirclesData;
-import com.hubhead.handlers.impl.LoadNotifications;
+import com.hubhead.handlers.impl.LoadCirclesDataActionCommand;
+import com.hubhead.handlers.impl.LoadNotificationsActionCommand;
 import com.hubhead.helpers.DBHelper;
 import com.hubhead.parsers.AllDataStructureJson;
 import com.hubhead.parsers.ParseHelper;
@@ -58,7 +58,6 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
 
     SimpleCursorAdapter mDrawerAdapter;
     private int mCircleId = -1;
-    private int mCircleCountNotifications = 0;
     private Bundle mSavedInstanceState = null;
 
     @Override
@@ -183,10 +182,8 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         Cursor cursor = (Cursor) mDrawerAdapter.getItem(position);
         int columnIndexId = cursor.getColumnIndex("_id");
         int columnIndexName = cursor.getColumnIndex("name");
-        int columnIndexCount = cursor.getColumnIndex("count_notifications");
         // update the main content by replacing fragments
         mCircleId = cursor.getInt(columnIndexId);//
-        mCircleCountNotifications = cursor.getInt(columnIndexCount);
         String circleName = cursor.getString(columnIndexName);
         CircleFragment circleFragment = new CircleFragment();
         Bundle args = new Bundle();
@@ -225,31 +222,21 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
     @Override
     public void onServiceCallback(int requestId, Intent requestIntent, int resultCode, Bundle resultData) {
         // Загрузка кругов
-        if (getServiceHelper().check(requestIntent, LoadCirclesData.class)) {
-            if (resultCode == LoadCirclesData.RESPONSE_SUCCESS) {
-                AllDataStructureJson allDataStructureJson = ParseHelper.parseAllData(resultData.getString("response"));
-                SaverHelper saverHelper = new SaverHelper(this);
-                saverHelper.saveCircles(allDataStructureJson.data.circles);
-                saverHelper.saveSpheres(allDataStructureJson.data.spheres);
-//                saverHelper.saveContacts(allDataStructureJson.data.contacts);
-//                saverHelper.saveReminders(allDataStructureJson.data.reminders);
-                setSharedPrefUpdateTime(Long.toString(allDataStructureJson.data.last_get_time));
-
+        if (getServiceHelper().check(requestIntent, LoadCirclesDataActionCommand.class)) {
+            if (resultCode == LoadCirclesDataActionCommand.RESPONSE_SUCCESS) {
                 dismissProgressDialog(PROGRESS_DIALOG_LOAD_CIRCLES_DATA);
                 loadNotificationsFromServer();
-            } else if (resultCode == LoadCirclesData.RESPONSE_FAILURE) {
+            } else if (resultCode == LoadCirclesDataActionCommand.RESPONSE_FAILURE) {
                 dismissProgressDialog(PROGRESS_DIALOG_LOAD_CIRCLES_DATA);
                 сreateAlertDialogSingIn(this.getResources().getString(R.string.alert_dialog_title_error), resultData.getString("error"));
             }
         }
 
         // Загрузка уведомлений
-        if (getServiceHelper().check(requestIntent, LoadNotifications.class)) {
-            if (resultCode == LoadNotifications.RESPONSE_SUCCESS) {
-                ParseHelper parseHelper = new ParseHelper(this);
-                parseHelper.parseNotifications(resultData.getString("response"));
+        if (getServiceHelper().check(requestIntent, LoadNotificationsActionCommand.class)) {
+            if (resultCode == LoadNotificationsActionCommand.RESPONSE_SUCCESS) {
                 dismissProgressDialog(PROGRESS_DIALOG_LOAD_NOTIFICATIONS);
-            } else if (resultCode == LoadNotifications.RESPONSE_FAILURE) {
+            } else if (resultCode == LoadNotificationsActionCommand.RESPONSE_FAILURE) {
                 dismissProgressDialog(PROGRESS_DIALOG_LOAD_NOTIFICATIONS);
                 сreateAlertDialogSingIn(this.getResources().getString(R.string.alert_dialog_title_error), resultData.getString("error"));
             }
@@ -379,7 +366,6 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         if (progress != null) {
             progress.dismiss();
         }
-
     }
 
     private Handler handler = new Handler()  // handler for commiting fragment after data is loaded

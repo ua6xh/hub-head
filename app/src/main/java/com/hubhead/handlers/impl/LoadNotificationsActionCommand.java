@@ -24,12 +24,13 @@ import android.os.Parcelable;
 import android.os.ResultReceiver;
 
 import com.hubhead.handlers.SFHttpCommand;
+import com.hubhead.parsers.ParseHelper;
 
 import java.util.HashMap;
 
-public class LoadNotifications extends SFHttpCommand {
+public class LoadNotificationsActionCommand extends SFHttpCommand {
 
-    private static final String TAG = "LoadNotifications";
+    private static final String TAG = "LoadNotificationsActionCommand";
     String url = DOMAINE + "/api/get-notifications";
 
     @Override
@@ -45,6 +46,8 @@ public class LoadNotifications extends SFHttpCommand {
         } else {
             data.putString("data", "ok");
             data.putString("response", response);
+            ParseHelper parseHelper = new ParseHelper(context);
+            parseHelper.parseNotifications(response);
             notifySuccess(data);
         }
     }
@@ -59,20 +62,20 @@ public class LoadNotifications extends SFHttpCommand {
     public void writeToParcel(Parcel dest, int flags) {
     }
 
-    public static final Parcelable.Creator<LoadNotifications> CREATOR = new Parcelable.Creator<LoadNotifications>() {
-        public LoadNotifications createFromParcel(Parcel in) {
-            return new LoadNotifications(in);
+    public static final Parcelable.Creator<LoadNotificationsActionCommand> CREATOR = new Parcelable.Creator<LoadNotificationsActionCommand>() {
+        public LoadNotificationsActionCommand createFromParcel(Parcel in) {
+            return new LoadNotificationsActionCommand(in);
         }
 
-        public LoadNotifications[] newArray(int size) {
-            return new LoadNotifications[size];
+        public LoadNotificationsActionCommand[] newArray(int size) {
+            return new LoadNotificationsActionCommand[size];
         }
     };
 
-    private LoadNotifications(Parcel in) {
+    private LoadNotificationsActionCommand(Parcel in) {
     }
 
-    public LoadNotifications() {
+    public LoadNotificationsActionCommand() {
     }
 
 

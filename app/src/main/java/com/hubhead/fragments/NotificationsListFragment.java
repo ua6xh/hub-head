@@ -1,6 +1,7 @@
 package com.hubhead.fragments;
 
 import android.content.ContentUris;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -15,19 +16,31 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.hubhead.R;
+import com.hubhead.SFBaseListFragment;
+import com.hubhead.SFServiceCallbackListener;
 import com.hubhead.contentprovider.NotificationsContentProvider;
+import com.hubhead.handlers.impl.RefreshNotificationsActionCommand;
+import com.hubhead.parsers.ParseHelper;
+
+import uk.co.senab.actionbarpulltorefresh.library.ActionBarPullToRefresh;
+import uk.co.senab.actionbarpulltorefresh.library.PullToRefreshLayout;
+import uk.co.senab.actionbarpulltorefresh.library.listeners.OnRefreshListener;
+import uk.co.senab.actionbarpulltorefresh.library.viewdelegates.ViewDelegate;
 
 
-public class NotificationsListFragment extends android.support.v4.app.ListFragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class NotificationsListFragment extends SFBaseListFragment implements LoaderManager.LoaderCallbacks<Cursor>, OnRefreshListener, SFServiceCallbackListener {
 
     private static final int CM_DELETE_ID = 1;
     private static final String TAG = "NotificationsListFragment";
     private static final int NOTIFICATIONS_LOADER_DELTA = 10000;
     private SimpleCursorAdapter mNotificationsAdapter;
     private int mCircleIdSelected;
+    private PullToRefreshLayout mPullToRefreshLayout;
+    private int mRequestRefreshNotificationsId = -1;
 
 
     public NotificationsListFragment() {
@@ -47,6 +60,21 @@ public class NotificationsListFragment extends android.support.v4.app.ListFragme
         super.onViewCreated(view, savedInstanceState);
         Log.d(TAG, "onViewCreated");
         setEmptyText(getActivity().getResources().getString(R.string.error_empty_list_notifications));
+
+        ViewGroup viewGroup = (ViewGroup) view;
+        mPullToRefreshLayout = new PullToRefreshLayout(viewGroup.getContext());
+        ActionBarPullToRefresh.from(getActivity())
+                .insertLayoutInto(viewGroup)
+                .theseChildrenArePullable(getListView(), getListView().getEmptyView())
+                .listener(this)
+                .useViewDelegate(TextView.class, new ViewDelegate() {
+                    @Override
+                    public boolean isReadyForPull(View view, float x, float y) {
+                        Log.d(TAG, "isReadyForPull");
+                        return true;
+                    }
+                })
+                .setup(mPullToRefreshLayout);
     }
 
     /*----------------------Create Context Menu --------------------------*/
@@ -103,5 +131,32 @@ public class NotificationsListFragment extends android.support.v4.app.ListFragme
     public void onLoadFinished(android.support.v4.content.Loader<Cursor> loader, Cursor cursor) {
         mNotificationsAdapter.swapCursor(cursor);
     }
+
     /*------------------------------End LoaderCallbacks---------------------------*/
+
+    @Override
+    public void onRefreshStarted(View view) {
+        mRequestRefreshNotificationsId = getServiceHelper().refreshNotificationsFromServer();
+    }
+
+
+    @Override
+    public void onServiceCallback(int requestId, Intent requestIntent, int resultCode, Bundle resultData) {
+        if (getServiceHelper().check(requestIntent, RefreshNotificationsActionCommand.class)) {
+            if (resultCode == RefreshNotificationsActionCommand.RESPONSE_SUCCESS) {
+                mPullToRefreshLayout.setRefreshComplete();
+                Toast.makeText(getActivity(), "Good", Toast.LENGTH_SHORT).show();
+            } else if (resultCode == RefreshNotificationsActionCommand.RESPONSE_FAILURE) {
+                Toast.makeText(getActivity(), "Error", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (mRequestRefreshNotificationsId != -1 && !getServiceHelper().isPending(mRequestRefreshNotificationsId)) {
+            mPullToRefreshLayout.setRefreshComplete();
+        }
+    }
 }

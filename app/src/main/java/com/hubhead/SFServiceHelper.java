@@ -28,8 +28,9 @@ import android.util.SparseArray;
 import com.hubhead.handlers.SFBaseCommand;
 import com.hubhead.handlers.impl.AuthActionCommand;
 import com.hubhead.handlers.impl.AuthGoogleActionCommand;
-import com.hubhead.handlers.impl.LoadCirclesData;
-import com.hubhead.handlers.impl.LoadNotifications;
+import com.hubhead.handlers.impl.LoadCirclesDataActionCommand;
+import com.hubhead.handlers.impl.LoadNotificationsActionCommand;
+import com.hubhead.handlers.impl.RefreshNotificationsActionCommand;
 import com.hubhead.service.SFCommandExecutorService;
 
 import java.util.ArrayList;
@@ -74,14 +75,18 @@ public class SFServiceHelper {
 
     public int loadCirclesDataFromServer(String updateTime) {
         final int requestId = createId();
-
-        Intent i = createIntent(application, new LoadCirclesData(updateTime), requestId);
+        Intent i = createIntent(application, new LoadCirclesDataActionCommand(updateTime), requestId);
         return runRequest(requestId, i);
     }
 
     public int loadNotificationsFromServer() {
         final int requestId = createId();
-        Intent i = createIntent(application, new LoadNotifications(), requestId);
+        Intent i = createIntent(application, new LoadNotificationsActionCommand(), requestId);
+        return runRequest(requestId, i);
+    }
+    public int refreshNotificationsFromServer() {
+        final int requestId = createId();
+        Intent i = createIntent(application, new RefreshNotificationsActionCommand(), requestId);
         return runRequest(requestId, i);
     }
 
