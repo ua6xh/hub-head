@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="alert_dialog_title_error">Error</string>
+    <string name="alert_dialog_title_notice">Notice</string>
+    <string name="alert_dialog_title_select_google_account">Select Google account</string>
+    <string name="alert_dialog_close_button">Close</string>
+    <string name="alert_dialog_message_signing_process">Sign in…</string>
+    <string name="alert_dialog_message_signing_google_process">Sign in with Google…</string>
+    <string name="alert_dialog_message_load_circles_data">Load circles data…</string>
+    <string name="alert_dialog_message_load_notifications">Load notifications…</string>
+    <string name="alert_dialog_message_invalid_google_auth">Invalid Google authorization</string>
+</resources>

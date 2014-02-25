@@ -4,6 +4,7 @@ import android.content.ContentUris;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.nfc.Tag;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -24,7 +25,6 @@ import com.hubhead.SFBaseListFragment;
 import com.hubhead.SFServiceCallbackListener;
 import com.hubhead.contentprovider.NotificationsContentProvider;
 import com.hubhead.handlers.impl.RefreshNotificationsActionCommand;
-import com.hubhead.parsers.ParseHelper;
 
 import uk.co.senab.actionbarpulltorefresh.library.ActionBarPullToRefresh;
 import uk.co.senab.actionbarpulltorefresh.library.PullToRefreshLayout;
@@ -40,7 +40,7 @@ public class NotificationsListFragment extends SFBaseListFragment implements Loa
     private SimpleCursorAdapter mNotificationsAdapter;
     private int mCircleIdSelected;
     private PullToRefreshLayout mPullToRefreshLayout;
-    private int mRequestRefreshNotificationsId = -1;
+    private static int mRequestRefreshNotificationsId = -1;
 
 
     public NotificationsListFragment() {
@@ -102,7 +102,6 @@ public class NotificationsListFragment extends SFBaseListFragment implements Loa
 
             Uri itemUri = ContentUris.withAppendedId(NotificationsContentProvider.NOTIFICATION_CONTENT_URI, acmi.id);
             getActivity().getContentResolver().delete(itemUri, null, null);
-
             return true;
         }
         return super.onContextItemSelected(item);
@@ -137,6 +136,7 @@ public class NotificationsListFragment extends SFBaseListFragment implements Loa
     @Override
     public void onRefreshStarted(View view) {
         mRequestRefreshNotificationsId = getServiceHelper().refreshNotificationsFromServer();
+        Log.d(TAG, "mRequestRefreshNotificationsId:" + mRequestRefreshNotificationsId);
     }
 
 
@@ -155,8 +155,18 @@ public class NotificationsListFragment extends SFBaseListFragment implements Loa
     @Override
     public void onResume() {
         super.onResume();
+        Log.d(TAG, "Resume mRequestRefreshNotificationsId:" + mRequestRefreshNotificationsId);
+        Log.d(TAG, "onResume 1");
         if (mRequestRefreshNotificationsId != -1 && !getServiceHelper().isPending(mRequestRefreshNotificationsId)) {
+            Log.d(TAG, "onResume 2");
             mPullToRefreshLayout.setRefreshComplete();
+        } else if(mRequestRefreshNotificationsId != -1 && getServiceHelper().isPending(mRequestRefreshNotificationsId)){
+            Log.d(TAG, "onResume 3");
+            Toast.makeText(getActivity(), "Refresh", Toast.LENGTH_LONG).show();
+            mPullToRefreshLayout.setRefreshing(true);
+        } else{
+            Log.d(TAG, "onResume 4");
         }
+        Log.d(TAG, "onResume 5");
     }
 }

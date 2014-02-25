@@ -36,9 +36,6 @@ import com.hubhead.fragments.CircleFragment;
 import com.hubhead.handlers.impl.LoadCirclesDataActionCommand;
 import com.hubhead.handlers.impl.LoadNotificationsActionCommand;
 import com.hubhead.helpers.DBHelper;
-import com.hubhead.parsers.AllDataStructureJson;
-import com.hubhead.parsers.ParseHelper;
-import com.hubhead.parsers.SaverHelper;
 
 
 public class CirclesActivity extends SFBaseActivity implements SFServiceCallbackListener, ListView.OnItemClickListener, LoaderManager.LoaderCallbacks<Cursor> {
@@ -56,7 +53,7 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
     private int mRequestCirclesDataId = -1;
     private int mRequestNotificationsId = -1;
 
-    SimpleCursorAdapter mDrawerAdapter;
+    private SimpleCursorAdapter mDrawerAdapter;
     private int mCircleId = -1;
     private Bundle mSavedInstanceState = null;
 

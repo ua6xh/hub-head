@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="alert_dialog_title_error">Ошибка</string>
+    <string name="alert_dialog_title_notice">Уведомление</string>
+    <string name="alert_dialog_title_select_google_account">Выберите Google аккаунт</string>
+    <string name="alert_dialog_close_button">Закрыть</string>
+    <string name="alert_dialog_message_signing_process">Выполняется вход…</string>
+    <string name="alert_dialog_message_signing_google_process">Выполняется вход в Google…</string>
+    <string name="alert_dialog_message_load_circles_data">Загрузка кругов…</string>
+    <string name="alert_dialog_message_load_notifications">Загрузка уведомлений…</string>
+    <string name="alert_dialog_message_invalid_google_auth">Ошибка авторизации Google</string>
+</resources>

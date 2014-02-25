@@ -3,6 +3,7 @@ package com.hubhead.models;
 
 public class ContactModel {
     public int id;
+    public long create_date;
     public long update_time;
     public String name;
     public int circle_id;
