@@ -47,9 +47,10 @@ public class CirclesContentProvider extends ContentProvider {
     private static final String TAG = "CirclesContentProvider";
     private static final String CIRCLE_ID = "_id";
     private static final String CIRCLE_NAME = "name";
+    private static final String CIRCLE_ADD_DATE = "add_date";
     private static final String CIRCLE_COUNT_NOTIFICATIONS = "count_notifications";
     private static final String CIRCLE_TABLE = "circles";
-    private final String[] mProjection = new String[]{CIRCLE_ID, CIRCLE_NAME, "(SELECT COUNT(*) FROM notifications n WHERE circles._id = n.circle_id ) as " + CIRCLE_COUNT_NOTIFICATIONS};
+    private final String[] mProjection = new String[]{CIRCLE_ID, CIRCLE_NAME, "(SELECT COUNT(*) FROM notifications n WHERE circles._id = n.circle_id ) as " + CIRCLE_COUNT_NOTIFICATIONS, CIRCLE_ADD_DATE};
 
     DBHelper dbHelper;
     SQLiteDatabase db;
@@ -70,7 +71,7 @@ public class CirclesContentProvider extends ContentProvider {
 
                 // если сортировка не указана, ставим свою - по имени
                 if (TextUtils.isEmpty(sortOrder)) {
-                    sortOrder = CIRCLE_NAME + " ASC";
+                    sortOrder = CIRCLE_ADD_DATE + " ASC";
                 }
                 break;
             case URI_CIRCLES_ID: // Uri с ID

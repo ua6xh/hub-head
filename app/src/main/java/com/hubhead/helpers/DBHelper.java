@@ -10,7 +10,7 @@ import android.util.Log;
 public class DBHelper extends SQLiteOpenHelper {
 
     private static final String TAG = "hub-head: DBHelper";
-    private static final int DB_VERSION = 4;
+    private static final int DB_VERSION = 5;
     private static final String DB_NAME = "hubhead";
     private static final String CIRCLES_TABLE_NAME = "circles";
     private static final String SPHERES_TABLE_NAME = "spheres";
@@ -29,6 +29,7 @@ public class DBHelper extends SQLiteOpenHelper {
             db.execSQL("CREATE TABLE " + CIRCLES_TABLE_NAME + " ("
                     + "_id INTEGER PRIMARY KEY,"
                     + "name TEXT,"
+                    + "add_date INTEGER,"
                     + "count_notifications INTEGER,"
                     + "user_id INTEGER,"
                     + "contact_id INTEGER,"

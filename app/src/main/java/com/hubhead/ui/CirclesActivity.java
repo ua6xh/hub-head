@@ -37,6 +37,9 @@ import com.hubhead.handlers.impl.LoadCirclesDataActionCommand;
 import com.hubhead.handlers.impl.LoadNotificationsActionCommand;
 import com.hubhead.helpers.DBHelper;
 
+import de.tavendo.autobahn.Autobahn;
+import de.tavendo.autobahn.AutobahnConnection;
+
 
 public class CirclesActivity extends SFBaseActivity implements SFServiceCallbackListener, ListView.OnItemClickListener, LoaderManager.LoaderCallbacks<Cursor> {
     private final static String MY_PREF = "MY_PREF";
@@ -64,6 +67,8 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         setContentView(R.layout.circles_activity);
 
         createNavigationDrawer();
+
+        WampClient wampClient = new WampClient();
 
         if (savedInstanceState == null) {
             loadCirclesDataFromServer("");
@@ -370,13 +375,68 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         @Override
         public void handleMessage(Message msg) {
             if (msg.what == 2) {
-                if(mSavedInstanceState == null){
+                if (mSavedInstanceState == null) {
                     selectItem(0);
                 }
                 invalidateOptionsMenu();
             }
         }
     };
+
+    /* ---------------------- Auhobahn-----------------------*/
+    class WampClient {
+        private final AutobahnConnection mConnection = new AutobahnConnection();
+
+        public WampClient() {
+            final String wsuri = "ws://tm.dev-lds.ru:12126";
+
+            mConnection.connect(wsuri, new Autobahn.SessionHandler() {
+
+                @Override
+                public void onOpen() {
+                    sendSessionIdMessage();
+                }
+
+                @Override
+                public void onClose(int code, String reason) {
+                }
+            });
+        }
+
+        private void sendSessionIdMessage() {
+            String cookie = getSharedPreferences(MY_PREF, IsolatedContext.MODE_PRIVATE).getString("cookies", "");
+            String[] cookieSplit = cookie.split("=");
+            String cookieSend = cookieSplit[1].substring(0, cookieSplit[1].length() - 1);
+            Log.d(TAG, "sendSessionIdMessage");
+
+            mConnection.call("userAuth", Integer.class, new Autobahn.CallHandler() {
+                @Override
+                public void onResult(Object result) {
+                    Log.d(TAG, "userAuth: onResult:" + result);
+                    mConnection.subscribe("u_" + result, Event.class, new Autobahn.EventHandler() {
+                        @Override
+                        public void onEvent(String topicUri, Object eventResult) {
+                            Event event = (Event) eventResult;
+                            Log.d(TAG, "subscribe: onEvent:" + topicUri + ": event:" + event.type + " data:" + event.data + " dataClass" + event.data.getClass());
+                        }
+                    });
+                }
+
+                @Override
+                public void onError(String errorUri, String errorDesc) {
+                    Log.d(TAG, "userAuth: onError");
+                }
+            }, cookieSend);
+        }
+    }
+
+    private static class Event {
+        public String type;
+        public Object data;
+    }
+
+
+    /* ---------------------End Auhobahn---------------------*/
 
 
 }

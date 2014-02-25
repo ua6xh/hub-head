@@ -32,6 +32,7 @@ public class SaverHelper {
             ContentValues cv = new ContentValues();
             cv.put("_id", item.getId());
             cv.put("name", item.name);
+            cv.put("add_date", item.add_date);
             cv.put("user_id", item.user_id);
             cv.put("contact_id", item.contact_id);
             cv.put("status", item.status);
