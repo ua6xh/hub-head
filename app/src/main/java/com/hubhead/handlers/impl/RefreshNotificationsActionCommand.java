@@ -30,13 +30,18 @@ import java.util.HashMap;
 public class RefreshNotificationsActionCommand extends SFHttpCommand {
 
     private static final String TAG = "RefreshNotificationsActionCommand";
-    String url = DOMAINE + "/api/get-notifications";
+    private String url = DOMAINE + "/api/get-notifications";
 
     @Override
     public void doExecute(Intent intent, Context context, ResultReceiver callback) {
         Bundle data = new Bundle();
 
         String response = sendHttpQuery(url, new HashMap<String, String>(), context);
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         if (response.isEmpty()) {
             data.putString("error", "Empty notifications");
