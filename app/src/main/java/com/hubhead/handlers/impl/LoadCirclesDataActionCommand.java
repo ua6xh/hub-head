@@ -34,7 +34,7 @@ import java.util.HashMap;
 
 public class LoadCirclesDataActionCommand extends SFHttpCommand {
 
-    private static final String TAG = "LoadCirclesDataActionCommand";
+    private final String TAG = ((Object) this).getClass().getCanonicalName();
     private String mUpdateTime;
 
 
@@ -50,7 +50,7 @@ public class LoadCirclesDataActionCommand extends SFHttpCommand {
         response = sendHttpQuery(DOMAINE + "/api/get-all-data", postData, context);
         Log.d(TAG, "RESPONSE:" + response);
         if (response.equals("")) {
-            data.putString("error", context.getResources().getString(R.string.error_undefined_error_network));
+            data.putString("error", context.getResources().getString(R.string.error_loading_data_fail));
             notifyFailure(data);
         } else if (checkResponse(response)) {
             data.putString("data", "ok");

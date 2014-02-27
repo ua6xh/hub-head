@@ -1,11 +1,13 @@
 package com.hubhead.parsers;
 
+import android.content.ContentProviderOperation;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 import com.hubhead.contentprovider.CirclesContentProvider;
+import com.hubhead.contentprovider.NotificationsContentProvider;
 import com.hubhead.helpers.DBHelper;
 import com.hubhead.models.CircleModel;
 import com.hubhead.models.ContactModel;
@@ -40,7 +42,6 @@ public class SaverHelper {
             i++;
             Log.d("SaverHelper", cv.toString() + " iterator: " + i);
         }
-        mContext.getContentResolver().delete(CirclesContentProvider.CIRCLE_CONTENT_URI, null, null);
         mContext.getContentResolver().bulkInsert(CirclesContentProvider.CIRCLE_CONTENT_URI, circlesValues);
     }
 

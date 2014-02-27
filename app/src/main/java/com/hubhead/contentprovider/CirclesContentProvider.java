@@ -13,7 +13,7 @@ import android.util.Log;
 import com.hubhead.helpers.DBHelper;
 
 public class CirclesContentProvider extends ContentProvider {
-    static final String AUTHORITY = "com.hubhead.contentproviders.CirclesContentProvider";
+    public static final String AUTHORITY = "com.hubhead.contentproviders.CirclesContentProvider";
 
     // path
     static final String CIRCLES_PATH = "circles";
@@ -44,7 +44,7 @@ public class CirclesContentProvider extends ContentProvider {
         uriMatcher.addURI(AUTHORITY, CIRCLES_PATH + "/#", URI_CIRCLES_ID);
     }
 
-    private static final String TAG = "CirclesContentProvider";
+    private final String TAG = ((Object) this).getClass().getCanonicalName();
     private static final String CIRCLE_ID = "_id";
     private static final String CIRCLE_NAME = "name";
     private static final String CIRCLE_ADD_DATE = "add_date";
@@ -55,13 +55,14 @@ public class CirclesContentProvider extends ContentProvider {
     DBHelper dbHelper;
     SQLiteDatabase db;
 
+    @Override
     public boolean onCreate() {
         Log.d(TAG, "onCreate");
         dbHelper = new DBHelper(getContext());
         return true;
     }
 
-    // чтение
+    @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
         Log.d(TAG, "query, " + uri.toString());
         // проверяем Uri
@@ -99,6 +100,7 @@ public class CirclesContentProvider extends ContentProvider {
         return cursor;
     }
 
+    @Override
     public Uri insert(Uri uri, ContentValues values) {
         Log.d(TAG, "insert, " + uri.toString());
         if (uriMatcher.match(uri) != URI_CIRCLES) {
@@ -114,6 +116,7 @@ public class CirclesContentProvider extends ContentProvider {
         return resultUri;
     }
 
+    @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
         Log.d(TAG, "delete, " + uri.toString());
         switch (uriMatcher.match(uri)) {
@@ -141,6 +144,7 @@ public class CirclesContentProvider extends ContentProvider {
         return cnt;
     }
 
+    @Override
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
         Log.d(TAG, "update, " + uri.toString());
         switch (uriMatcher.match(uri)) {
@@ -168,6 +172,29 @@ public class CirclesContentProvider extends ContentProvider {
         return cnt;
     }
 
+    @Override
+    public int bulkInsert(Uri uri, ContentValues[] valueses) {
+        if (valueses.length > 0) {
+            db = dbHelper.getWritableDatabase();
+            db.beginTransaction();
+            try {
+                db.delete(CIRCLE_TABLE, null, null);
+                for (ContentValues values : valueses) {
+                    db.insert(CIRCLE_TABLE, null, values);
+                }
+                db.setTransactionSuccessful();
+            } catch (NullPointerException e) {
+                Log.e(TAG, "NullPointerException:" + e.getLocalizedMessage());
+            } finally {
+                db.endTransaction();
+                db.close();
+                getContext().getContentResolver().notifyChange(uri, null);
+            }
+        }
+        return 0;
+    }
+
+    @Override
     public String getType(Uri uri) {
         Log.d(TAG, "getType, " + uri.toString());
         switch (uriMatcher.match(uri)) {

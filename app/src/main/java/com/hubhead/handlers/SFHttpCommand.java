@@ -27,7 +27,7 @@ import java.util.Map;
 public class SFHttpCommand extends SFBaseCommand {
 
     private static final String MY_PREF = "MY_PREF";
-    protected static String TAG = "hub-head: HttpCommand";
+    protected String TAG = ((Object) this).getClass().getCanonicalName();
     protected static String DOMAINE = "http://tm.dev-lds.ru";
 
     @Override
@@ -74,9 +74,11 @@ public class SFHttpCommand extends SFBaseCommand {
                 }
             }
         } catch (IOException e) {
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, "IOException: " +  e.getLocalizedMessage());
+            response =  "";
+        } finally {
+            Log.d(TAG + ": url:" + url + ":", response);
         }
-        Log.d(TAG + ": url:" + url + ":", response);
         return response;
     }
 

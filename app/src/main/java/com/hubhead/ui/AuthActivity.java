@@ -51,7 +51,7 @@ public class AuthActivity extends SFBaseActivity implements OnEditorActionListen
     private static final String PROGRESS_DIALOG_SIGN_IN_GOOGLE = "progress-dialog-sign-in-google";
     private static final String MY_PREF = "MY_PREF";
 
-    private static final String TAG = "AuthActivity";
+    private final String TAG = ((Object) this).getClass().getCanonicalName();
     private static final int REQUEST_AVAILABILITY_ERROR = 48123;
     private static final int REQUEST_PICK_ACCOUNT = 48125;
     private static final int REQUEST_AUTH = 48127;

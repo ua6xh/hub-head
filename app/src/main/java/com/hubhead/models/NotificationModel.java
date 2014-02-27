@@ -5,7 +5,7 @@ import org.json.JSONArray;
 public class NotificationModel{
     public static final byte TYPE_TASK = 1;
     public static final byte TYPE_SPHERE = 2;
-    private static final String TAG = "NotificationModel";
+    private final String TAG = ((Object) this).getClass().getCanonicalName();
     public int id = -1;
     public int type_notification;
     public int messages_count;

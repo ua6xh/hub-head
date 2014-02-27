@@ -4,7 +4,6 @@ import android.content.ContentUris;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
-import android.nfc.Tag;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -35,7 +34,7 @@ import uk.co.senab.actionbarpulltorefresh.library.viewdelegates.ViewDelegate;
 public class NotificationsListFragment extends SFBaseListFragment implements LoaderManager.LoaderCallbacks<Cursor>, OnRefreshListener, SFServiceCallbackListener {
 
     private static final int CM_DELETE_ID = 1;
-    private static final String TAG = "NotificationsListFragment";
+    private final String TAG = ((Object) this).getClass().getCanonicalName();
     private static final int NOTIFICATIONS_LOADER_DELTA = 10000;
     private SimpleCursorAdapter mNotificationsAdapter;
     private int mCircleIdSelected;
@@ -48,7 +47,6 @@ public class NotificationsListFragment extends SFBaseListFragment implements Loa
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        Log.d(TAG, "onCreateView");
         mCircleIdSelected = getArguments().getInt(CircleFragment.ARG_CIRCLE_ID);
         mNotificationsAdapter = new SimpleCursorAdapter(getActivity(), android.R.layout.simple_list_item_1, null, new String[]{"model_name"}, new int[]{android.R.id.text1}, 0);
         getActivity().getSupportLoaderManager().initLoader(NOTIFICATIONS_LOADER_DELTA + mCircleIdSelected, null, this);
@@ -58,7 +56,6 @@ public class NotificationsListFragment extends SFBaseListFragment implements Loa
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        Log.d(TAG, "onViewCreated");
         setEmptyText(getActivity().getResources().getString(R.string.error_empty_list_notifications));
 
         ViewGroup viewGroup = (ViewGroup) view;
@@ -79,7 +76,7 @@ public class NotificationsListFragment extends SFBaseListFragment implements Loa
 
     /*----------------------Create Context Menu --------------------------*/
     public void onActivityCreated(Bundle savedState) {
-        Log.d(TAG, "onActivityCreated");
+
         registerForContextMenu(getListView());
         setListAdapter(mNotificationsAdapter);
         setListShownNoAnimation(true);
@@ -87,7 +84,7 @@ public class NotificationsListFragment extends SFBaseListFragment implements Loa
     }
 
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
-        Log.d(TAG, "onCreateContextMenu");
+
         super.onCreateContextMenu(menu, v, menuInfo);
         menu.add(0, CM_DELETE_ID, 0, R.string.action_delete_record);
     }
@@ -109,14 +106,15 @@ public class NotificationsListFragment extends SFBaseListFragment implements Loa
     /*----------------------End Create Context Menu --------------------------*/
 
     public void onListItemClick(ListView l, View v, int position, long id) {
-        //Toast.makeText(getActivity(), "Item " + position, Toast.LENGTH_SHORT).show();
+        mPullToRefreshLayout.setRefreshing(true);
+        //Toast.makeText(getActivity(), "Click!", Toast.LENGTH_SHORT).show();
+        mRequestRefreshNotificationsId = getServiceHelper().refreshNotificationsFromServer();
         super.onListItemClick(l, v, position, id);
     }
 
     /*------------------------------LoaderCallbacks Override---------------------------*/
     @Override
     public android.support.v4.content.Loader<Cursor> onCreateLoader(int id, Bundle bundle) {
-
         String[] args = {Integer.toString(mCircleIdSelected)};
         return new CursorLoader(getActivity(), NotificationsContentProvider.NOTIFICATION_CONTENT_URI, new String[]{"model_name"}, "circle_id=?", args, null);
     }
@@ -136,7 +134,6 @@ public class NotificationsListFragment extends SFBaseListFragment implements Loa
     @Override
     public void onRefreshStarted(View view) {
         mRequestRefreshNotificationsId = getServiceHelper().refreshNotificationsFromServer();
-        Log.d(TAG, "mRequestRefreshNotificationsId:" + mRequestRefreshNotificationsId);
     }
 
 
@@ -145,9 +142,9 @@ public class NotificationsListFragment extends SFBaseListFragment implements Loa
         if (getServiceHelper().check(requestIntent, RefreshNotificationsActionCommand.class)) {
             if (resultCode == RefreshNotificationsActionCommand.RESPONSE_SUCCESS) {
                 mPullToRefreshLayout.setRefreshComplete();
-                Toast.makeText(getActivity(), "Good", Toast.LENGTH_SHORT).show();
             } else if (resultCode == RefreshNotificationsActionCommand.RESPONSE_FAILURE) {
-                Toast.makeText(getActivity(), "Error", Toast.LENGTH_SHORT).show();
+                mPullToRefreshLayout.setRefreshComplete();
+                Toast.makeText(getActivity(), resultData.getString("error"), Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -155,18 +152,11 @@ public class NotificationsListFragment extends SFBaseListFragment implements Loa
     @Override
     public void onResume() {
         super.onResume();
-        Log.d(TAG, "Resume mRequestRefreshNotificationsId:" + mRequestRefreshNotificationsId);
-        Log.d(TAG, "onResume 1");
         if (mRequestRefreshNotificationsId != -1 && !getServiceHelper().isPending(mRequestRefreshNotificationsId)) {
-            Log.d(TAG, "onResume 2");
             mPullToRefreshLayout.setRefreshComplete();
         } else if(mRequestRefreshNotificationsId != -1 && getServiceHelper().isPending(mRequestRefreshNotificationsId)){
-            Log.d(TAG, "onResume 3");
             Toast.makeText(getActivity(), "Refresh", Toast.LENGTH_LONG).show();
             mPullToRefreshLayout.setRefreshing(true);
-        } else{
-            Log.d(TAG, "onResume 4");
         }
-        Log.d(TAG, "onResume 5");
     }
 }

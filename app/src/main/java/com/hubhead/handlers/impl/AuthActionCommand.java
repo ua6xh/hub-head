@@ -17,7 +17,7 @@ import java.util.HashMap;
 
 public class AuthActionCommand extends SFHttpCommand {
 
-    private static final String TAG = "AuthActionCommand";
+    private final String TAG = ((Object) this).getClass().getCanonicalName();
 
     private String mEmail;
     private String mPassword;

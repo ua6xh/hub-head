@@ -23,6 +23,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.os.ResultReceiver;
 
+import com.hubhead.R;
 import com.hubhead.handlers.SFHttpCommand;
 import com.hubhead.parsers.ParseHelper;
 
@@ -30,7 +31,7 @@ import java.util.HashMap;
 
 public class LoadNotificationsActionCommand extends SFHttpCommand {
 
-    private static final String TAG = "LoadNotificationsActionCommand";
+    private final String TAG = ((Object) this).getClass().getCanonicalName();
     String url = DOMAINE + "/api/get-notifications";
 
     @Override
@@ -41,7 +42,7 @@ public class LoadNotificationsActionCommand extends SFHttpCommand {
         String response = sendHttpQuery(url, new HashMap<String, String>(), context);
 
         if (response.isEmpty()) {
-            data.putString("error", "Empty notifications");
+            data.putString("error", context.getResources().getString(R.string.error_loading_data_fail));
             notifyFailure(data);
         } else {
             data.putString("data", "ok");

@@ -27,6 +27,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.hubhead.R;
 import com.hubhead.SFBaseActivity;
@@ -37,13 +38,13 @@ import com.hubhead.handlers.impl.LoadCirclesDataActionCommand;
 import com.hubhead.handlers.impl.LoadNotificationsActionCommand;
 import com.hubhead.helpers.DBHelper;
 
-import de.tavendo.autobahn.Autobahn;
-import de.tavendo.autobahn.AutobahnConnection;
+import de.tavendo.autobahn.Wamp;
+import de.tavendo.autobahn.WampConnection;
 
 
 public class CirclesActivity extends SFBaseActivity implements SFServiceCallbackListener, ListView.OnItemClickListener, LoaderManager.LoaderCallbacks<Cursor> {
     private final static String MY_PREF = "MY_PREF";
-    private static final String TAG = "CirclesActivity";
+    private final String TAG =  ((Object) this).getClass().getCanonicalName();
     private static final String PROGRESS_DIALOG_LOAD_CIRCLES_DATA = "progress-dialog-load-circles-data";
     private static final String PROGRESS_DIALOG_LOAD_NOTIFICATIONS = "progress-dialog-load-notifications";
     private static final String F_CIRCLES = "CirclesFragment";
@@ -68,7 +69,7 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
 
         createNavigationDrawer();
 
-        WampClient wampClient = new WampClient();
+        getApp().getWampClient();
 
         if (savedInstanceState == null) {
             loadCirclesDataFromServer("");
@@ -230,7 +231,7 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
                 loadNotificationsFromServer();
             } else if (resultCode == LoadCirclesDataActionCommand.RESPONSE_FAILURE) {
                 dismissProgressDialog(PROGRESS_DIALOG_LOAD_CIRCLES_DATA);
-                сreateAlertDialogSingIn(this.getResources().getString(R.string.alert_dialog_title_error), resultData.getString("error"));
+                Toast.makeText(this, resultData.getString("error"), Toast.LENGTH_SHORT).show();
             }
         }
 
@@ -240,7 +241,7 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
                 dismissProgressDialog(PROGRESS_DIALOG_LOAD_NOTIFICATIONS);
             } else if (resultCode == LoadNotificationsActionCommand.RESPONSE_FAILURE) {
                 dismissProgressDialog(PROGRESS_DIALOG_LOAD_NOTIFICATIONS);
-                сreateAlertDialogSingIn(this.getResources().getString(R.string.alert_dialog_title_error), resultData.getString("error"));
+                Toast.makeText(this, resultData.getString("error"), Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -294,7 +295,6 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         }
 
         getSupportLoaderManager().restartLoader(CIRCLE_LOADER_ID, null, CirclesActivity.this);
-        Log.d(TAG, "onResume:invalidateOptionsMenu");
         invalidateOptionsMenu();
     }
 
@@ -382,61 +382,4 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
             }
         }
     };
-
-    /* ---------------------- Auhobahn-----------------------*/
-    class WampClient {
-        private final AutobahnConnection mConnection = new AutobahnConnection();
-
-        public WampClient() {
-            final String wsuri = "ws://tm.dev-lds.ru:12126";
-
-            mConnection.connect(wsuri, new Autobahn.SessionHandler() {
-
-                @Override
-                public void onOpen() {
-                    sendSessionIdMessage();
-                }
-
-                @Override
-                public void onClose(int code, String reason) {
-                }
-            });
-        }
-
-        private void sendSessionIdMessage() {
-            String cookie = getSharedPreferences(MY_PREF, IsolatedContext.MODE_PRIVATE).getString("cookies", "");
-            String[] cookieSplit = cookie.split("=");
-            String cookieSend = cookieSplit[1].substring(0, cookieSplit[1].length() - 1);
-            Log.d(TAG, "sendSessionIdMessage");
-
-            mConnection.call("userAuth", Integer.class, new Autobahn.CallHandler() {
-                @Override
-                public void onResult(Object result) {
-                    Log.d(TAG, "userAuth: onResult:" + result);
-                    mConnection.subscribe("u_" + result, Event.class, new Autobahn.EventHandler() {
-                        @Override
-                        public void onEvent(String topicUri, Object eventResult) {
-                            Event event = (Event) eventResult;
-                            Log.d(TAG, "subscribe: onEvent:" + topicUri + ": event:" + event.type + " data:" + event.data + " dataClass" + event.data.getClass());
-                        }
-                    });
-                }
-
-                @Override
-                public void onError(String errorUri, String errorDesc) {
-                    Log.d(TAG, "userAuth: onError");
-                }
-            }, cookieSend);
-        }
-    }
-
-    private static class Event {
-        public String type;
-        public Object data;
-    }
-
-
-    /* ---------------------End Auhobahn---------------------*/
-
-
 }

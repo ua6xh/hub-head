@@ -14,7 +14,7 @@ import android.view.ViewGroup;
 import com.hubhead.R;
 
 public class CircleFragment extends Fragment {
-    private static final String TAG = "CircleFragment";
+    private final String TAG = ((Object) this).getClass().getCanonicalName();
     public static final String ARG_CIRCLE_ID = "circle_id";
     public static final String ARG_CIRCLE_NAME = "circle_name";
     public int mCircleIdSelected;

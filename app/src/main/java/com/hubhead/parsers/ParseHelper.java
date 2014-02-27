@@ -2,9 +2,13 @@ package com.hubhead.parsers;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
+import com.hubhead.contentprovider.CirclesContentProvider;
 import com.hubhead.contentprovider.NotificationsContentProvider;
+import com.hubhead.helpers.DBHelper;
 import com.hubhead.models.NotificationModel;
 
 import org.codehaus.jackson.map.ObjectMapper;
@@ -12,11 +16,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.net.URI;
+import java.util.ArrayList;
 import java.util.Iterator;
 
 
 public class ParseHelper {
-    private static final String TAG = "hub-head: ParseHelper";
+    private final String TAG = ((Object) this).getClass().getCanonicalName();
     private Context mContext;
 
     public ParseHelper(Context context) {
@@ -46,30 +52,36 @@ public class ParseHelper {
                 Log.d(TAG, "3");
                 notificationsObj = json.getJSONObject("notifications");
             }
-            ContentValues cv = new ContentValues();
+
             NotificationModel notification = new NotificationModel();
-
-            mContext.getContentResolver().delete(NotificationsContentProvider.NOTIFICATION_CONTENT_URI, null, null);
             Iterator objectsIterator = notificationsObj.keys();
-            while (objectsIterator.hasNext()) {
-                String roomName = (String) objectsIterator.next();
-                JSONObject room = notificationsObj.getJSONObject(roomName);
 
-                notification = createNotification(roomName, room, notification);
+            if (objectsIterator.hasNext()) {
+                ArrayList<ContentValues> contentValuesArrayList = new ArrayList<ContentValues>();
+                while (objectsIterator.hasNext()) {
+                    String roomName = (String) objectsIterator.next();
+                    JSONObject room = notificationsObj.getJSONObject(roomName);
 
-                cv.put("_id", notification.id);
-                cv.put("messages_count", notification.messages_count);
-                cv.put("create_date", notification.create_date);
-                cv.put("model_name", notification.model_name);
-                cv.put("sphere_id", notification.sphere_id);
-                cv.put("circle_id", notification.circle_id);
-                cv.put("dt", notification.dt);
-                mContext.getContentResolver().insert(NotificationsContentProvider.NOTIFICATION_CONTENT_URI, cv);
-                cv.clear();
+                    notification = createNotification(roomName, room, notification);
+                    ContentValues cv = new ContentValues();
+                    cv.put("_id", notification.id);
+                    cv.put("messages_count", notification.messages_count);
+                    cv.put("create_date", notification.create_date);
+                    cv.put("model_name", notification.model_name);
+                    cv.put("sphere_id", notification.sphere_id);
+                    cv.put("circle_id", notification.circle_id);
+                    cv.put("dt", notification.dt);
+                    contentValuesArrayList.add(cv);
+                }
+                ContentValues[] contentValueses = contentValuesArrayList.toArray(new ContentValues[0]);
+                mContext.getContentResolver().bulkInsert(NotificationsContentProvider.NOTIFICATION_CONTENT_URI, contentValueses);
             }
-        } catch (JSONException e) {
+        } catch (JSONException e){
             Log.e(TAG, "Error parsing data in parseNotifications: " + e.toString());
+        } catch (NullPointerException e){
+            Log.e(TAG, "NullPointerException in ParserHelper");
         }
+
     }
 
     protected NotificationModel createNotification(String roomName, JSONObject room, NotificationModel notification) throws JSONException {

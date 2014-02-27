@@ -22,6 +22,7 @@ import android.os.Bundle;
 import android.os.Parcel;
 import android.os.ResultReceiver;
 
+import com.hubhead.R;
 import com.hubhead.handlers.SFHttpCommand;
 import com.hubhead.parsers.ParseHelper;
 
@@ -29,7 +30,7 @@ import java.util.HashMap;
 
 public class RefreshNotificationsActionCommand extends SFHttpCommand {
 
-    private static final String TAG = "RefreshNotificationsActionCommand";
+    private final String TAG = ((Object) this).getClass().getCanonicalName();
     private String url = DOMAINE + "/api/get-notifications";
 
     @Override
@@ -37,14 +38,9 @@ public class RefreshNotificationsActionCommand extends SFHttpCommand {
         Bundle data = new Bundle();
 
         String response = sendHttpQuery(url, new HashMap<String, String>(), context);
-        try {
-            Thread.sleep(5000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
 
         if (response.isEmpty()) {
-            data.putString("error", "Empty notifications");
+            data.putString("error", context.getResources().getString(R.string.error_loading_data_fail));
             notifyFailure(data);
         } else {
             data.putString("data", "ok");

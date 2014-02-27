@@ -17,7 +17,7 @@ import java.util.HashMap;
 
 
 public class AuthGoogleActionCommand extends SFHttpCommand {
-    private static final String TAG = "AuthGoogleActionCommand";
+    private final String TAG = ((Object) this).getClass().getCanonicalName();
     private static final String MY_PREF = "MY_PREF";
     private final String mToken;
     private String mAccountName;

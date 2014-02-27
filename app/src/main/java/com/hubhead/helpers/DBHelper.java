@@ -9,14 +9,14 @@ import android.util.Log;
 
 public class DBHelper extends SQLiteOpenHelper {
 
-    private static final String TAG = "hub-head: DBHelper";
+    private final String TAG = ((Object) this).getClass().getCanonicalName();
     private static final int DB_VERSION = 5;
     private static final String DB_NAME = "hubhead";
-    private static final String CIRCLES_TABLE_NAME = "circles";
-    private static final String SPHERES_TABLE_NAME = "spheres";
-    private static final String CONTACTS_TABLE_NAME = "contacts";
-    private static final String REMINDERS_TABLE_NAME = "reminders";
-    private static final String NOTIFICATIONS_TABLE_NAME = "notifications";
+    public static final String CIRCLES_TABLE_NAME = "circles";
+    public static final String SPHERES_TABLE_NAME = "spheres";
+    public static final String CONTACTS_TABLE_NAME = "contacts";
+    public static final String REMINDERS_TABLE_NAME = "reminders";
+    public static final String NOTIFICATIONS_TABLE_NAME = "notifications";
 
     public DBHelper(Context context) {
         super(context, DB_NAME, null, DB_VERSION);

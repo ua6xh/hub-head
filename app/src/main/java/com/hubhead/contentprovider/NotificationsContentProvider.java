@@ -13,7 +13,7 @@ import android.util.Log;
 import com.hubhead.helpers.DBHelper;
 
 public class NotificationsContentProvider extends ContentProvider {
-    static final String AUTHORITY = "com.hubhead.contentproviders.NotificationsContentProvider";
+    public static final String AUTHORITY = "com.hubhead.contentproviders.NotificationsContentProvider";
     // path
     static final String NOTIFICATIONS_PATH = "notifications";
 
@@ -43,7 +43,7 @@ public class NotificationsContentProvider extends ContentProvider {
         uriMatcher.addURI(AUTHORITY, NOTIFICATIONS_PATH + "/#", URI_NOTIFICATIONS_ID);
     }
 
-    private static final String TAG = "NotificationsContentProvider";
+    private final String TAG = ((Object) this).getClass().getCanonicalName();
     private static final String NOTIFICATION_NAME = "model_name";
     private static final String NOTIFICATION_ID = "_id";
     private static final String NOTIFICATION_TABLE = "notifications";
@@ -96,7 +96,10 @@ public class NotificationsContentProvider extends ContentProvider {
         }
 
         db = dbHelper.getWritableDatabase();
-        long rowID = db.insert(NOTIFICATION_TABLE, null, values);
+        long rowID = db.insertWithOnConflict(NOTIFICATION_TABLE, null, values, SQLiteDatabase.CONFLICT_REPLACE);
+        if (rowID == -1) {
+            Log.e(TAG, "db.insertWithOnConflict: -1");
+        }
         Uri resultUri = ContentUris.withAppendedId(NOTIFICATION_CONTENT_URI, rowID);
         // уведомляем ContentResolver, что данные по адресу resultUri изменились
         getContext().getContentResolver().notifyChange(resultUri, null);
@@ -160,7 +163,31 @@ public class NotificationsContentProvider extends ContentProvider {
         db = dbHelper.getWritableDatabase();
         int cnt = db.update(NOTIFICATION_TABLE, values, selection, selectionArgs);
         getContext().getContentResolver().notifyChange(uri, null);
+        Log.d(TAG, "change cursor " + NOTIFICATION_TABLE + " cnt:" + cnt);
         return cnt;
+    }
+
+    @Override
+    public int bulkInsert(Uri uri, ContentValues[] valueses) {
+        if (valueses.length > 0) {
+            db = dbHelper.getWritableDatabase();
+            db.beginTransaction();
+            try {
+                db.delete(NOTIFICATION_TABLE, null, null);
+                for (ContentValues values : valueses) {
+                    db.insert(NOTIFICATION_TABLE, null, values);
+                }
+                db.setTransactionSuccessful();
+            } catch (NullPointerException e) {
+                Log.e(TAG, "NullPointerException:" + e.getLocalizedMessage());
+            } finally {
+                db.endTransaction();
+                db.close();
+                getContext().getContentResolver().notifyChange(uri, null);
+                getContext().getContentResolver().notifyChange(CirclesContentProvider.CIRCLE_CONTENT_URI, null);
+            }
+        }
+        return 0;
     }
 
     public String getType(Uri uri) {

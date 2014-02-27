@@ -5,4 +5,5 @@
     <string name="error_google_account_not_found">Google аккаунт не найден</string>
     <string name="error_invalid_data_response_server">С сервера поступили неверные данные</string>
     <string name="error_empty_list_notifications">Нет уведомлений</string>
+    <string name="error_loading_data_fail">При загрузке данных произошла ошибка. Проверьте соединение с сетью!</string>
 </resources>
