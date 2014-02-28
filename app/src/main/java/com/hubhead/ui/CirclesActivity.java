@@ -3,11 +3,13 @@ package com.hubhead.ui;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.ContentUris;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -33,6 +35,7 @@ import com.hubhead.R;
 import com.hubhead.SFBaseActivity;
 import com.hubhead.SFServiceCallbackListener;
 import com.hubhead.contentprovider.CirclesContentProvider;
+import com.hubhead.contentprovider.NotificationsContentProvider;
 import com.hubhead.fragments.CircleFragment;
 import com.hubhead.handlers.impl.LoadCirclesDataActionCommand;
 import com.hubhead.handlers.impl.LoadNotificationsActionCommand;
@@ -60,6 +63,12 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
     private SimpleCursorAdapter mDrawerAdapter;
     private int mCircleId = -1;
     private Bundle mSavedInstanceState = null;
+    public WampClient wampClient = null;
+
+
+    public void sendNotificationSetReaded(long notificationId) {
+        wampClient.sendNotificationSetReaded(notificationId);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,7 +78,7 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
 
         createNavigationDrawer();
 
-        getApp().getWampClient();
+        wampClient = new WampClient();
 
         if (savedInstanceState == null) {
             loadCirclesDataFromServer("");
@@ -382,4 +391,79 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
             }
         }
     };
+ /* ---------------------- Auhobahn-----------------------*/
+    class WampClient extends WampConnection {
+        private static final String MY_PREF = "MY_PREF";
+        private final String wsuri = "ws://tm.dev-lds.ru:12126";
+
+        public WampClient() {
+
+            Log.d(TAG, "WAMP constructor");
+            connect(wsuri, new Wamp.ConnectionHandler() {
+
+                @Override
+                public void onOpen() {
+                    sendSessionIdMessage();
+                }
+
+                @Override
+                public void onClose(int code, String reason) {
+                    Log.d(TAG, "code: " + code + " reason:" + reason);
+                }
+            });
+        }
+
+        private void sendSessionIdMessage() {
+            String cookie = getSharedPreferences(MY_PREF, IsolatedContext.MODE_PRIVATE).getString("cookies", "");
+            String[] cookieSplit = cookie.split("=");
+            String cookieSend = cookieSplit[1].substring(0, cookieSplit[1].length() - 1);
+            Log.d(TAG, "sendSessionIdMessage");
+
+            call("userAuth", Integer.class, new CallHandler() {
+                @Override
+                public void onResult(Object result) {
+                    Log.d(TAG, "userAuth: onResult:" + result);
+                    subscribe("u_" + result, Event.class, new EventHandler() {
+                        @Override
+                        public void onEvent(String topicUri, Object eventResult) {
+                            Event event = (Event) eventResult;
+                            Log.d(TAG, "subscribe: onEvent:" + topicUri + ": event:" + event.type + " data:" + event.data + " dataClass" + event.data.getClass());
+                        }
+                    });
+                }
+
+                @Override
+                public void onError(String errorUri, String errorDesc) {
+                    Log.d(TAG, "userAuth: onError");
+                }
+            }, cookieSend);
+        }
+
+        public void sendNotificationSetReaded(final long notificationId){
+            String roomName = Long.toString(notificationId);
+
+            call("notificationSetReaded", Boolean.class, new CallHandler() {
+                @Override
+                public void onResult(Object result) {
+                    Log.d(TAG, "notificationSetReaded: onResult:" + result);
+                    Uri itemUri = ContentUris.withAppendedId(NotificationsContentProvider.NOTIFICATION_CONTENT_URI, notificationId);
+                    getContentResolver().delete(itemUri, null, null);
+                    Toast.makeText(getApplicationContext(), "Id record:" + notificationId, Toast.LENGTH_SHORT).show();
+                }
+
+                @Override
+                public void onError(String errorUri, String errorDesc) {
+                    Log.d(TAG, "notificationSetReaded: onError" + errorDesc);
+                    Toast.makeText(getApplicationContext(), "Error", Toast.LENGTH_SHORT).show();
+                }
+            }, roomName);
+        }
+
+    }
+
+    private static class Event {
+        public String type;
+        public Object data;
+    }
+    /* ---------------------End Auhobahn---------------------*/
 }

@@ -24,6 +24,7 @@ import com.hubhead.SFBaseListFragment;
 import com.hubhead.SFServiceCallbackListener;
 import com.hubhead.contentprovider.NotificationsContentProvider;
 import com.hubhead.handlers.impl.RefreshNotificationsActionCommand;
+import com.hubhead.ui.CirclesActivity;
 
 import uk.co.senab.actionbarpulltorefresh.library.ActionBarPullToRefresh;
 import uk.co.senab.actionbarpulltorefresh.library.PullToRefreshLayout;
@@ -95,10 +96,10 @@ public class NotificationsListFragment extends SFBaseListFragment implements Loa
             AdapterView.AdapterContextMenuInfo acmi = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
 
             // извлекаем id записи и удаляем соответствующую запись в БД
-            Toast.makeText(getActivity(), "Id record:" + acmi.id, Toast.LENGTH_SHORT).show();
 
-            Uri itemUri = ContentUris.withAppendedId(NotificationsContentProvider.NOTIFICATION_CONTENT_URI, acmi.id);
-            getActivity().getContentResolver().delete(itemUri, null, null);
+            CirclesActivity circlesActivity = (CirclesActivity) getActivity();
+            circlesActivity.sendNotificationSetReaded(acmi.id);
+
             return true;
         }
         return super.onContextItemSelected(item);
@@ -154,7 +155,7 @@ public class NotificationsListFragment extends SFBaseListFragment implements Loa
         super.onResume();
         if (mRequestRefreshNotificationsId != -1 && !getServiceHelper().isPending(mRequestRefreshNotificationsId)) {
             mPullToRefreshLayout.setRefreshComplete();
-        } else if(mRequestRefreshNotificationsId != -1 && getServiceHelper().isPending(mRequestRefreshNotificationsId)){
+        } else if (mRequestRefreshNotificationsId != -1 && getServiceHelper().isPending(mRequestRefreshNotificationsId)) {
             Toast.makeText(getActivity(), "Refresh", Toast.LENGTH_LONG).show();
             mPullToRefreshLayout.setRefreshing(true);
         }
