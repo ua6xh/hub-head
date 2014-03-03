@@ -2,8 +2,11 @@ package com.hubhead.ui;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.ContentUris;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -17,6 +20,8 @@ import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.LoaderManager;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -31,6 +36,7 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
 import com.hubhead.R;
 import com.hubhead.SFBaseActivity;
 import com.hubhead.SFServiceCallbackListener;
@@ -40,6 +46,11 @@ import com.hubhead.fragments.CircleFragment;
 import com.hubhead.handlers.impl.LoadCirclesDataActionCommand;
 import com.hubhead.handlers.impl.LoadNotificationsActionCommand;
 import com.hubhead.helpers.DBHelper;
+import com.hubhead.helpers.TextHelper;
+import com.hubhead.parsers.ParseHelper;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import de.tavendo.autobahn.Wamp;
 import de.tavendo.autobahn.WampConnection;
@@ -47,7 +58,7 @@ import de.tavendo.autobahn.WampConnection;
 
 public class CirclesActivity extends SFBaseActivity implements SFServiceCallbackListener, ListView.OnItemClickListener, LoaderManager.LoaderCallbacks<Cursor> {
     private final static String MY_PREF = "MY_PREF";
-    private final String TAG =  ((Object) this).getClass().getCanonicalName();
+    private final String TAG = ((Object) this).getClass().getCanonicalName();
     private static final String PROGRESS_DIALOG_LOAD_CIRCLES_DATA = "progress-dialog-load-circles-data";
     private static final String PROGRESS_DIALOG_LOAD_NOTIFICATIONS = "progress-dialog-load-notifications";
     private static final String F_CIRCLES = "CirclesFragment";
@@ -64,6 +75,7 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
     private int mCircleId = -1;
     private Bundle mSavedInstanceState = null;
     public WampClient wampClient = null;
+    private int selectItemMenu = 0;
 
 
     public void sendNotificationSetReaded(long notificationId) {
@@ -75,12 +87,12 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         super.onCreate(savedInstanceState);
         mSavedInstanceState = savedInstanceState;
         setContentView(R.layout.circles_activity);
-
+        mCircleId = getIntent().getIntExtra("circle_id", -1);
         createNavigationDrawer();
 
         wampClient = new WampClient();
 
-        if (savedInstanceState == null) {
+        if (savedInstanceState == null && mCircleId == -1) {
             loadCirclesDataFromServer("");
         }
     }
@@ -323,8 +335,29 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         mDrawerAdapter.swapCursor(cursor);
         if (cursor.getCount() > 0 && mCircleId == -1) {
             handler.sendEmptyMessage(2);
+        } else if (cursor.getCount() > 0 && mCircleId != -1) {
+                while (cursor.moveToNext()) {
+                    if (cursor.getLong(0) == mCircleId) {
+                        selectItemMenu = cursor.getPosition();
+                        break;
+                    }
+                }
+            handler.sendEmptyMessage(2);
         }
     }
+
+    private Handler handler = new Handler()  // handler for commiting fragment after data is loaded
+    {
+        @Override
+        public void handleMessage(Message msg) {
+            if (msg.what == 2) {
+                if (mSavedInstanceState == null) {
+                    selectItem(selectItemMenu);
+                }
+                invalidateOptionsMenu();
+            }
+        }
+    };
     /*------------------------------End LoaderCallbacks---------------------------*/
 
 
@@ -332,7 +365,6 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         private String mMessage = "";
 
         public ProgressDialogFragment() {
-
         }
 
         public ProgressDialogFragment(String message) {
@@ -379,19 +411,7 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         }
     }
 
-    private Handler handler = new Handler()  // handler for commiting fragment after data is loaded
-    {
-        @Override
-        public void handleMessage(Message msg) {
-            if (msg.what == 2) {
-                if (mSavedInstanceState == null) {
-                    selectItem(0);
-                }
-                invalidateOptionsMenu();
-            }
-        }
-    };
- /* ---------------------- Auhobahn-----------------------*/
+    /* ---------------------- Auhobahn-----------------------*/
     class WampClient extends WampConnection {
         private static final String MY_PREF = "MY_PREF";
         private final String wsuri = "ws://tm.dev-lds.ru:12126";
@@ -414,9 +434,8 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         }
 
         private void sendSessionIdMessage() {
-            String cookie = getSharedPreferences(MY_PREF, IsolatedContext.MODE_PRIVATE).getString("cookies", "");
-            String[] cookieSplit = cookie.split("=");
-            String cookieSend = cookieSplit[1].substring(0, cookieSplit[1].length() - 1);
+            String cookieSend = TextHelper.getCookieForSend(getSharedPreferences(MY_PREF, IsolatedContext.MODE_PRIVATE).getString("cookies", ""));
+
             Log.d(TAG, "sendSessionIdMessage");
 
             call("userAuth", Integer.class, new CallHandler() {
@@ -427,7 +446,23 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
                         @Override
                         public void onEvent(String topicUri, Object eventResult) {
                             Event event = (Event) eventResult;
-                            Log.d(TAG, "subscribe: onEvent:" + topicUri + ": event:" + event.type + " data:" + event.data + " dataClass" + event.data.getClass());
+
+
+                            if (event.type.equals("notification")) {
+                                Gson gson = new Gson();
+                                Map<String, Object> notification = new HashMap<String, Object>();
+                                notification.put("data", event.data);
+                                String jsonStr = gson.toJson(notification);
+                                Log.d(TAG, "WAMP:notification: " + jsonStr);
+                                Log.d(TAG, "WAMP:alert: " + event.alert);
+                                ParseHelper parseHelper = new ParseHelper(getApplicationContext());
+                                parseHelper.parseNotifications(jsonStr, true);
+                                createNotification(5);
+                            } else if (event.type.equals("system")) {
+                                Gson gson = new Gson();
+                                String jsonStr = gson.toJson(event.data);
+                                Log.d(TAG, "WAMP:system: " + jsonStr);
+                            }
                         }
                     });
                 }
@@ -439,31 +474,69 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
             }, cookieSend);
         }
 
-        public void sendNotificationSetReaded(final long notificationId){
-            String roomName = Long.toString(notificationId);
+        public void sendNotificationSetReaded(final long notificationId) {
+            String roomName = TextHelper.getTypeAndModel(notificationId);
 
-            call("notificationSetReaded", Boolean.class, new CallHandler() {
-                @Override
-                public void onResult(Object result) {
-                    Log.d(TAG, "notificationSetReaded: onResult:" + result);
-                    Uri itemUri = ContentUris.withAppendedId(NotificationsContentProvider.NOTIFICATION_CONTENT_URI, notificationId);
-                    getContentResolver().delete(itemUri, null, null);
-                    Toast.makeText(getApplicationContext(), "Id record:" + notificationId, Toast.LENGTH_SHORT).show();
-                }
+            try {
+                call("notificationSetReaded", Boolean.class, new CallHandler() {
+                    @Override
+                    public void onResult(Object result) {
+                        Log.d(TAG, "notificationSetReaded: onResult:" + result);
 
-                @Override
-                public void onError(String errorUri, String errorDesc) {
-                    Log.d(TAG, "notificationSetReaded: onError" + errorDesc);
-                    Toast.makeText(getApplicationContext(), "Error", Toast.LENGTH_SHORT).show();
-                }
-            }, roomName);
+                        Uri itemUri = ContentUris.withAppendedId(NotificationsContentProvider.NOTIFICATION_CONTENT_URI, notificationId);
+                        getContentResolver().delete(itemUri, null, null);
+                        Toast.makeText(getApplicationContext(), "Id record:" + notificationId, Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onError(String errorUri, String errorDesc) {
+                        Log.d(TAG, "notificationSetReaded: onError" + errorDesc);
+                        Toast.makeText(getApplicationContext(), "Error", Toast.LENGTH_SHORT).show();
+                    }
+                }, roomName);
+            } catch (Exception e) {
+                String err = (e.getMessage() == null) ? "Eron don don" : e.getMessage();
+                Log.e(TAG, err);
+                Toast.makeText(getApplicationContext(), "Error", Toast.LENGTH_SHORT).show();
+            }
         }
+    }
 
+    private void createNotification(int circleId) {
+        NotificationCompat.Builder mBuilder =
+                new NotificationCompat.Builder(this)
+                        .setSmallIcon(R.drawable.ic_launcher)
+                        .setContentTitle("My notification")
+                        .setContentText("Hello World!");
+        // Creates an explicit intent for an Activity in your app
+        Intent resultIntent = new Intent(this, CirclesActivity.class);
+        resultIntent.putExtra("circle_id", circleId);
+
+        // The stack builder object will contain an artificial back stack for the
+        // started Activity.
+        // This ensures that navigating backward from the Activity leads out of
+        // your application to the Home screen.
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+        // Adds the back stack for the Intent (but not the Intent itself)
+        stackBuilder.addParentStack(CirclesActivity.class);
+        // Adds the Intent that starts the Activity to the top of the stack
+        stackBuilder.addNextIntent(resultIntent);
+        PendingIntent resultPendingIntent =
+                stackBuilder.getPendingIntent(
+                        0,
+                        PendingIntent.FLAG_UPDATE_CURRENT
+                );
+        mBuilder.setContentIntent(resultPendingIntent);
+        NotificationManager mNotificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        // mId allows you to update the notification later on.
+        mNotificationManager.notify(0, mBuilder.build());
     }
 
     private static class Event {
         public String type;
         public Object data;
+        public Object alert;
     }
     /* ---------------------End Auhobahn---------------------*/
 }
