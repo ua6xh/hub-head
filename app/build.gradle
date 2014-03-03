@@ -40,6 +40,9 @@ dependencies {
     // Jackson parser json
     compile 'org.codehaus.jackson:jackson-mapper-asl:1.9.13'
 
+    //GSON
+    compile 'com.google.code.gson:gson:2.2.4'
+
     //PullToRefresh lib
     compile 'com.github.chrisbanes.actionbarpulltorefresh:library:+'
 }

@@ -48,7 +48,7 @@ public class LoadNotificationsActionCommand extends SFHttpCommand {
             data.putString("data", "ok");
             data.putString("response", response);
             ParseHelper parseHelper = new ParseHelper(context);
-            parseHelper.parseNotifications(response);
+            parseHelper.parseNotifications(response, false);
             notifySuccess(data);
         }
     }

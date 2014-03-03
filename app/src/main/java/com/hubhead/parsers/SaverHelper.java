@@ -19,6 +19,7 @@ import java.util.List;
 public class SaverHelper {
 
     private final DBHelper dbHelper;
+
     public SaverHelper(Context context) {
         mContext = context;
         dbHelper = new DBHelper(mContext);
@@ -91,5 +92,13 @@ public class SaverHelper {
         db.setTransactionSuccessful();
         db.endTransaction();
         dbHelper.close();
+    }
+
+    public static void saveNotifications(Context context, ContentValues[] contentValueses) {
+        context.getContentResolver().bulkInsert(NotificationsContentProvider.NOTIFICATION_CONTENT_URI, contentValueses);
+    }
+
+    public static void saveNotificationsSocket(Context context, ContentValues[] contentValueses) {
+        context.getContentResolver().insert(NotificationsContentProvider.NOTIFICATION_CONTENT_URI, contentValueses[0]);
     }
 }

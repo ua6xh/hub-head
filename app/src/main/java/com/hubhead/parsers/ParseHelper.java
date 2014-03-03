@@ -2,13 +2,9 @@ package com.hubhead.parsers;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
-import com.hubhead.contentprovider.CirclesContentProvider;
 import com.hubhead.contentprovider.NotificationsContentProvider;
-import com.hubhead.helpers.DBHelper;
 import com.hubhead.models.NotificationModel;
 
 import org.codehaus.jackson.map.ObjectMapper;
@@ -16,7 +12,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -42,16 +37,10 @@ public class ParseHelper {
         return allDataStructureJson;
     }
 
-    public void parseNotifications(String response) {
+    public void parseNotifications(String response, boolean socket) {
         try {
             JSONObject json = new JSONObject(response);
-            Log.d(TAG, "1");
             JSONObject notificationsObj = json.getJSONObject("data");
-            Log.d(TAG, "2");
-            if (notificationsObj == null) {
-                Log.d(TAG, "3");
-                notificationsObj = json.getJSONObject("notifications");
-            }
 
             NotificationModel notification = new NotificationModel();
             Iterator objectsIterator = notificationsObj.keys();
@@ -74,14 +63,17 @@ public class ParseHelper {
                     contentValuesArrayList.add(cv);
                 }
                 ContentValues[] contentValueses = contentValuesArrayList.toArray(new ContentValues[0]);
-                mContext.getContentResolver().bulkInsert(NotificationsContentProvider.NOTIFICATION_CONTENT_URI, contentValueses);
+                if(socket){
+                    SaverHelper.saveNotificationsSocket(mContext, contentValueses);
+                } else {
+                    SaverHelper.saveNotifications(mContext, contentValueses);
+                }
             }
-        } catch (JSONException e){
+        } catch (JSONException e) {
             Log.e(TAG, "Error parsing data in parseNotifications: " + e.toString());
-        } catch (NullPointerException e){
+        } catch (NullPointerException e) {
             Log.e(TAG, "NullPointerException in ParserHelper");
         }
-
     }
 
     protected NotificationModel createNotification(String roomName, JSONObject room, NotificationModel notification) throws JSONException {

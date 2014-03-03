@@ -59,9 +59,10 @@ public class LoadCirclesDataActionCommand extends SFHttpCommand {
             SaverHelper saverHelper = new SaverHelper(context);
             saverHelper.saveCircles(allDataStructureJson.data.circles);
             saverHelper.saveSpheres(allDataStructureJson.data.spheres);
-//                saverHelper.saveContacts(allDataStructureJson.data.contacts);
-//                saverHelper.saveReminders(allDataStructureJson.data.reminders);
-            //setSharedPrefUpdateTime(Long.toString(allDataStructureJson.data.last_get_time));
+            saverHelper.saveContacts(allDataStructureJson.data.contacts);
+
+            saverHelper.saveReminders(allDataStructureJson.data.reminders);
+//            setSharedPrefUpdateTime(Long.toString(allDataStructureJson.data.last_get_time));
             notifySuccess(data);
         } else {
             data.putString("error", context.getResources().getString(R.string.error_invalid_email_or_pass));

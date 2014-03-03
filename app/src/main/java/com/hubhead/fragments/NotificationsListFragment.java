@@ -107,10 +107,12 @@ public class NotificationsListFragment extends SFBaseListFragment implements Loa
     /*----------------------End Create Context Menu --------------------------*/
 
     public void onListItemClick(ListView l, View v, int position, long id) {
-        mPullToRefreshLayout.setRefreshing(true);
-        //Toast.makeText(getActivity(), "Click!", Toast.LENGTH_SHORT).show();
-        mRequestRefreshNotificationsId = getServiceHelper().refreshNotificationsFromServer();
+        getActivity().openContextMenu(v);
         super.onListItemClick(l, v, position, id);
+//        mPullToRefreshLayout.setRefreshing(true);
+//        //Toast.makeText(getActivity(), "Click!", Toast.LENGTH_SHORT).show();
+//        mRequestRefreshNotificationsId = getServiceHelper().refreshNotificationsFromServer();
+
     }
 
     /*------------------------------LoaderCallbacks Override---------------------------*/

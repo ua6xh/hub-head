@@ -128,6 +128,7 @@ public class NotificationsContentProvider extends ContentProvider {
             }
             default: {
                 throw new IllegalArgumentException("Wrong URI: " + uri);
+
             }
         }
         db = dbHelper.getWritableDatabase();

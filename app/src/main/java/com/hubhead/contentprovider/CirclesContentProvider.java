@@ -70,7 +70,7 @@ public class CirclesContentProvider extends ContentProvider {
             case URI_CIRCLES: // общий Uri
                 Log.d(TAG, "URI_CIRCLES");
 
-                // если сортировка не указана, ставим свою - по имени
+                // если сортировка не указана, ставим свою - по времени добавления
                 if (TextUtils.isEmpty(sortOrder)) {
                     sortOrder = CIRCLE_ADD_DATE + " ASC";
                 }
@@ -114,6 +114,7 @@ public class CirclesContentProvider extends ContentProvider {
         // уведомляем ContentResolver, что данные по адресу resultUri изменились
         getContext().getContentResolver().notifyChange(resultUri, null);
         return resultUri;
+        
     }
 
     @Override
