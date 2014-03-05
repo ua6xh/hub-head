@@ -8,6 +8,8 @@
     <string name="word_notifications">Уведомления</string>
     <string name="word_overview">Напоминания</string>
     <string name="word_undefined">Неизвестно</string>
+    <string name="word_task">Задача</string>
+    <string name="word_sphere">Сфера</string>
 
 
 </resources>

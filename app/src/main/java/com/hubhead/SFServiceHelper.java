@@ -84,11 +84,13 @@ public class SFServiceHelper {
         Intent i = createIntent(application, new LoadNotificationsActionCommand(), requestId);
         return runRequest(requestId, i);
     }
+
     public int refreshNotificationsFromServer() {
         final int requestId = createId();
         Intent i = createIntent(application, new RefreshNotificationsActionCommand(), requestId);
         return runRequest(requestId, i);
     }
+
 
     // =========================================
 

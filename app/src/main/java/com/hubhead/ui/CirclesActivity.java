@@ -3,31 +3,28 @@ package com.hubhead.ui;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.ProgressDialog;
-import android.content.ContentUris;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.LoaderManager;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.widget.SimpleCursorAdapter;
 import android.test.IsolatedContext;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -36,28 +33,20 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import com.google.gson.Gson;
 import com.hubhead.R;
 import com.hubhead.SFBaseActivity;
 import com.hubhead.SFServiceCallbackListener;
 import com.hubhead.contentprovider.CirclesContentProvider;
-import com.hubhead.contentprovider.NotificationsContentProvider;
 import com.hubhead.fragments.CircleFragment;
 import com.hubhead.handlers.impl.LoadCirclesDataActionCommand;
 import com.hubhead.handlers.impl.LoadNotificationsActionCommand;
 import com.hubhead.helpers.DBHelper;
-import com.hubhead.helpers.TextHelper;
-import com.hubhead.parsers.ParseHelper;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import de.tavendo.autobahn.Wamp;
-import de.tavendo.autobahn.WampConnection;
+import com.hubhead.service.WampService;
 
 
 public class CirclesActivity extends SFBaseActivity implements SFServiceCallbackListener, ListView.OnItemClickListener, LoaderManager.LoaderCallbacks<Cursor> {
     private final static String MY_PREF = "MY_PREF";
+    private static final int LOCAL_NOTIFICATION_ID = 1;
     private final String TAG = ((Object) this).getClass().getCanonicalName();
     private static final String PROGRESS_DIALOG_LOAD_CIRCLES_DATA = "progress-dialog-load-circles-data";
     private static final String PROGRESS_DIALOG_LOAD_NOTIFICATIONS = "progress-dialog-load-notifications";
@@ -74,12 +63,13 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
     private SimpleCursorAdapter mDrawerAdapter;
     private int mCircleId = -1;
     private Bundle mSavedInstanceState = null;
-    public WampClient wampClient = null;
     private int selectItemMenu = 0;
+    private int mNotificationFlag = 0;
+    private boolean mIsBound = false;
 
 
     public void sendNotificationSetReaded(long notificationId) {
-        wampClient.sendNotificationSetReaded(notificationId);
+        mBoundService.sendNotificationSetReaded(notificationId);
     }
 
     @Override
@@ -88,12 +78,22 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         mSavedInstanceState = savedInstanceState;
         setContentView(R.layout.circles_activity);
         mCircleId = getIntent().getIntExtra("circle_id", -1);
+        mNotificationFlag = getIntent().getIntExtra("notification", 0);
+
         createNavigationDrawer();
 
-        wampClient = new WampClient();
+        Intent i = new Intent(this, WampService.class);
+        startService(i);
+        doBindService();
 
         if (savedInstanceState == null && mCircleId == -1) {
-            loadCirclesDataFromServer("");
+            loadCirclesDataFromServer(1);
+        } else if (savedInstanceState == null && mNotificationFlag == 1) {
+            loadCirclesDataFromServer(0);
+        }
+        if (mNotificationFlag == 1) {
+            NotificationManager nMgr = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            nMgr.cancel(LOCAL_NOTIFICATION_ID);
         }
     }
 
@@ -149,34 +149,7 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         if (mDrawerToggle.onOptionsItemSelected(item)) {
             return true;
         }
-        // Handle action buttons
         switch (item.getItemId()) {
-//            case R.id.action_add_circle: {
-//
-//                Random r = new Random();
-//                int i1 = r.nextInt(1000);
-//
-//                ContentValues cv = new ContentValues();
-//                cv.put("name", "name Circle " + i1);
-//                cv.put("_id", i1);
-//                Uri newUri2 = getContentResolver().insert(CirclesContentProvider.CIRCLE_CONTENT_URI, cv);
-//
-//                Toast.makeText(this, "Add actions:" + newUri2.toString(), Toast.LENGTH_SHORT).show();
-//                return true;
-//            }
-//            case R.id.action_add_notification: {
-//                ContentValues cv = new ContentValues();
-//                cv.put("model_name", "name Notify " + mCircleId);
-//                cv.put("circle_id", mCircleId);
-//                Uri newUri = getContentResolver().insert(NotificationsContentProvider.NOTIFICATION_CONTENT_URI, cv);
-//                Toast.makeText(this, "Add actions:" + newUri.toString(), Toast.LENGTH_SHORT).show();
-//
-//                cv = new ContentValues();
-//                cv.put("count_notifications", ++mCircleCountNotifications);
-//                Uri itemUri = ContentUris.withAppendedId(CirclesContentProvider.CIRCLE_CONTENT_URI, mCircleId);
-//                int cnt = getContentResolver().update(itemUri, cv, null, null);
-//                return true;
-//            }
             case R.id.action_sign_out: {
                 signOutAction();
                 return true;
@@ -249,7 +222,7 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         if (getServiceHelper().check(requestIntent, LoadCirclesDataActionCommand.class)) {
             if (resultCode == LoadCirclesDataActionCommand.RESPONSE_SUCCESS) {
                 dismissProgressDialog(PROGRESS_DIALOG_LOAD_CIRCLES_DATA);
-                loadNotificationsFromServer();
+                loadNotificationsFromServer(mNotificationFlag);
             } else if (resultCode == LoadCirclesDataActionCommand.RESPONSE_FAILURE) {
                 dismissProgressDialog(PROGRESS_DIALOG_LOAD_CIRCLES_DATA);
                 Toast.makeText(this, resultData.getString("error"), Toast.LENGTH_SHORT).show();
@@ -267,17 +240,6 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         }
     }
 
-    private void setSharedPrefUpdateTime(String update_time) {
-        SharedPreferences.Editor editor = this.getSharedPreferences(MY_PREF, IsolatedContext.MODE_PRIVATE).edit();
-        editor.putString("update_time", update_time);
-        editor.commit();
-    }
-
-    private String getSharedPrefUpdateTime() {
-        return getSharedPreferences(MY_PREF, IsolatedContext.MODE_PRIVATE).getString("update_time", "");
-    }
-
-
     private void сreateAlertDialogSingIn(String title, String message) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(title)
@@ -292,15 +254,19 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         alert.show();
     }
 
-    private void loadCirclesDataFromServer(String updateTime) {
-        ProgressDialogFragment progress = new ProgressDialogFragment(this.getResources().getString(R.string.alert_dialog_message_load_circles_data));
-        progress.show(getSupportFragmentManager(), PROGRESS_DIALOG_LOAD_CIRCLES_DATA);
-        mRequestCirclesDataId = getServiceHelper().loadCirclesDataFromServer(updateTime);
+    private void loadCirclesDataFromServer(int mode) {
+        if (mode == 1) {
+            ProgressDialogFragment progress = new ProgressDialogFragment(this.getResources().getString(R.string.alert_dialog_message_load_circles_data));
+            progress.show(getSupportFragmentManager(), PROGRESS_DIALOG_LOAD_CIRCLES_DATA);
+        }
+        mRequestCirclesDataId = getServiceHelper().loadCirclesDataFromServer("");
     }
 
-    private void loadNotificationsFromServer() {
-        ProgressDialogFragment progress = new ProgressDialogFragment(this.getResources().getString(R.string.alert_dialog_message_load_notifications));
-        progress.show(getSupportFragmentManager(), PROGRESS_DIALOG_LOAD_NOTIFICATIONS);
+    private void loadNotificationsFromServer(int mode) {
+        if (mode == 0) {
+            ProgressDialogFragment progress = new ProgressDialogFragment(this.getResources().getString(R.string.alert_dialog_message_load_notifications));
+            progress.show(getSupportFragmentManager(), PROGRESS_DIALOG_LOAD_NOTIFICATIONS);
+        }
         mRequestNotificationsId = getServiceHelper().loadNotificationsFromServer();
     }
 
@@ -336,12 +302,12 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         if (cursor.getCount() > 0 && mCircleId == -1) {
             handler.sendEmptyMessage(2);
         } else if (cursor.getCount() > 0 && mCircleId != -1) {
-                while (cursor.moveToNext()) {
-                    if (cursor.getLong(0) == mCircleId) {
-                        selectItemMenu = cursor.getPosition();
-                        break;
-                    }
+            while (cursor.moveToNext()) {
+                if (cursor.getLong(0) == mCircleId) {
+                    selectItemMenu = cursor.getPosition();
+                    break;
                 }
+            }
             handler.sendEmptyMessage(2);
         }
     }
@@ -411,132 +377,52 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         }
     }
 
-    /* ---------------------- Auhobahn-----------------------*/
-    class WampClient extends WampConnection {
-        private static final String MY_PREF = "MY_PREF";
-        private final String wsuri = "ws://tm.dev-lds.ru:12126";
+    /*------------------ BindService ------------------*/
+    private WampService mBoundService;
 
-        public WampClient() {
+    private ServiceConnection mConnection = new ServiceConnection() {
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            // This is called when the connection with the service has been
+            // established, giving us the service object we can use to
+            // interact with the service.  Because we have bound to a explicit
+            // service that we know is running in our own process, we can
+            // cast its IBinder to a concrete class and directly access it.
+            mBoundService = ((WampService.LocalBinder)service).getService();
 
-            Log.d(TAG, "WAMP constructor");
-            connect(wsuri, new Wamp.ConnectionHandler() {
-
-                @Override
-                public void onOpen() {
-                    sendSessionIdMessage();
-                }
-
-                @Override
-                public void onClose(int code, String reason) {
-                    Log.d(TAG, "code: " + code + " reason:" + reason);
-                }
-            });
+            // Tell the user about this for our demo.
+            Toast.makeText(CirclesActivity.this, "R.string.local_service_connected", Toast.LENGTH_SHORT).show();
         }
 
-        private void sendSessionIdMessage() {
-            String cookieSend = TextHelper.getCookieForSend(getSharedPreferences(MY_PREF, IsolatedContext.MODE_PRIVATE).getString("cookies", ""));
-
-            Log.d(TAG, "sendSessionIdMessage");
-
-            call("userAuth", Integer.class, new CallHandler() {
-                @Override
-                public void onResult(Object result) {
-                    Log.d(TAG, "userAuth: onResult:" + result);
-                    subscribe("u_" + result, Event.class, new EventHandler() {
-                        @Override
-                        public void onEvent(String topicUri, Object eventResult) {
-                            Event event = (Event) eventResult;
-
-
-                            if (event.type.equals("notification")) {
-                                Gson gson = new Gson();
-                                Map<String, Object> notification = new HashMap<String, Object>();
-                                notification.put("data", event.data);
-                                String jsonStr = gson.toJson(notification);
-                                Log.d(TAG, "WAMP:notification: " + jsonStr);
-                                Log.d(TAG, "WAMP:alert: " + event.alert);
-                                ParseHelper parseHelper = new ParseHelper(getApplicationContext());
-                                parseHelper.parseNotifications(jsonStr, true);
-                                createNotification(5);
-                            } else if (event.type.equals("system")) {
-                                Gson gson = new Gson();
-                                String jsonStr = gson.toJson(event.data);
-                                Log.d(TAG, "WAMP:system: " + jsonStr);
-                            }
-                        }
-                    });
-                }
-
-                @Override
-                public void onError(String errorUri, String errorDesc) {
-                    Log.d(TAG, "userAuth: onError");
-                }
-            }, cookieSend);
+        public void onServiceDisconnected(ComponentName className) {
+            // This is called when the connection with the service has been
+            // unexpectedly disconnected -- that is, its process crashed.
+            // Because it is running in our same process, we should never
+            // see this happen.
+            mBoundService = null;
+            Toast.makeText(CirclesActivity.this, "R.string.local_service_disconnected", Toast.LENGTH_SHORT).show();
         }
+    };
 
-        public void sendNotificationSetReaded(final long notificationId) {
-            String roomName = TextHelper.getTypeAndModel(notificationId);
+    void doBindService() {
+        // Establish a connection with the service.  We use an explicit
+        // class name because we want a specific service implementation that
+        // we know will be running in our own process (and thus won't be
+        // supporting component replacement by other applications).
+        bindService(new Intent(CirclesActivity.this, WampService.class), mConnection, Context.BIND_AUTO_CREATE);
+        mIsBound = true;
+    }
 
-            try {
-                call("notificationSetReaded", Boolean.class, new CallHandler() {
-                    @Override
-                    public void onResult(Object result) {
-                        Log.d(TAG, "notificationSetReaded: onResult:" + result);
-
-                        Uri itemUri = ContentUris.withAppendedId(NotificationsContentProvider.NOTIFICATION_CONTENT_URI, notificationId);
-                        getContentResolver().delete(itemUri, null, null);
-                        Toast.makeText(getApplicationContext(), "Id record:" + notificationId, Toast.LENGTH_SHORT).show();
-                    }
-
-                    @Override
-                    public void onError(String errorUri, String errorDesc) {
-                        Log.d(TAG, "notificationSetReaded: onError" + errorDesc);
-                        Toast.makeText(getApplicationContext(), "Error", Toast.LENGTH_SHORT).show();
-                    }
-                }, roomName);
-            } catch (Exception e) {
-                String err = (e.getMessage() == null) ? "Eron don don" : e.getMessage();
-                Log.e(TAG, err);
-                Toast.makeText(getApplicationContext(), "Error", Toast.LENGTH_SHORT).show();
-            }
+    void doUnbindService() {
+        if (mIsBound) {
+            // Detach our existing connection.
+            unbindService(mConnection);
+            mIsBound = false;
         }
     }
 
-    private void createNotification(int circleId) {
-        NotificationCompat.Builder mBuilder =
-                new NotificationCompat.Builder(this)
-                        .setSmallIcon(R.drawable.ic_launcher)
-                        .setContentTitle("My notification")
-                        .setContentText("Hello World!");
-        // Creates an explicit intent for an Activity in your app
-        Intent resultIntent = new Intent(this, CirclesActivity.class);
-        resultIntent.putExtra("circle_id", circleId);
-
-        // The stack builder object will contain an artificial back stack for the
-        // started Activity.
-        // This ensures that navigating backward from the Activity leads out of
-        // your application to the Home screen.
-        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-        // Adds the back stack for the Intent (but not the Intent itself)
-        stackBuilder.addParentStack(CirclesActivity.class);
-        // Adds the Intent that starts the Activity to the top of the stack
-        stackBuilder.addNextIntent(resultIntent);
-        PendingIntent resultPendingIntent =
-                stackBuilder.getPendingIntent(
-                        0,
-                        PendingIntent.FLAG_UPDATE_CURRENT
-                );
-        mBuilder.setContentIntent(resultPendingIntent);
-        NotificationManager mNotificationManager =
-                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        // mId allows you to update the notification later on.
-        mNotificationManager.notify(0, mBuilder.build());
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        doUnbindService();
     }
-
-    private static class Event {
-        public String type;
-        public Object data;
-        public Object alert;
-    }
-    /* ---------------------End Auhobahn---------------------*/
 }

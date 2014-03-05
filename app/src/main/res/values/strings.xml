@@ -8,4 +8,6 @@
     <string name="word_notifications">Notifications</string>
     <string name="word_overview">Overview</string>
     <string name="word_undefined">Undefined</string>
+    <string name="word_task">Task</string>
+    <string name="word_sphere">Sphere</string>
 </resources>

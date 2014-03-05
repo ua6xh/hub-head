@@ -2,7 +2,7 @@ package com.hubhead.models;
 
 import org.json.JSONArray;
 
-public class NotificationModel{
+public class NotificationModel {
     public static final byte TYPE_TASK = 1;
     public static final byte TYPE_SPHERE = 2;
     private final String TAG = ((Object) this).getClass().getCanonicalName();

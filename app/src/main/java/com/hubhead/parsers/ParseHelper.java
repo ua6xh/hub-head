@@ -37,6 +37,20 @@ public class ParseHelper {
         return allDataStructureJson;
     }
 
+    public static AlertDataStructureJson parseAlertData(String JSON) {
+        ObjectMapper mapper = new ObjectMapper();
+        AlertDataStructureJson alertDataStructureJson = null;
+        try {
+            alertDataStructureJson = mapper.readValue(JSON, AlertDataStructureJson.class);
+            System.out.println("JACKSON JSON PARSE GOOD!");
+        } catch (IOException e) {
+            System.out.println("JACKSON json parse bad!:" + JSON);
+            e.printStackTrace();
+        }
+        return alertDataStructureJson;
+    }
+
+
     public void parseNotifications(String response, boolean socket) {
         try {
             JSONObject json = new JSONObject(response);
@@ -63,7 +77,7 @@ public class ParseHelper {
                     contentValuesArrayList.add(cv);
                 }
                 ContentValues[] contentValueses = contentValuesArrayList.toArray(new ContentValues[0]);
-                if(socket){
+                if (socket) {
                     SaverHelper.saveNotificationsSocket(mContext, contentValueses);
                 } else {
                     SaverHelper.saveNotifications(mContext, contentValueses);

@@ -83,8 +83,6 @@ public class NotificationsContentProvider extends ContentProvider {
         }
         db = dbHelper.getWritableDatabase();
         Cursor cursor = db.query(NOTIFICATION_TABLE, mProjection, selection, selectionArgs, null, null, sortOrder);
-        // просим ContentResolver уведомлять этот курсор
-        // об изменениях данных в NOTIFICATION_CONTENT_URI
         cursor.setNotificationUri(getContext().getContentResolver(), NOTIFICATION_CONTENT_URI);
         return cursor;
     }
@@ -101,9 +99,7 @@ public class NotificationsContentProvider extends ContentProvider {
             Log.e(TAG, "db.insertWithOnConflict: -1");
         }
         Uri resultUri = ContentUris.withAppendedId(NOTIFICATION_CONTENT_URI, rowID);
-        // уведомляем ContentResolver, что данные по адресу resultUri изменились
         getContext().getContentResolver().notifyChange(resultUri, null);
-        Log.d(TAG, "Insert notification, update circles");
         getContext().getContentResolver().notifyChange(CirclesContentProvider.CIRCLE_CONTENT_URI, null);
 
         return resultUri;
@@ -132,10 +128,8 @@ public class NotificationsContentProvider extends ContentProvider {
             }
         }
         db = dbHelper.getWritableDatabase();
-        Log.d(TAG, NOTIFICATION_TABLE + " " + selection + " " + selectionArgs);
         int cnt = db.delete(NOTIFICATION_TABLE, selection, selectionArgs);
         getContext().getContentResolver().notifyChange(uri, null);
-        Log.d(TAG, "Delete notification, update circles");
         getContext().getContentResolver().notifyChange(CirclesContentProvider.CIRCLE_CONTENT_URI, null);
         return cnt;
     }
@@ -164,7 +158,6 @@ public class NotificationsContentProvider extends ContentProvider {
         db = dbHelper.getWritableDatabase();
         int cnt = db.update(NOTIFICATION_TABLE, values, selection, selectionArgs);
         getContext().getContentResolver().notifyChange(uri, null);
-        Log.d(TAG, "change cursor " + NOTIFICATION_TABLE + " cnt:" + cnt);
         return cnt;
     }
 

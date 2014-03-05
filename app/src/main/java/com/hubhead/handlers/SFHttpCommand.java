@@ -74,8 +74,8 @@ public class SFHttpCommand extends SFBaseCommand {
                 }
             }
         } catch (IOException e) {
-            Log.e(TAG, "IOException: " +  e.getLocalizedMessage());
-            response =  "";
+            Log.e(TAG, "IOException: " + e.getLocalizedMessage());
+            response = "";
         } finally {
             Log.d(TAG + ": url:" + url + ":", response);
         }

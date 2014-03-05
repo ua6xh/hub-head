@@ -57,27 +57,23 @@ public class CirclesContentProvider extends ContentProvider {
 
     @Override
     public boolean onCreate() {
-        Log.d(TAG, "onCreate");
         dbHelper = new DBHelper(getContext());
         return true;
     }
 
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
-        Log.d(TAG, "query, " + uri.toString());
         // проверяем Uri
         switch (uriMatcher.match(uri)) {
-            case URI_CIRCLES: // общий Uri
-                Log.d(TAG, "URI_CIRCLES");
-
+            case URI_CIRCLES: { // общий Uri
                 // если сортировка не указана, ставим свою - по времени добавления
                 if (TextUtils.isEmpty(sortOrder)) {
                     sortOrder = CIRCLE_ADD_DATE + " ASC";
                 }
                 break;
-            case URI_CIRCLES_ID: // Uri с ID
+            }
+            case URI_CIRCLES_ID: { // Uri с ID
                 String id = uri.getLastPathSegment();
-                Log.d(TAG, "URI_CIRCLES_ID, " + id);
                 // добавляем ID к условию выборки
                 if (TextUtils.isEmpty(selection)) {
                     selection = CIRCLE_ID + " = " + id;
@@ -85,6 +81,7 @@ public class CirclesContentProvider extends ContentProvider {
                     selection = selection + " AND " + CIRCLE_ID + " = " + id;
                 }
                 break;
+            }
             default: {
                 throw new IllegalArgumentException("Wrong URI: " + uri);
             }
@@ -102,7 +99,6 @@ public class CirclesContentProvider extends ContentProvider {
 
     @Override
     public Uri insert(Uri uri, ContentValues values) {
-        Log.d(TAG, "insert, " + uri.toString());
         if (uriMatcher.match(uri) != URI_CIRCLES) {
             throw new IllegalArgumentException("Wrong URI: " + uri);
         }
@@ -111,23 +107,19 @@ public class CirclesContentProvider extends ContentProvider {
         long rowID = db.insert(CIRCLE_TABLE, null, values);
 
         Uri resultUri = ContentUris.withAppendedId(CIRCLE_CONTENT_URI, rowID);
-        // уведомляем ContentResolver, что данные по адресу resultUri изменились
         getContext().getContentResolver().notifyChange(resultUri, null);
         return resultUri;
-        
+
     }
 
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
-        Log.d(TAG, "delete, " + uri.toString());
         switch (uriMatcher.match(uri)) {
             case URI_CIRCLES: {
-                Log.d(TAG, "URI_CIRCLES");
                 break;
             }
             case URI_CIRCLES_ID: {
                 String id = uri.getLastPathSegment();
-                Log.d(TAG, "URI_CIRCLES_ID, " + id);
                 if (TextUtils.isEmpty(selection)) {
                     selection = CIRCLE_ID + " = " + id;
                 } else {
@@ -147,15 +139,12 @@ public class CirclesContentProvider extends ContentProvider {
 
     @Override
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
-        Log.d(TAG, "update, " + uri.toString());
         switch (uriMatcher.match(uri)) {
             case URI_CIRCLES: {
-                Log.d(TAG, "URI_CIRCLES");
                 break;
             }
             case URI_CIRCLES_ID: {
                 String id = uri.getLastPathSegment();
-                Log.d(TAG, "URI_CIRCLES_ID, " + id);
                 if (TextUtils.isEmpty(selection)) {
                     selection = CIRCLE_ID + " = " + id;
                 } else {
@@ -169,6 +158,7 @@ public class CirclesContentProvider extends ContentProvider {
         }
         db = dbHelper.getWritableDatabase();
         int cnt = db.update(CIRCLE_TABLE, values, selection, selectionArgs);
+
         getContext().getContentResolver().notifyChange(uri, null);
         return cnt;
     }
@@ -185,7 +175,6 @@ public class CirclesContentProvider extends ContentProvider {
                 }
                 db.setTransactionSuccessful();
             } catch (NullPointerException e) {
-                Log.e(TAG, "NullPointerException:" + e.getLocalizedMessage());
             } finally {
                 db.endTransaction();
                 db.close();
@@ -197,7 +186,6 @@ public class CirclesContentProvider extends ContentProvider {
 
     @Override
     public String getType(Uri uri) {
-        Log.d(TAG, "getType, " + uri.toString());
         switch (uriMatcher.match(uri)) {
             case URI_CIRCLES: {
                 return CIRCLE_CONTENT_TYPE;
