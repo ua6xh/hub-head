@@ -17,6 +17,7 @@ import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.hubhead.R;
+import com.hubhead.contentprovider.CirclesContentProvider;
 import com.hubhead.contentprovider.NotificationsContentProvider;
 import com.hubhead.helpers.TextHelper;
 import com.hubhead.models.NotificationModel;
@@ -111,7 +112,9 @@ public class WampService extends Service {
                             Log.d(TAG, "WAMP:notification: " + jsonStr);
                             ParseHelper parseHelper = new ParseHelper(getApplicationContext());
                             parseHelper.parseNotifications(jsonStr, true);
-                            createNotification(event.alert);
+                            if(event.alert != null){
+                                createNotification(event.alert);
+                            }
                         } else if (event.type.equals("system")) {
                             Gson gson = new Gson();
                             String jsonStr = gson.toJson(event.data);

@@ -12,6 +12,11 @@ import android.util.Log;
 
 import com.hubhead.helpers.DBHelper;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
 public class NotificationsContentProvider extends ContentProvider {
     public static final String AUTHORITY = "com.hubhead.contentproviders.NotificationsContentProvider";
     // path
@@ -46,6 +51,7 @@ public class NotificationsContentProvider extends ContentProvider {
     private final String TAG = ((Object) this).getClass().getCanonicalName();
     private static final String NOTIFICATION_NAME = "model_name";
     private static final String NOTIFICATION_ID = "_id";
+    private static final String NOTIFICATION_CIRCLE_ID = "circle_id";
     private static final String NOTIFICATION_TABLE = "notifications";
     private final String[] mProjection = new String[]{NOTIFICATION_ID, NOTIFICATION_NAME};
 
@@ -53,7 +59,6 @@ public class NotificationsContentProvider extends ContentProvider {
     SQLiteDatabase db;
 
     public boolean onCreate() {
-        Log.d(TAG, "onCreate");
         dbHelper = new DBHelper(getContext());
         return true;
     }
@@ -68,7 +73,7 @@ public class NotificationsContentProvider extends ContentProvider {
                     sortOrder = "dt DESC";
                 }
                 break;
-            case URI_NOTIFICATIONS_ID: // Uri с ID
+            case URI_NOTIFICATIONS_ID:{ // Uri с ID
                 String id = uri.getLastPathSegment();
                 // добавляем ID к условию выборки
                 if (TextUtils.isEmpty(selection)) {
@@ -77,6 +82,7 @@ public class NotificationsContentProvider extends ContentProvider {
                     selection = selection + " AND " + NOTIFICATION_ID + " = " + id;
                 }
                 break;
+            }
             default: {
                 throw new IllegalArgumentException("Wrong URI: " + uri);
             }
@@ -88,7 +94,6 @@ public class NotificationsContentProvider extends ContentProvider {
     }
 
     public Uri insert(Uri uri, ContentValues values) {
-        Log.d(TAG, "insert, " + uri.toString());
         if (uriMatcher.match(uri) != URI_NOTIFICATIONS) {
             throw new IllegalArgumentException("Wrong URI: " + uri);
         }
@@ -97,6 +102,9 @@ public class NotificationsContentProvider extends ContentProvider {
         long rowID = db.insertWithOnConflict(NOTIFICATION_TABLE, null, values, SQLiteDatabase.CONFLICT_REPLACE);
         if (rowID == -1) {
             Log.e(TAG, "db.insertWithOnConflict: -1");
+        } else {
+            Log.d(TAG, "db.insertWithOnConflict:" + rowID);
+
         }
         Uri resultUri = ContentUris.withAppendedId(NOTIFICATION_CONTENT_URI, rowID);
         getContext().getContentResolver().notifyChange(resultUri, null);
@@ -106,15 +114,12 @@ public class NotificationsContentProvider extends ContentProvider {
     }
 
     public int delete(Uri uri, String selection, String[] selectionArgs) {
-        Log.d(TAG, "delete, " + uri.toString());
         switch (uriMatcher.match(uri)) {
             case URI_NOTIFICATIONS: {
-                Log.d(TAG, "URI_NOTIFICATIONS");
                 break;
             }
             case URI_NOTIFICATIONS_ID: {
                 String id = uri.getLastPathSegment();
-                Log.d(TAG, "URI_NOTIFICATIONS_ID, " + id);
                 if (TextUtils.isEmpty(selection)) {
                     selection = NOTIFICATION_ID + " = " + id;
                 } else {
@@ -124,7 +129,6 @@ public class NotificationsContentProvider extends ContentProvider {
             }
             default: {
                 throw new IllegalArgumentException("Wrong URI: " + uri);
-
             }
         }
         db = dbHelper.getWritableDatabase();
@@ -135,15 +139,12 @@ public class NotificationsContentProvider extends ContentProvider {
     }
 
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
-        Log.d(TAG, "update, " + uri.toString());
         switch (uriMatcher.match(uri)) {
             case URI_NOTIFICATIONS: {
-                Log.d(TAG, "URI_NOTIFICATIONS");
                 break;
             }
             case URI_NOTIFICATIONS_ID: {
                 String id = uri.getLastPathSegment();
-                Log.d(TAG, "URI_NOTIFICATIONS_ID, " + id);
                 if (TextUtils.isEmpty(selection)) {
                     selection = NOTIFICATION_ID + " = " + id;
                 } else {
@@ -165,11 +166,39 @@ public class NotificationsContentProvider extends ContentProvider {
     public int bulkInsert(Uri uri, ContentValues[] valueses) {
         if (valueses.length > 0) {
             db = dbHelper.getWritableDatabase();
+            Cursor cursor = db.query(NOTIFICATION_TABLE, null, null, null, null, null, null);
+            Map<String, ContentValues> valuesNotifications = new HashMap<String, ContentValues>();
+            ArrayList<String> deleteNotifications = new ArrayList<String>();
+            for (ContentValues values : valueses) {
+                valuesNotifications.put(values.get("_id").toString(), values);
+            }
+            int notificationId;
+            int dtIndex = cursor.getColumnIndex("dt");
+            while (cursor.moveToNext()) {
+                notificationId = cursor.getInt(0);
+                if (valuesNotifications.containsKey(Integer.toString(notificationId))) {
+                    long dt = cursor.getLong(dtIndex);
+                    ContentValues v = valuesNotifications.get(Integer.toString(notificationId));
+                    if (dt == v.getAsLong("dt")) {
+                        valuesNotifications.remove(Integer.toString(notificationId));
+                    }
+                } else {
+                    deleteNotifications.add(Integer.toString(notificationId));
+                }
+            }
             db.beginTransaction();
+            boolean update = false;
             try {
-                db.delete(NOTIFICATION_TABLE, null, null);
-                for (ContentValues values : valueses) {
-                    db.insert(NOTIFICATION_TABLE, null, values);
+                Iterator it = valuesNotifications.entrySet().iterator();
+                while (it.hasNext()) {
+                    Map.Entry pairs = (Map.Entry) it.next();
+                    ContentValues cv = (ContentValues) pairs.getValue();
+                    db.replace(NOTIFICATION_TABLE, null, cv);
+                    update = true;
+                }
+                for (String deleteId : deleteNotifications) {
+                    db.delete(NOTIFICATION_TABLE, "_id = ?", new String[]{deleteId});
+                    update = true;
                 }
                 db.setTransactionSuccessful();
             } catch (NullPointerException e) {
@@ -177,17 +206,18 @@ public class NotificationsContentProvider extends ContentProvider {
             } finally {
                 db.endTransaction();
                 db.close();
-                getContext().getContentResolver().notifyChange(uri, null);
-                getContext().getContentResolver().notifyChange(CirclesContentProvider.CIRCLE_CONTENT_URI, null);
+                if (update) {
+                    getContext().getContentResolver().notifyChange(uri, null);
+                    getContext().getContentResolver().notifyChange(CirclesContentProvider.CIRCLE_CONTENT_URI, null);
+                }
             }
         }
         return 0;
     }
 
     public String getType(Uri uri) {
-        Log.d(TAG, "getType, " + uri.toString());
         switch (uriMatcher.match(uri)) {
-            case URI_NOTIFICATIONS: {
+            case URI_NOTIFICATIONS:{
                 return NOTIFICATION_CONTENT_TYPE;
             }
             case URI_NOTIFICATIONS_ID: {

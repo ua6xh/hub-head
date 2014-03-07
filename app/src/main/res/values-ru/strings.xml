@@ -10,6 +10,7 @@
     <string name="word_undefined">Неизвестно</string>
     <string name="word_task">Задача</string>
     <string name="word_sphere">Сфера</string>
+    <string name="word_select_circle">Выберите круг</string>
 
 
 </resources>

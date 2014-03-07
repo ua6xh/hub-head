@@ -45,12 +45,13 @@ public class CirclesContentProvider extends ContentProvider {
     }
 
     private final String TAG = ((Object) this).getClass().getCanonicalName();
-    private static final String CIRCLE_ID = "_id";
-    private static final String CIRCLE_NAME = "name";
-    private static final String CIRCLE_ADD_DATE = "add_date";
-    private static final String CIRCLE_COUNT_NOTIFICATIONS = "count_notifications";
-    private static final String CIRCLE_TABLE = "circles";
+    public static final String CIRCLE_ID = "_id";
+    public static final String CIRCLE_NAME = "name";
+    public static final String CIRCLE_ADD_DATE = "add_date";
+    public static final String CIRCLE_COUNT_NOTIFICATIONS = "count_notifications";
+    public static final String CIRCLE_TABLE = "circles";
     private final String[] mProjection = new String[]{CIRCLE_ID, CIRCLE_NAME, "(SELECT COUNT(*) FROM notifications n WHERE circles._id = n.circle_id ) as " + CIRCLE_COUNT_NOTIFICATIONS, CIRCLE_ADD_DATE};
+    //private final String[] mProjection = new String[]{CIRCLE_ID, CIRCLE_NAME, "0 as " + CIRCLE_COUNT_NOTIFICATIONS, CIRCLE_ADD_DATE};
 
     DBHelper dbHelper;
     SQLiteDatabase db;

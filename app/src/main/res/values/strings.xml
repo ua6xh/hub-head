@@ -10,4 +10,5 @@
     <string name="word_undefined">Undefined</string>
     <string name="word_task">Task</string>
     <string name="word_sphere">Sphere</string>
+    <string name="word_select_circle">Select circle</string>
 </resources>
