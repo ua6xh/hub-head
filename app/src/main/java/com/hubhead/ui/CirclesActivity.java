@@ -290,7 +290,7 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         circleFragment.setArguments(args);
 
         FragmentManager fragmentManager = getSupportFragmentManager();
-        fragmentManager.beginTransaction().replace(R.id.content_frame, circleFragment).addToBackStack(F_CIRCLES).commit();
+        fragmentManager.beginTransaction().replace(R.id.content_frame, circleFragment).commit();
 
         // update selected item and title, then close the drawer
         mDrawerList.setItemChecked(position, true);
@@ -413,17 +413,16 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         mDrawerAdapter.swapCursor(cursor);
 
 //        todo Из-за этого кода, дергается список при перестроении
-//        if (cursor.getCount() > 0 && mCircleId == -1) {
-//            handler.sendEmptyMessage(2);
-//        } else if (cursor.getCount() > 0 && mCircleId != -1) {
-//            while (cursor.moveToNext()) {
-//                if (cursor.getLong(0) == mCircleId) {
-//                    selectItemMenu = cursor.getPosition();
-//                    break;
-//                }
-//            }
-//            handler.sendEmptyMessage(2);
-//        }
+        if (cursor.getCount() > 0 && mCircleId != -1 && mNotificationFlag == 1) {
+            while (cursor.moveToNext()) {
+                if (cursor.getLong(0) == mCircleId) {
+                    selectItemMenu = cursor.getPosition();
+                    mNotificationFlag = 0;
+                    break;
+                }
+            }
+            handler.sendEmptyMessage(2);
+        }
     }
 
     private Handler handler = new Handler()  // handler for commiting fragment after data is loaded
@@ -434,8 +433,8 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
             if (msg.what == 2) {
                 if (mSavedInstanceState == null) {
                     selectItem(selectItemMenu);
+                    invalidateOptionsMenu();
                 }
-                invalidateOptionsMenu();
             }
         }
     };
