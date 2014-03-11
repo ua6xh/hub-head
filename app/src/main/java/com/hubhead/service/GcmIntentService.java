@@ -26,8 +26,10 @@ import android.os.SystemClock;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
+import com.google.android.gms.games.Notifications;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.hubhead.R;
+import com.hubhead.helpers.NotificationHelper;
 import com.hubhead.ui.CirclesActivity;
 
 /**
@@ -38,9 +40,7 @@ import com.hubhead.ui.CirclesActivity;
  * wake lock.
  */
 public class GcmIntentService extends IntentService {
-    public static final int NOTIFICATION_ID = 1;
-    private NotificationManager mNotificationManager;
-    NotificationCompat.Builder builder;
+    private static int mNotificationId = 0;
 
     public GcmIntentService() {
         super("GcmIntentService");
@@ -63,24 +63,26 @@ public class GcmIntentService extends IntentService {
              * not interested in, or that you don't recognize.
              */
             if (GoogleCloudMessaging.MESSAGE_TYPE_SEND_ERROR.equals(messageType)) {
-                sendNotification("Send error: " + extras.toString());
+                //sendNotification("Send error: " + extras.toString(), -1);
             } else if (GoogleCloudMessaging.MESSAGE_TYPE_DELETED.equals(messageType)) {
-                sendNotification("Deleted messages on server: " + extras.toString());
+                //sendNotification("Deleted messages on server: " + extras.toString(), -1);
                 // If it's a regular GCM message, do some work.
             } else if (GoogleCloudMessaging.MESSAGE_TYPE_MESSAGE.equals(messageType)) {
                 // This loop represents the service doing some work.
-                for (int i = 0; i < 5; i++) {
-                    Log.i(TAG, "Working... " + (i + 1)
-                            + "/5 @ " + SystemClock.elapsedRealtime());
-                    try {
-                        Thread.sleep(5000);
-                    } catch (InterruptedException e) {
-                    }
-                }
+//                for (int i = 0; i < 5; i++) {
+//                    Log.i(TAG, "Working... " + (i + 1)
+//                            + "/5 @ " + SystemClock.elapsedRealtime());
+//                    try {
+//                        Thread.sleep(5000);
+//                    } catch (InterruptedException e) {
+//                        Log.e(TAG, "sleep exception: " + e.getMessage());
+//                    }
+//                }
                 Log.i(TAG, "Completed work @ " + SystemClock.elapsedRealtime());
+                Log.i(TAG, "extras: " + extras);
                 // Post notification of received message.
-                sendNotification("Received: " + extras.toString());
-                Log.i(TAG, "Received: " + extras.toString());
+                Log.d(TAG, "circleId before call sendNotification: " + extras.getInt("circle_id"));
+                sendNotification(extras.getString("title"), Integer.parseInt(extras.getString("circle_id")));
             }
         }
         // Release the wake lock provided by the WakefulBroadcastReceiver.
@@ -90,21 +92,14 @@ public class GcmIntentService extends IntentService {
     // Put the message into a notification and post it.
     // This is just one simple example of what you might choose to do with
     // a GCM message.
-    private void sendNotification(String msg) {
-        mNotificationManager = (NotificationManager)
-                this.getSystemService(Context.NOTIFICATION_SERVICE);
-
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(this, CirclesActivity.class), 0);
-
-        NotificationCompat.Builder mBuilder =
-                new NotificationCompat.Builder(this)
-                        .setSmallIcon(R.drawable.ic_notification)
-                        .setContentTitle("GCM Notification")
-                        .setStyle(new NotificationCompat.BigTextStyle()
-                                .bigText(msg))
-                        .setContentText(msg);
-
-        mBuilder.setContentIntent(contentIntent);
-        mNotificationManager.notify(NOTIFICATION_ID, mBuilder.build());
+    private void sendNotification(String msg, int circleId) {
+        NotificationHelper notificationInstance = NotificationHelper.getInstance(this);
+        Log.d(TAG, "mNotificationId: " + mNotificationId);
+        if (mNotificationId != 0 && notificationInstance.issetNotification(mNotificationId)) {
+            notificationInstance.updateInfoNotification(mNotificationId, msg, circleId);
+        } else {
+            Log.d(TAG, "circleId before call create: " + circleId);
+            mNotificationId = notificationInstance.createInfoNotification(msg, circleId);
+        }
     }
 }

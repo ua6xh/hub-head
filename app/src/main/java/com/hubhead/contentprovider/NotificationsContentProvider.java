@@ -73,7 +73,7 @@ public class NotificationsContentProvider extends ContentProvider {
                     sortOrder = "dt DESC";
                 }
                 break;
-            case URI_NOTIFICATIONS_ID:{ // Uri с ID
+            case URI_NOTIFICATIONS_ID: { // Uri с ID
                 String id = uri.getLastPathSegment();
                 // добавляем ID к условию выборки
                 if (TextUtils.isEmpty(selection)) {
@@ -217,7 +217,7 @@ public class NotificationsContentProvider extends ContentProvider {
 
     public String getType(Uri uri) {
         switch (uriMatcher.match(uri)) {
-            case URI_NOTIFICATIONS:{
+            case URI_NOTIFICATIONS: {
                 return NOTIFICATION_CONTENT_TYPE;
             }
             case URI_NOTIFICATIONS_ID: {

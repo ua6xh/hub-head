@@ -22,6 +22,7 @@ import android.os.IBinder;
 import android.os.Process;
 import android.os.ResultReceiver;
 import android.text.TextUtils;
+import android.util.Log;
 import android.util.SparseArray;
 
 import com.hubhead.SFApplication;
@@ -47,6 +48,7 @@ public class SFCommandExecutorService extends Service {
     private ExecutorService executor = Executors.newFixedThreadPool(NUM_THREADS);
 
     private SparseArray<RunningCommand> runningCommands = new SparseArray<RunningCommand>();
+    private String TAG = ((Object) this).getClass().getCanonicalName();
 
     protected void onHandleIntent(Intent intent) {
         Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);

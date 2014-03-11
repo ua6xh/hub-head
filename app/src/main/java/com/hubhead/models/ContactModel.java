@@ -1,7 +1,10 @@
 package com.hubhead.models;
 
 
+import android.util.Log;
+
 public class ContactModel {
+    private String TAG = ((Object) this).getClass().getCanonicalName();
     public int id;
     public long create_date;
     public long update_time;

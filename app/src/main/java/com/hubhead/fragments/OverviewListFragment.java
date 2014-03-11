@@ -1,12 +1,15 @@
 package com.hubhead.fragments;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 
 public class OverviewListFragment extends android.support.v4.app.ListFragment {
+
+    private String TAG = ((Object) this).getClass().getCanonicalName();
 
     public OverviewListFragment() {
     }

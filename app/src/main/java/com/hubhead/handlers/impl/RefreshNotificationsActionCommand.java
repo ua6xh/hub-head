@@ -21,6 +21,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.ResultReceiver;
+import android.util.Log;
 
 import com.hubhead.R;
 import com.hubhead.handlers.SFHttpCommand;
@@ -63,10 +64,12 @@ public class RefreshNotificationsActionCommand extends SFHttpCommand {
 
     public static final Creator<RefreshNotificationsActionCommand> CREATOR = new Creator<RefreshNotificationsActionCommand>() {
         public RefreshNotificationsActionCommand createFromParcel(Parcel in) {
+
             return new RefreshNotificationsActionCommand(in);
         }
 
         public RefreshNotificationsActionCommand[] newArray(int size) {
+
             return new RefreshNotificationsActionCommand[size];
         }
     };

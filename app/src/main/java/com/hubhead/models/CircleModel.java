@@ -1,7 +1,10 @@
 package com.hubhead.models;
 
 
+import android.util.Log;
+
 public class CircleModel {
+    private String TAG = ((Object) this).getClass().getCanonicalName();
     public int id;
     public String name;
     public long add_date;

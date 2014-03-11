@@ -1,29 +1,21 @@
 package com.hubhead.service;
 
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.ContentUris;
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.TaskStackBuilder;
 import android.test.IsolatedContext;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
-import com.hubhead.R;
-import com.hubhead.contentprovider.CirclesContentProvider;
 import com.hubhead.contentprovider.NotificationsContentProvider;
+import com.hubhead.helpers.NotificationHelper;
 import com.hubhead.helpers.TextHelper;
-import com.hubhead.models.NotificationModel;
 import com.hubhead.parsers.AlertDataStructureJson;
 import com.hubhead.parsers.ParseHelper;
-import com.hubhead.ui.CirclesActivity;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -35,8 +27,9 @@ import de.tavendo.autobahn.Wamp;
 import de.tavendo.autobahn.WampConnection;
 
 public class WampService extends Service {
-    private static final int LOCAL_NOTIFICATION_ID = 2;
+    private static final int LOCAL_NOTIFICATION_ID = 1;
     private final String TAG = getClass().getCanonicalName();
+    private static int mNotificationId = 0;
 
     public void onCreate() {
         super.onCreate();
@@ -70,6 +63,7 @@ public class WampService extends Service {
     private final WampConnection mConnection = new WampConnection();
     private static final String MY_PREF = "MY_PREF";
     private static final String wsuri = "ws://tm.dev-lds.ru:12126";
+
     private void start() {
 
         mConnection.connect(wsuri, new Wamp.ConnectionHandler() {
@@ -112,16 +106,17 @@ public class WampService extends Service {
                             Log.d(TAG, "WAMP:notification: " + jsonStr);
                             ParseHelper parseHelper = new ParseHelper(getApplicationContext());
                             parseHelper.parseNotifications(jsonStr, true);
-                            if(event.alert != null){
-                                createNotification(event.alert);
-                            }
+//                            if (event.alert != null) {
+//                                sendNotification(event.alert);
+//
+//                            }
                         } else if (event.type.equals("system")) {
                             Gson gson = new Gson();
                             String jsonStr = gson.toJson(event.data);
                             try {
                                 JSONObject jsonObject = new JSONObject(jsonStr);
                                 String systemEvent = jsonObject.getString("event");
-                                if(systemEvent.equals("notification-read")){
+                                if (systemEvent.equals("notification-read")) {
                                     long notificationId = TextHelper.convertToNotificationId(jsonObject.getString("model"), jsonObject.getString("model_id"));
                                     Uri itemUri = ContentUris.withAppendedId(NotificationsContentProvider.NOTIFICATION_CONTENT_URI, notificationId);
                                     getContentResolver().delete(itemUri, null, null);
@@ -149,32 +144,16 @@ public class WampService extends Service {
         public AlertDataStructureJson alert;
     }
 
-    private void createNotification(AlertDataStructureJson alert) {
-        NotificationCompat.Builder mBuilder =
-                new NotificationCompat.Builder(this)
-                        .setSmallIcon(R.drawable.ic_notification)
-                        .setContentTitle(alert.event)
-                        .setContentText("in " + alert.model + " add " + alert.event + ": " + alert.value);
-        // Creates an explicit intent for an Activity in your app
-        Intent resultIntent = new Intent(this, CirclesActivity.class);
-        resultIntent.putExtra("circle_id", alert.circle_id);
-        resultIntent.putExtra("notification", 1);
-
-        // The stack builder object will contain an artificial back stack for the
-        // started Activity.
-        // This ensures that navigating backward from the Activity leads out of
-        // your application to the Home screen.
-        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-        // Adds the back stack for the Intent (but not the Intent itself)
-        stackBuilder.addParentStack(CirclesActivity.class);
-        // Adds the Intent that starts the Activity to the top of the stack
-        stackBuilder.addNextIntent(resultIntent);
-        PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
-        mBuilder.setContentIntent(resultPendingIntent);
-        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        // mId allows you to update the notification later on.
-        mNotificationManager.notify(LOCAL_NOTIFICATION_ID, mBuilder.build());
-    }
+//    private void sendNotification (AlertDataStructureJson alert) {
+//        NotificationHelper notificationInstance = NotificationHelper.getInstance(this);
+//        String messageNotification = "in " + alert.model + " add " + alert.event + ": " + alert.value;
+//        Log.d(TAG, "mNotificationId: " + mNotificationId);
+//        if (mNotificationId != 0 && notificationInstance.issetNotification(mNotificationId)) {
+//            notificationInstance.updateInfoNotification(mNotificationId, messageNotification, alert.circle_id);
+//        } else {
+//            mNotificationId = notificationInstance.createInfoNotification(messageNotification, alert.circle_id);
+//        }
+//    }
 
     public void sendNotificationSetReaded(final long notificationId) {
         String roomName = TextHelper.getTypeAndModel(notificationId);

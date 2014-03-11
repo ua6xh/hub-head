@@ -1,7 +1,10 @@
 package com.hubhead.models;
 
 
+import android.util.Log;
+
 public class SphereModel {
+    private String TAG = ((Object) this).getClass().getCanonicalName();
     public int id;
     public int circle_id;
     public String name;

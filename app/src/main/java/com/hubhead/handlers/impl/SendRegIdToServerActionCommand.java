@@ -20,37 +20,41 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Parcel;
-import android.os.Parcelable;
 import android.os.ResultReceiver;
 import android.util.Log;
 
 import com.hubhead.R;
 import com.hubhead.handlers.SFHttpCommand;
+import com.hubhead.parsers.AllDataStructureJson;
 import com.hubhead.parsers.ParseHelper;
+import com.hubhead.parsers.SaverHelper;
 
 import java.util.HashMap;
 
-public class LoadNotificationsActionCommand extends SFHttpCommand {
+public class SendRegIdToServerActionCommand extends SFHttpCommand {
 
     private final String TAG = ((Object) this).getClass().getCanonicalName();
-    String url = DOMAINE + "/api/get-notifications";
+    private String mRegId;
+
 
     @Override
     public void doExecute(Intent intent, Context context, ResultReceiver callback) {
         Bundle data = new Bundle();
+        HashMap<String, String> postData = new HashMap<String, String>();
+        String response = "";
 
-
-        String response = sendHttpQuery(url, new HashMap<String, String>(), context);
-
-        if (response.isEmpty()) {
+        if (!mRegId.isEmpty()) {
+            postData.put("token", mRegId);
+        }
+        response = sendHttpQuery(DOMAINE + "/api/add-android-token", postData, context);
+        Log.d(TAG, "RESPONSE:" + response);
+        if (checkResponse(response)) {
+            data.putString("data", "token-ok");
+            data.putString("response", response);
+            notifySuccess(data);
+        } else {
             data.putString("error", context.getResources().getString(R.string.error_loading_data_fail));
             notifyFailure(data);
-        } else {
-            data.putString("data", "ok");
-            data.putString("response", response);
-            ParseHelper parseHelper = new ParseHelper(context);
-            parseHelper.parseNotifications(response, false);
-            notifySuccess(data);
         }
     }
 
@@ -62,25 +66,27 @@ public class LoadNotificationsActionCommand extends SFHttpCommand {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(mRegId);
     }
 
-    public static final Parcelable.Creator<LoadNotificationsActionCommand> CREATOR = new Parcelable.Creator<LoadNotificationsActionCommand>() {
-        public LoadNotificationsActionCommand createFromParcel(Parcel in) {
+    public static final Creator<SendRegIdToServerActionCommand> CREATOR = new Creator<SendRegIdToServerActionCommand>() {
+        public SendRegIdToServerActionCommand createFromParcel(Parcel in) {
 
-            return new LoadNotificationsActionCommand(in);
+            return new SendRegIdToServerActionCommand(in);
         }
 
-        public LoadNotificationsActionCommand[] newArray(int size) {
+        public SendRegIdToServerActionCommand[] newArray(int size) {
 
-            return new LoadNotificationsActionCommand[size];
+            return new SendRegIdToServerActionCommand[size];
         }
     };
 
-    private LoadNotificationsActionCommand(Parcel in) {
+    private SendRegIdToServerActionCommand(Parcel in) {
+        mRegId = in.readString();
     }
 
-    public LoadNotificationsActionCommand() {
+    public SendRegIdToServerActionCommand(String arg1) {
+        this.mRegId = arg1;
     }
-
 
 }

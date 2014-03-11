@@ -22,6 +22,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.os.ResultReceiver;
+import android.util.Log;
 
 import com.hubhead.SFApplication;
 
@@ -39,6 +40,7 @@ public abstract class SFBaseCommand implements Parcelable {
     private ResultReceiver sfCallback;
 
     protected volatile boolean cancelled = false;
+    private String TAG = ((Object) this).getClass().getCanonicalName();
 
     public final void execute(Intent intent, Context context, ResultReceiver callback) {
         this.sfCallback = callback;

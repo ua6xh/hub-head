@@ -31,6 +31,7 @@ import com.hubhead.handlers.impl.AuthGoogleActionCommand;
 import com.hubhead.handlers.impl.LoadCirclesDataActionCommand;
 import com.hubhead.handlers.impl.LoadNotificationsActionCommand;
 import com.hubhead.handlers.impl.RefreshNotificationsActionCommand;
+import com.hubhead.handlers.impl.SendRegIdToServerActionCommand;
 import com.hubhead.service.SFCommandExecutorService;
 
 import java.util.ArrayList;
@@ -88,6 +89,12 @@ public class SFServiceHelper {
     public int refreshNotificationsFromServer() {
         final int requestId = createId();
         Intent i = createIntent(application, new RefreshNotificationsActionCommand(), requestId);
+        return runRequest(requestId, i);
+    }
+
+    public int sendRegIdToServer(String regId) {
+        final int requestId = createId();
+        Intent i = createIntent(application, new SendRegIdToServerActionCommand(regId), requestId);
         return runRequest(requestId, i);
     }
 

@@ -177,11 +177,13 @@ public class AuthActivity extends SFBaseActivity implements OnEditorActionListen
         }
 
         public ProgressDialogFragment(String message) {
+
             mMessage = message;
         }
 
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
+
             ProgressDialog progressDialog = new ProgressDialog(getActivity());
             progressDialog.setCancelable(false);
             progressDialog.setCanceledOnTouchOutside(false);
@@ -191,6 +193,7 @@ public class AuthActivity extends SFBaseActivity implements OnEditorActionListen
 
         @Override
         public void onCancel(DialogInterface dialog) {
+
             super.onCancel(dialog);
             ((AuthActivity) getActivity()).cancelCommand();
         }

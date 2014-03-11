@@ -19,6 +19,7 @@ import java.util.List;
 public class SaverHelper {
 
     private final DBHelper dbHelper;
+    private String TAG = ((Object) this).getClass().getCanonicalName();
 
     public SaverHelper(Context context) {
         mContext = context;
@@ -95,10 +96,12 @@ public class SaverHelper {
     }
 
     public static void saveNotifications(Context context, ContentValues[] contentValueses) {
+
         context.getContentResolver().bulkInsert(NotificationsContentProvider.NOTIFICATION_CONTENT_URI, contentValueses);
     }
 
     public static void saveNotificationsSocket(Context context, ContentValues[] contentValueses) {
+
         context.getContentResolver().insert(NotificationsContentProvider.NOTIFICATION_CONTENT_URI, contentValueses[0]);
     }
 }

@@ -1,6 +1,9 @@
 package com.hubhead.models;
 
+import android.util.Log;
+
 public class ReminderModel {
+    private String TAG = ((Object) this).getClass().getCanonicalName();
     public int id;
     public int circle_id;
     public int sphere_id;

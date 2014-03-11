@@ -83,10 +83,12 @@ public class LoadCirclesDataActionCommand extends SFHttpCommand {
 
     public static final Parcelable.Creator<LoadCirclesDataActionCommand> CREATOR = new Parcelable.Creator<LoadCirclesDataActionCommand>() {
         public LoadCirclesDataActionCommand createFromParcel(Parcel in) {
+
             return new LoadCirclesDataActionCommand(in);
         }
 
         public LoadCirclesDataActionCommand[] newArray(int size) {
+
             return new LoadCirclesDataActionCommand[size];
         }
     };

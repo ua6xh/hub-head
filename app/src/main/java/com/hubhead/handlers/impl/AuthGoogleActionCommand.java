@@ -61,10 +61,12 @@ public class AuthGoogleActionCommand extends SFHttpCommand {
 
     public static final Parcelable.Creator<AuthGoogleActionCommand> CREATOR = new Parcelable.Creator<AuthGoogleActionCommand>() {
         public AuthGoogleActionCommand createFromParcel(Parcel in) {
+
             return new AuthGoogleActionCommand(in);
         }
 
         public AuthGoogleActionCommand[] newArray(int size) {
+
             return new AuthGoogleActionCommand[size];
         }
     };

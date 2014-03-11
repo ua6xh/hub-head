@@ -109,8 +109,8 @@ public class ParseHelper {
         return notification;
     }
 
-//    public static List<NotificationModel> parseNotifications(String response, Context context, Map contactMap) {
-//        List<NotificationModel> notifications = new ArrayList<NotificationModel>();
+//    public static List<NotificationModel> parseNotifications (String response, Context context, Map contactMap) {
+//        //        List<NotificationModel> notifications = new ArrayList<NotificationModel>();
 //        Map<Integer, Integer> notificationsMap = new HashMap<Integer, Integer>();
 //        try {
 //            JSONObject json = new JSONObject(response);
@@ -164,7 +164,7 @@ public class ParseHelper {
 //        return notification;
 //    }
 //
-//    public static NotificationModel parseNotificationSocket(String response, Context context, Map contactMap) {
+//    public static NotificationModel parseNotificationSocket (String response, Context context, Map contactMap) {
 //        NotificationModel notification = new NotificationModel();
 //        try {
 //            JSONObject json = new JSONObject(response);
@@ -183,7 +183,7 @@ public class ParseHelper {
 //    }
 //
 //
-//    public static List<NotificationGroupModel> parseNotificationGroup(JSONArray items, Context context, Map contactMap, int circleId) {
+//    public static List<NotificationGroupModel> parseNotificationGroup (JSONArray items, Context context, Map contactMap, int circleId) {
 //        List<NotificationGroupModel> groups = new ArrayList<NotificationGroupModel>();
 //        try {
 //            for (int i = 0; i < items.length(); i++) {
@@ -304,7 +304,7 @@ public class ParseHelper {
 //
 //    }
 //
-//    private static CreateActionModel getCreateActionModel(String key, JSONObject action, long dt, Context context) {
+//    private static CreateActionModel getCreateActionModel (String key, JSONObject action, long dt, Context context) {
 //        CreateActionModel model = new CreateActionModel(key, dt);
 //        model.setContext(context);
 //        return model;
@@ -372,7 +372,7 @@ public class ParseHelper {
 //        return addMemberModel;
 //    }
 //
-//    private static UserModel createUser(Context context, Map contactMap, int circleId, int id) {
+//    private static UserModel createUser (Context context, Map contactMap, int circleId, int id) {
 //        UserModel user = new UserModel(id, context);
 //        String keyMap = circleId + "_" + id;
 //        if (contactMap.containsKey(keyMap)) {

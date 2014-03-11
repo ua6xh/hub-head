@@ -51,6 +51,7 @@ import com.hubhead.fragments.EmptyFragment;
 import com.hubhead.handlers.impl.LoadCirclesDataActionCommand;
 import com.hubhead.handlers.impl.LoadNotificationsActionCommand;
 import com.hubhead.helpers.DBHelper;
+import com.hubhead.helpers.NotificationHelper;
 import com.hubhead.models.NotificationModel;
 import com.hubhead.service.WampService;
 
@@ -61,7 +62,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class CirclesActivity extends SFBaseActivity implements SFServiceCallbackListener, ListView.OnItemClickListener, LoaderManager.LoaderCallbacks<Cursor> {
     private final static String MY_PREF = "MY_PREF";
-    private static final int LOCAL_NOTIFICATION_ID = 1;
     private final String TAG = ((Object) this).getClass().getCanonicalName();
     private static final String PROGRESS_DIALOG_LOAD_CIRCLES_DATA = "progress-dialog-load-circles-data";
     private static final String PROGRESS_DIALOG_LOAD_NOTIFICATIONS = "progress-dialog-load-notifications";
@@ -74,14 +74,16 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
     private CharSequence mTitle;
     private int mRequestCirclesDataId = -1;
     private int mRequestNotificationsId = -1;
+    private int mRequestSendRegIdToServer = -1;
 
     private MenuCursorAdapter mDrawerAdapter;
     private int mCircleId = -1;
     private Bundle mSavedInstanceState = null;
     private int selectItemMenu = 0;
     private int mNotificationFlag = 0;
-    private boolean mIsBound = false;
+    private int mNotificationId = 0;
 
+    private boolean mIsBound = false;
     /*----- GCM -----*/
     GoogleCloudMessaging gcm;
     AtomicInteger msgId = new AtomicInteger();
@@ -89,29 +91,31 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
     String regid;
     public static final String PROPERTY_REG_ID = "registration_id";
     private static final String PROPERTY_APP_VERSION = "appVersion";
-    private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
 
+    private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
     /**
      * Substitute you own sender ID here. This is the project number you got
      * from the API Console, as described in "Getting Started."
      */
     String SENDER_ID = "685083954794";
+
     /*------ GCM end ----*/
 
 
     public void sendNotificationSetReaded(long notificationId) {
-        Log.d(TAG, "call sendNotificationSetReaded");
         mBoundService.sendNotificationSetReaded(notificationId);
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.d(TAG, "call onCreate");
         super.onCreate(savedInstanceState);
         mSavedInstanceState = savedInstanceState;
         setContentView(R.layout.circles_activity);
         mCircleId = getIntent().getIntExtra("circle_id", -1);
         mNotificationFlag = getIntent().getIntExtra("notification", 0);
+        mNotificationId = getIntent().getIntExtra("notification_id", 0);
+        Log.d(TAG, "mCircleId:" + mCircleId + ": mNotificationFlag:" + mNotificationFlag + ": mNotificationId:" + mNotificationId);
+
 
         createNavigationDrawer();
 
@@ -126,10 +130,8 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
             fragmentManager.beginTransaction().replace(R.id.content_frame, emptyFragment).commit();
         } else if (savedInstanceState == null && mNotificationFlag == 1) {
             loadCirclesDataFromServer(0);
-        }
-        if (mNotificationFlag == 1) {
-            NotificationManager nMgr = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            nMgr.cancel(LOCAL_NOTIFICATION_ID);
+            NotificationHelper notificationHelper = NotificationHelper.getInstance(getApplicationContext());
+            notificationHelper.removeNotification(mNotificationId);
         }
 
 
@@ -149,7 +151,6 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
     }
 
     private void createNavigationDrawer() {
-        Log.d(TAG, "call createNavigationDrawer");
         mTitle = getTitle();
 
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -169,14 +170,12 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
 
             @Override
             public void onDrawerClosed(View view) {
-                Log.d(TAG, "call onDrawerClosed");
                 getActionBar().setTitle(mTitle);
                 invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
             }
 
             @Override
             public void onDrawerOpened(View drawerView) {
-                Log.d(TAG, "call onDrawerOpened");
                 //getActionBar().setTitle(mDrawerTitle);
                 invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
             }
@@ -186,7 +185,6 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        Log.d(TAG, "call onCreateOptionsMenu");
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main, menu);
         return super.onCreateOptionsMenu(menu);
@@ -195,7 +193,6 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
     /* Called whenever we call invalidateOptionsMenu() */
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        Log.d(TAG, "call onPrepareOptionsMenu");
         boolean drawerOpen = mDrawerLayout.isDrawerOpen(mDrawerList);
         menu.findItem(R.id.action_sign_out).setVisible(!drawerOpen);
         return super.onPrepareOptionsMenu(menu);
@@ -203,7 +200,6 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        Log.d(TAG, "call onOptionsItemSelected");
         if (mDrawerToggle.onOptionsItemSelected(item)) {
             return true;
         }
@@ -229,7 +225,6 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
                 new AsyncTask<Void, Void, String>() {
                     @Override
                     protected String doInBackground(Void... params) {
-                        Log.d(TAG, "call doInBackground");
                         String msg = "";
                         try {
                             Bundle data = new Bundle();
@@ -246,7 +241,6 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
 
                     @Override
                     protected void onPostExecute(String msg) {
-                        Log.d(TAG, "call onPostExecute");
                         Toast.makeText(getApplicationContext(), "ACTION_SEND: " + msg + "\n", Toast.LENGTH_LONG).show();
                     }
                 }.execute(null, null, null);
@@ -258,7 +252,6 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
     }
 
     private void signOutAction() {
-        Log.d(TAG, "call signOutAction");
         SharedPreferences.Editor editor = this.getSharedPreferences(MY_PREF, IsolatedContext.MODE_PRIVATE).edit();
         editor.clear();
         editor.commit();
@@ -271,12 +264,10 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
 
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-        Log.d(TAG, "call onItemClick");
         selectItem(position);
     }
 
     private void selectItem(int position) {
-        Log.d(TAG, "call selectItem");
         Cursor cursor = (Cursor) mDrawerAdapter.getItem(position);
         int columnIndexId = cursor.getColumnIndex("_id");
         int columnIndexName = cursor.getColumnIndex("name");
@@ -300,21 +291,18 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
 
     @Override
     public void setTitle(CharSequence title) {
-        Log.d(TAG, "call setTitle");
         mTitle = title;
         getActionBar().setTitle(mTitle);
     }
 
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
-        Log.d(TAG, "call onPostCreate");
         super.onPostCreate(savedInstanceState);
         mDrawerToggle.syncState();
     }
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
-        Log.d(TAG, "call onConfigurationChanged");
         super.onConfigurationChanged(newConfig);
         // Pass any configuration change to the drawer toggls
         mDrawerToggle.onConfigurationChanged(newConfig);
@@ -322,7 +310,6 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
 
     @Override
     public void onServiceCallback(int requestId, Intent requestIntent, int resultCode, Bundle resultData) {
-        Log.d(TAG, "call onServiceCallback");
         // Загрузка кругов
         if (getServiceHelper().check(requestIntent, LoadCirclesDataActionCommand.class)) {
             if (resultCode == LoadCirclesDataActionCommand.RESPONSE_SUCCESS) {
@@ -345,23 +332,21 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         }
     }
 
-    private void сreateAlertDialogSingIn(String title, String message) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(title)
-                .setMessage(message)
-                .setCancelable(false)
-                .setNegativeButton(this.getResources().getString(R.string.alert_dialog_close_button), new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        Log.d(TAG, "call onClick");
-                        dialog.cancel();
-                    }
-                });
-        AlertDialog alert = builder.create();
-        alert.show();
-    }
+//    private void сreateAlertDialogSingIn(String title, String message) {
+//        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+//        builder.setTitle(title)
+//                .setMessage(message)
+//                .setCancelable(false)
+//                .setNegativeButton(this.getResources().getString(R.string.alert_dialog_close_button), new DialogInterface.OnClickListener() {
+//                    public void onClick (DialogInterface dialog, int id) {
+//                        dialog.cancel();
+//                    }
+//                });
+//        AlertDialog alert = builder.create();
+//        alert.show();
+//    }
 
     private void loadCirclesDataFromServer(int mode) {
-        Log.d(TAG, "call loadCirclesDataFromServer");
         if (mode == 1) {
             ProgressDialogFragment progress = new ProgressDialogFragment(this.getResources().getString(R.string.alert_dialog_message_load_circles_data));
             progress.show(getSupportFragmentManager(), PROGRESS_DIALOG_LOAD_CIRCLES_DATA);
@@ -370,18 +355,16 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         mRequestNotificationsId = getServiceHelper().loadNotificationsFromServer();
     }
 
-    private void loadNotificationsFromServer(int mode) {
-        Log.d(TAG, "call loadNotificationsFromServer");
-        if (mode == 0) {
-            ProgressDialogFragment progress = new ProgressDialogFragment(this.getResources().getString(R.string.alert_dialog_message_load_notifications));
-            progress.show(getSupportFragmentManager(), PROGRESS_DIALOG_LOAD_NOTIFICATIONS);
-        }
-        mRequestNotificationsId = getServiceHelper().loadNotificationsFromServer();
-    }
+//    private void loadNotificationsFromServer (int mode) {
+//        if (mode == 0) {
+//            ProgressDialogFragment progress = new ProgressDialogFragment(this.getResources().getString(R.string.alert_dialog_message_load_notifications));
+//            progress.show(getSupportFragmentManager(), PROGRESS_DIALOG_LOAD_NOTIFICATIONS);
+//        }
+//        mRequestNotificationsId = getServiceHelper().loadNotificationsFromServer();
+//    }
 
     @Override
     protected void onResume() {
-        Log.d(TAG, "call onResume");
         super.onResume();
 
         if (mRequestCirclesDataId != -1 && !getServiceHelper().isPending(mRequestCirclesDataId)) {
@@ -389,6 +372,9 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         }
         if (mRequestNotificationsId != -1 && !getServiceHelper().isPending(mRequestNotificationsId)) {
             dismissProgressDialog(PROGRESS_DIALOG_LOAD_NOTIFICATIONS);
+        }
+        if (mRequestSendRegIdToServer != -1 && !getServiceHelper().isPending(mRequestSendRegIdToServer)) {
+            cancelCommand();
         }
 
         getSupportLoaderManager().restartLoader(CIRCLE_LOADER_ID, null, CirclesActivity.this);
@@ -403,13 +389,11 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
 
     @Override
     public void onLoaderReset(android.support.v4.content.Loader<Cursor> loader) {
-        Log.d(TAG, "call onLoaderReset");
         mDrawerAdapter.swapCursor(null);
     }
 
     @Override
     public void onLoadFinished(android.support.v4.content.Loader<Cursor> loader, Cursor cursor) {
-        Log.d(TAG, "call onLoadFinished");
         mDrawerAdapter.swapCursor(cursor);
 
 //        todo Из-за этого кода, дергается список при перестроении
@@ -429,7 +413,6 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
     {
         @Override
         public void handleMessage(Message msg) {
-            Log.d(TAG, "call handleMessage");
             if (msg.what == 2) {
                 if (mSavedInstanceState == null) {
                     selectItem(selectItemMenu);
@@ -448,11 +431,13 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         }
 
         public ProgressDialogFragment(String message) {
+
             mMessage = message;
         }
 
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
+
             ProgressDialog progressDialog = new ProgressDialog(getActivity());
             progressDialog.setCancelable(false);
             progressDialog.setCanceledOnTouchOutside(false);
@@ -476,17 +461,18 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
     }
 
     public void cancelCommand() {
-        Log.d(TAG, "call cancelCommand");
         if (mRequestCirclesDataId != -1) {
             getServiceHelper().cancelCommand(mRequestCirclesDataId);
         }
         if (mRequestNotificationsId != -1) {
             getServiceHelper().cancelCommand(mRequestNotificationsId);
         }
+        if (mRequestSendRegIdToServer != -1) {
+            getServiceHelper().cancelCommand(mRequestSendRegIdToServer);
+        }
     }
 
     private void dismissProgressDialog(String tag) {
-        Log.d(TAG, "call dismissProgressDialog");
         ProgressDialogFragment progress = (ProgressDialogFragment) getSupportFragmentManager().findFragmentByTag(tag);
         if (progress != null) {
             progress.dismiss();
@@ -499,7 +485,6 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
     private ServiceConnection mConnection = new ServiceConnection() {
 
         public void onServiceConnected(ComponentName className, IBinder service) {
-            Log.d(TAG, "call onServiceConnected");
             // This is called when the connection with the service has been
             // established, giving us the service object we can use to
             // interact with the service.  Because we have bound to a explicit
@@ -511,7 +496,6 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         }
 
         public void onServiceDisconnected(ComponentName className) {
-            Log.d(TAG, "call onServiceDisconnected");
             // This is called when the connection with the service has been
             // unexpectedly disconnected -- that is, its process crashed.
             // Because it is running in our same process, we should never
@@ -521,7 +505,6 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
     };
 
     void doBindService() {
-        Log.d(TAG, "call doBindService");
         // Establish a connection with the service.  We use an explicit
         // class name because we want a specific service implementation that
         // we know will be running in our own process (and thus won't be
@@ -531,7 +514,6 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
     }
 
     void doUnbindService() {
-        Log.d(TAG, "call doUnbindService");
         if (mIsBound) {
             // Detach our existing connection.
             unbindService(mConnection);
@@ -541,7 +523,6 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
 
     @Override
     protected void onDestroy() {
-        Log.d(TAG, "call onDestroy");
         super.onDestroy();
         doUnbindService();
     }
@@ -554,7 +535,6 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
      * the Google Play Store or enable it in the device's system settings.
      */
     private boolean checkPlayServices() {
-        Log.d(TAG, "call checkPlayServices");
         int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
         if (resultCode != ConnectionResult.SUCCESS) {
             if (GooglePlayServicesUtil.isUserRecoverableError(resultCode)) {
@@ -577,7 +557,6 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
      * @param regId   registration ID
      */
     private void storeRegistrationId(Context context, String regId) {
-        Log.d(TAG, "call storeRegistrationId");
         final SharedPreferences prefs = getGcmPreferences(context);
         int appVersion = getAppVersion(context);
         Log.i(TAG, "Saving regId on app version " + appVersion);
@@ -596,7 +575,6 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
      * registration ID.
      */
     private String getRegistrationId(Context context) {
-        Log.d(TAG, "call getRegistrationId");
         final SharedPreferences prefs = getGcmPreferences(context);
         String registrationId = prefs.getString(PROPERTY_REG_ID, "");
         if (registrationId.isEmpty()) {
@@ -622,22 +600,18 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
      * shared preferences.
      */
     private void registerInBackground() {
-        Log.d(TAG, "call registerInBackground");
         new AsyncTask<Void, Void, String>() {
             @Override
             protected String doInBackground(Void... params) {
-                Log.d(TAG, "call doInBackground");
                 String msg = "";
                 try {
                     if (gcm == null) {
                         gcm = GoogleCloudMessaging.getInstance(context);
                     }
                     regid = gcm.register(SENDER_ID);
-                    msg = "Device registered, registration ID=" + regid;
-
+                    msg = regid;
                     // You should send the registration ID to your server over HTTP, so it
                     // can use GCM/HTTP or CCS to send messages to your app.
-                    sendRegistrationIdToBackend();
 
                     // For this demo: we don't need to send it because the device will send
                     // upstream messages to a server that echo back the message using the
@@ -646,7 +620,7 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
                     // Persist the regID - no need to register again.
                     storeRegistrationId(context, regid);
                 } catch (IOException ex) {
-                    msg = "Error :" + ex.getMessage();
+                    //msg = "Error :" + ex.getMessage();
                     // If there is an error, don't just keep trying to register.
                     // Require the user to click a button again, or perform
                     // exponential back-off.
@@ -656,7 +630,9 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
 
             @Override
             protected void onPostExecute(String msg) {
-                Log.d(TAG, "call onPostExecute");
+                if (!msg.isEmpty()) {
+                    sendRegistrationIdToBackend(regid);
+                }
                 Toast.makeText(getApplicationContext(), "registerInBackground: " + msg + "\n", Toast.LENGTH_LONG).show();
             }
         }.execute(null, null, null);
@@ -680,7 +656,6 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
      * @return Application's {@code SharedPreferences}.
      */
     private SharedPreferences getGcmPreferences(Context context) {
-        Log.d(TAG, "call getGcmPreferences");
         // This sample app persists the registration ID in shared preferences, but
         // how you store the regID in your app is up to you.
         return getSharedPreferences(MY_PREF, Context.MODE_PRIVATE);
@@ -690,9 +665,11 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
      * Sends the registration ID to your server over HTTP, so it can use GCM/HTTP or CCS to send
      * messages to your app. Not needed for this demo since the device sends upstream messages
      * to a server that echoes back the message using the 'from' address in the message.
+     *
+     * @param regId
      */
-    private void sendRegistrationIdToBackend() {
-        Log.d(TAG, "call sendRegistrationIdToBackend");
+    private void sendRegistrationIdToBackend(String regId) {
+        mRequestSendRegIdToServer = getServiceHelper().sendRegIdToServer(regId);
         // Your implementation here.
     }
     /*----------------------- GCM End ------------------------*/

@@ -2,6 +2,7 @@ package com.hubhead.adapters;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +13,7 @@ import com.hubhead.R;
 import com.hubhead.contentprovider.CirclesContentProvider;
 
 public class MenuCursorAdapter extends CursorAdapter {
+    private final String TAG = ((Object) this).getClass().getCanonicalName();
     private LayoutInflater mInflater;
 
     public MenuCursorAdapter(Context context, Cursor c, int flags) {

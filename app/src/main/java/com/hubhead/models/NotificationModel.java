@@ -1,6 +1,7 @@
 package com.hubhead.models;
 
 import android.content.ContentValues;
+import android.util.Log;
 
 import org.json.JSONArray;
 
@@ -15,7 +16,7 @@ public class NotificationModel {
     public String model_name = "";
     public int circle_id = 0;
     public int sphere_id = 0;
-    public Long dt = (long)0;
+    public Long dt = (long) 0;
     public JSONArray groups;
     //public List<NotificationGroupModel> groupsList = new ArrayList<NotificationGroupModel>();
     public String room_name = "";
@@ -33,8 +34,8 @@ public class NotificationModel {
         String[] paths = room_name.split("_");
         return Integer.parseInt(Integer.toString(type_notification) + paths[1]);
     }
-    
-    public ContentValues getContentValues(){
+
+    public ContentValues getContentValues() {
         ContentValues cv = new ContentValues();
         cv.put("_id", id);
         cv.put("messages_count", messages_count);
