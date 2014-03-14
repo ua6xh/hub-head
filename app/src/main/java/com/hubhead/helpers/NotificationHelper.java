@@ -57,7 +57,7 @@ public class NotificationHelper {
         Intent resultIntent = new Intent(mContext, CirclesActivity.class);
         Log.d(TAG, "CircleId: " + circleId);
         resultIntent.putExtra("circle_id", circleId);
-        Log.d(TAG, "CircleId extras: " + resultIntent.getIntExtra("circle_id", -100));
+        Log.d(TAG, "CircleId extras Int: " + resultIntent.getIntExtra("circle_id", -100));
         resultIntent.putExtra("notification", 1);
         resultIntent.putExtra("notification_id", lastId);
 
@@ -85,15 +85,30 @@ public class NotificationHelper {
     }
 
     public void updateInfoNotification(int notificationId, String message, int circleId) {
-        Notification notification = notifications.get(notificationId);
+        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(mContext)
+                .setSmallIcon(R.drawable.ic_notification)
+                .setContentTitle("HubHead")
+                .setContentText(message)
+                .setTicker(message) //текст, который отобразится вверху статус-бара при создании уведомления
+                .setAutoCancel(true) //уведомление закроется по клику на него
+                .setWhen(System.currentTimeMillis()); //отображаемое время уведомления
+
         Intent notificationIntent = new Intent(mContext, CirclesActivity.class); // по клику на уведомлении откроется HomeActivity
         Log.d(TAG, "circle_id: " + circleId);
-        notificationIntent.getIntExtra("circle_id", circleId);
+        notificationIntent.putExtra("circle_id", circleId);
         Log.d(TAG, "circle_id get: " + notificationIntent.getIntExtra("circle_id", -100));
-        notificationIntent.getIntExtra("notification", 1);
-        notificationIntent.getIntExtra("notification_id", notificationId);
+        notificationIntent.putExtra("notification", 1);
+        notificationIntent.putExtra("notification_id", notificationId);
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(mContext);
+        // Adds the back stack for the Intent (but not the Intent itself)
+        stackBuilder.addParentStack(CirclesActivity.class);
+        // Adds the Intent that starts the Activity to the top of the stack
+        stackBuilder.addNextIntent(notificationIntent);
+        PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+        mBuilder.setContentIntent(resultPendingIntent);
         Log.d(TAG, "updateInfoNotification:" + circleId + " " + notificationId);
-        notification.setLatestEventInfo(mContext, "HubHead", message, PendingIntent.getActivity(mContext, 0, notificationIntent, PendingIntent.FLAG_CANCEL_CURRENT));
-        manager.notify(notificationId, notifications.get(notificationId));
+        Notification notification = mBuilder.build();
+
+        manager.notify(notificationId, notification);
     }
 }

@@ -120,6 +120,9 @@ public class WampService extends Service {
                                     long notificationId = TextHelper.convertToNotificationId(jsonObject.getString("model"), jsonObject.getString("model_id"));
                                     Uri itemUri = ContentUris.withAppendedId(NotificationsContentProvider.NOTIFICATION_CONTENT_URI, notificationId);
                                     getContentResolver().delete(itemUri, null, null);
+                                }else if (systemEvent.equals("notification-read-all")) {
+                                    int circleId = jsonObject.getInt("circle_id");
+                                    getContentResolver().delete(NotificationsContentProvider.NOTIFICATION_CONTENT_URI, "circle_id = ?", new String[]{Integer.toString(circleId)});
                                 }
 
                             } catch (JSONException e) {

@@ -66,12 +66,10 @@ public class LoadNotificationsActionCommand extends SFHttpCommand {
 
     public static final Parcelable.Creator<LoadNotificationsActionCommand> CREATOR = new Parcelable.Creator<LoadNotificationsActionCommand>() {
         public LoadNotificationsActionCommand createFromParcel(Parcel in) {
-
             return new LoadNotificationsActionCommand(in);
         }
 
         public LoadNotificationsActionCommand[] newArray(int size) {
-
             return new LoadNotificationsActionCommand[size];
         }
     };

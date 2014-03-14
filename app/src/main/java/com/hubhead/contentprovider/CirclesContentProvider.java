@@ -93,8 +93,6 @@ public class CirclesContentProvider extends ContentProvider {
             Log.e(TAG, e.getMessage());
         }
 
-
-        assert db != null;
         Cursor cursor = db.query(CIRCLE_TABLE, mProjection, selection, selectionArgs, null, null, sortOrder);
         //  Cursor cursor = db.rawQuery("SELECT , name, _id FROM circles c;", null);
         // просим ContentResolver уведомлять этот курсор

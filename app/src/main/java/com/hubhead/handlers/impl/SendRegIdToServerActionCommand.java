@@ -71,12 +71,10 @@ public class SendRegIdToServerActionCommand extends SFHttpCommand {
 
     public static final Creator<SendRegIdToServerActionCommand> CREATOR = new Creator<SendRegIdToServerActionCommand>() {
         public SendRegIdToServerActionCommand createFromParcel(Parcel in) {
-
             return new SendRegIdToServerActionCommand(in);
         }
 
         public SendRegIdToServerActionCommand[] newArray(int size) {
-
             return new SendRegIdToServerActionCommand[size];
         }
     };

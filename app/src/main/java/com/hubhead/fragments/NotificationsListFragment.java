@@ -1,9 +1,7 @@
 package com.hubhead.fragments;
 
-import android.content.ContentUris;
 import android.content.Intent;
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -25,6 +23,7 @@ import com.hubhead.SFServiceCallbackListener;
 import com.hubhead.contentprovider.NotificationsContentProvider;
 import com.hubhead.handlers.impl.RefreshNotificationsActionCommand;
 import com.hubhead.ui.CirclesActivity;
+import com.hubhead.ui.NotificationActivity;
 
 import uk.co.senab.actionbarpulltorefresh.library.ActionBarPullToRefresh;
 import uk.co.senab.actionbarpulltorefresh.library.PullToRefreshLayout;
@@ -34,7 +33,8 @@ import uk.co.senab.actionbarpulltorefresh.library.viewdelegates.ViewDelegate;
 
 public class NotificationsListFragment extends SFBaseListFragment implements LoaderManager.LoaderCallbacks<Cursor>, OnRefreshListener, SFServiceCallbackListener {
 
-    private static final int CM_DELETE_ID = 1;
+    private static final int CM_READ_ID = 1;
+    private static final int CM_OPEN_ID = 2;
     private final String TAG = ((Object) this).getClass().getCanonicalName();
     private static final int NOTIFICATIONS_LOADER_DELTA = 10000;
     private SimpleCursorAdapter mNotificationsAdapter;
@@ -77,7 +77,6 @@ public class NotificationsListFragment extends SFBaseListFragment implements Loa
 
     /*----------------------Create Context Menu --------------------------*/
     public void onActivityCreated(Bundle savedState) {
-
         registerForContextMenu(getListView());
         setListAdapter(mNotificationsAdapter);
         setListShownNoAnimation(true);
@@ -85,22 +84,38 @@ public class NotificationsListFragment extends SFBaseListFragment implements Loa
     }
 
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
-
         super.onCreateContextMenu(menu, v, menuInfo);
-        menu.add(0, CM_DELETE_ID, 0, R.string.action_delete_record);
+        menu.add(0, CM_OPEN_ID, 1, R.string.action_open_record);
+        menu.add(0, CM_READ_ID, 2, R.string.action_read_record);
     }
 
     public boolean onContextItemSelected(MenuItem item) {
-        if (item.getItemId() == CM_DELETE_ID) {
-            // получаем из пункта контекстного меню данные по пункту списка
-            AdapterView.AdapterContextMenuInfo acmi = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+        switch (item.getItemId()){
+            case CM_OPEN_ID:{
+                // получаем из пункта контекстного меню данные по пункту списка
+                AdapterView.AdapterContextMenuInfo acmi = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
 
-            // извлекаем id записи и удаляем соответствующую запись в БД
+                // извлекаем id записи и удаляем соответствующую запись в БД
 
-            CirclesActivity circlesActivity = (CirclesActivity) getActivity();
-            circlesActivity.sendNotificationSetReaded(acmi.id);
+                Intent intent = new Intent(getActivity(), NotificationActivity.class);
+                intent.putExtra("notification_id", acmi.id);
 
-            return true;
+                break;
+            }
+            case CM_READ_ID:{
+                // получаем из пункта контекстного меню данные по пункту списка
+                AdapterView.AdapterContextMenuInfo acmi = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+
+                // извлекаем id записи и удаляем соответствующую запись в БД
+
+                CirclesActivity circlesActivity = (CirclesActivity) getActivity();
+                circlesActivity.sendNotificationSetReaded(acmi.id);
+
+                break;
+            }
+        }
+        if (item.getItemId() == CM_READ_ID) {
+
         }
         return super.onContextItemSelected(item);
     }

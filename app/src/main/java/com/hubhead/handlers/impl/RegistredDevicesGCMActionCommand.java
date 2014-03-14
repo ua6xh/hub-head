@@ -71,12 +71,10 @@ public class RegistredDevicesGCMActionCommand extends SFHttpCommand {
 
     public static final Creator<RegistredDevicesGCMActionCommand> CREATOR = new Creator<RegistredDevicesGCMActionCommand>() {
         public RegistredDevicesGCMActionCommand createFromParcel(Parcel in) {
-
             return new RegistredDevicesGCMActionCommand(in);
         }
 
         public RegistredDevicesGCMActionCommand[] newArray(int size) {
-
             return new RegistredDevicesGCMActionCommand[size];
         }
     };

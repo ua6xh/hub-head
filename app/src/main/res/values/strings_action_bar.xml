@@ -2,7 +2,8 @@
 <resources>
     <string name="action_sign_out">Sign out</string>
     <string name="action_refresh">Refresh</string>
-    <string name="action_delete_record">Delete</string>
+    <string name="action_read_record">Read</string>
     <string name="action_add">Add</string>
     <string name="action_send">Send</string>
+    <string name="action_open_record">Open</string>
 </resources>

@@ -17,20 +17,16 @@
 package com.hubhead.service;
 
 import android.app.IntentService;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.SystemClock;
-import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
-import com.google.android.gms.games.Notifications;
+
 import com.google.android.gms.gcm.GoogleCloudMessaging;
-import com.hubhead.R;
+
 import com.hubhead.helpers.NotificationHelper;
-import com.hubhead.ui.CirclesActivity;
+
 
 /**
  * This {@code IntentService} does the actual handling of the GCM message.
@@ -81,8 +77,15 @@ public class GcmIntentService extends IntentService {
                 Log.i(TAG, "Completed work @ " + SystemClock.elapsedRealtime());
                 Log.i(TAG, "extras: " + extras);
                 // Post notification of received message.
-                Log.d(TAG, "circleId before call sendNotification: " + extras.getInt("circle_id"));
-                sendNotification(extras.getString("title"), Integer.parseInt(extras.getString("circle_id")));
+                try {
+                    int circleId = Integer.parseInt(extras.getString("circle_id"));
+                    if (circleId == 0) {
+                        circleId = extras.getInt("circle_id");
+                    }
+                    sendNotification(extras.getString("title"), circleId);
+                } catch (ClassCastException e) {
+                    Log.d(TAG, e.getMessage());
+                }
             }
         }
         // Release the wake lock provided by the WakefulBroadcastReceiver.

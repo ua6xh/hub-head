@@ -65,12 +65,10 @@ public class AuthActionCommand extends SFHttpCommand {
 
     public static final Parcelable.Creator<AuthActionCommand> CREATOR = new Parcelable.Creator<AuthActionCommand>() {
         public AuthActionCommand createFromParcel(Parcel in) {
-
             return new AuthActionCommand(in);
         }
 
         public AuthActionCommand[] newArray(int size) {
-
             return new AuthActionCommand[size];
         }
     };

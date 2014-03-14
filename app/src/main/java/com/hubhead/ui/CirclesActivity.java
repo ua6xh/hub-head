@@ -1,12 +1,8 @@
 package com.hubhead.ui;
 
-import android.app.AlertDialog;
-import android.app.Dialog;
-import android.app.NotificationManager;
-import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.DialogInterface;
+
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
@@ -20,13 +16,11 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.support.v4.app.ActionBarDrawerToggle;
-import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v4.widget.SimpleCursorAdapter;
 import android.test.IsolatedContext;
 import android.util.Log;
 import android.view.Menu;
@@ -45,31 +39,30 @@ import com.hubhead.SFBaseActivity;
 import com.hubhead.SFServiceCallbackListener;
 import com.hubhead.adapters.MenuCursorAdapter;
 import com.hubhead.contentprovider.CirclesContentProvider;
-import com.hubhead.contentprovider.NotificationsContentProvider;
 import com.hubhead.fragments.CircleFragment;
 import com.hubhead.fragments.EmptyFragment;
 import com.hubhead.handlers.impl.LoadCirclesDataActionCommand;
 import com.hubhead.handlers.impl.LoadNotificationsActionCommand;
 import com.hubhead.helpers.DBHelper;
 import com.hubhead.helpers.NotificationHelper;
-import com.hubhead.models.NotificationModel;
+import com.hubhead.helpers.TextHelper;
 import com.hubhead.service.WampService;
 
 import java.io.IOException;
-import java.util.Random;
-import java.util.concurrent.atomic.AtomicInteger;
+
+import uk.co.senab.actionbarpulltorefresh.library.ActionBarPullToRefresh;
+import uk.co.senab.actionbarpulltorefresh.library.PullToRefreshLayout;
+import uk.co.senab.actionbarpulltorefresh.library.listeners.OnRefreshListener;
 
 
-public class CirclesActivity extends SFBaseActivity implements SFServiceCallbackListener, ListView.OnItemClickListener, LoaderManager.LoaderCallbacks<Cursor> {
+public class CirclesActivity extends SFBaseActivity implements SFServiceCallbackListener, ListView.OnItemClickListener, LoaderManager.LoaderCallbacks<Cursor>, OnRefreshListener {
     private final static String MY_PREF = "MY_PREF";
     private final String TAG = ((Object) this).getClass().getCanonicalName();
-    private static final String PROGRESS_DIALOG_LOAD_CIRCLES_DATA = "progress-dialog-load-circles-data";
-    private static final String PROGRESS_DIALOG_LOAD_NOTIFICATIONS = "progress-dialog-load-notifications";
-    private static final String F_CIRCLES = "CirclesFragment";
     private static final int CIRCLE_LOADER_ID = 1;
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerList;
     private ActionBarDrawerToggle mDrawerToggle;
+    private PullToRefreshLayout mPullToRefreshLayout;
 
     private CharSequence mTitle;
     private int mRequestCirclesDataId = -1;
@@ -83,10 +76,11 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
     private int mNotificationFlag = 0;
     private int mNotificationId = 0;
 
+    private static boolean mOpenDrawer = true;
+
     private boolean mIsBound = false;
     /*----- GCM -----*/
     GoogleCloudMessaging gcm;
-    AtomicInteger msgId = new AtomicInteger();
     Context context;
     String regid;
     public static final String PROPERTY_REG_ID = "registration_id";
@@ -98,6 +92,7 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
      * from the API Console, as described in "Getting Started."
      */
     String SENDER_ID = "685083954794";
+    private Context mContext;
 
     /*------ GCM end ----*/
 
@@ -115,39 +110,53 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         mNotificationFlag = getIntent().getIntExtra("notification", 0);
         mNotificationId = getIntent().getIntExtra("notification_id", 0);
         Log.d(TAG, "mCircleId:" + mCircleId + ": mNotificationFlag:" + mNotificationFlag + ": mNotificationId:" + mNotificationId);
+        Log.d(TAG, "Extras:" + getIntent().getExtras());
 
 
         createNavigationDrawer();
+        createPullToRefresh();
 
         Intent i = new Intent(this, WampService.class);
         startService(i);
         doBindService();
 
         if (savedInstanceState == null && mCircleId == -1) {
+            if (mOpenDrawer) {
+                mDrawerLayout.openDrawer(mDrawerList);
+                mOpenDrawer = false;
+            }
             loadCirclesDataFromServer(1);
             EmptyFragment emptyFragment = new EmptyFragment();
             FragmentManager fragmentManager = getSupportFragmentManager();
             fragmentManager.beginTransaction().replace(R.id.content_frame, emptyFragment).commit();
         } else if (savedInstanceState == null && mNotificationFlag == 1) {
+            mOpenDrawer = false;
             loadCirclesDataFromServer(0);
-            NotificationHelper notificationHelper = NotificationHelper.getInstance(getApplicationContext());
+            NotificationHelper notificationHelper = NotificationHelper.getInstance(this);
             notificationHelper.removeNotification(mNotificationId);
         }
 
 
-        context = getApplicationContext();
         // Check device for Play Services APK. If check succeeds, proceed with GCM registration.
+        mContext = getApplicationContext();
         if (checkPlayServices()) {
             gcm = GoogleCloudMessaging.getInstance(this);
-            regid = getRegistrationId(context);
+            regid = getRegistrationId(mContext);
             if (regid.isEmpty()) {
                 registerInBackground();
             }
         } else {
             Log.i(TAG, "No valid Google Play Services APK found.");
         }
+    }
 
+    private void createPullToRefresh() {
+        mPullToRefreshLayout = (PullToRefreshLayout) findViewById(R.id.ptr_layout_circle_activity);
 
+        ActionBarPullToRefresh.from(this)
+                .listener(this)
+                .setup(mPullToRefreshLayout);
+        mPullToRefreshLayout.setEnabled(false);
     }
 
     private void createNavigationDrawer() {
@@ -198,75 +207,6 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         return super.onPrepareOptionsMenu(menu);
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (mDrawerToggle.onOptionsItemSelected(item)) {
-            return true;
-        }
-        switch (item.getItemId()) {
-            case R.id.action_sign_out: {
-                signOutAction();
-                return true;
-            }
-            case R.id.action_add: {
-                NotificationModel n = new NotificationModel();
-                n.circle_id = 5;
-                Random r = new Random();
-                int i1 = r.nextInt(5000) + 65;
-                n.model_name = "ADD TEST" + i1;
-                n.dt = (long) i1;
-
-                n.id = Integer.parseInt(Integer.toString(1) + Integer.toString(i1));
-                getContentResolver().insert(NotificationsContentProvider.NOTIFICATION_CONTENT_URI, n.getContentValues());
-                //getContentResolver().notifyChange(CirclesContentProvider.CIRCLE_CONTENT_URI, null);
-                return true;
-            }
-            case R.id.action_send: {
-                new AsyncTask<Void, Void, String>() {
-                    @Override
-                    protected String doInBackground(Void... params) {
-                        String msg = "";
-                        try {
-                            Bundle data = new Bundle();
-                            data.putString("my_message", "Hello World");
-                            data.putString("my_action", "com.google.android.gcm.demo.app.ECHO_NOW");
-                            String id = Integer.toString(msgId.incrementAndGet());
-                            gcm.send(SENDER_ID + "@gcm.googleapis.com", id, data);
-                            msg = "Sent message";
-                        } catch (IOException ex) {
-                            msg = "Error :" + ex.getMessage();
-                        }
-                        return msg;
-                    }
-
-                    @Override
-                    protected void onPostExecute(String msg) {
-                        Toast.makeText(getApplicationContext(), "ACTION_SEND: " + msg + "\n", Toast.LENGTH_LONG).show();
-                    }
-                }.execute(null, null, null);
-            }
-
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
-
-    private void signOutAction() {
-        SharedPreferences.Editor editor = this.getSharedPreferences(MY_PREF, IsolatedContext.MODE_PRIVATE).edit();
-        editor.clear();
-        editor.commit();
-        DBHelper mDbHelper = new DBHelper(this);
-        mDbHelper.truncateDB(mDbHelper.getWritableDatabase());
-        Intent intent = new Intent(this, AuthActivity.class);
-        startActivity(intent);
-        finish();
-    }
-
-    @Override
-    public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-        selectItem(position);
-    }
-
     private void selectItem(int position) {
         Cursor cursor = (Cursor) mDrawerAdapter.getItem(position);
         int columnIndexId = cursor.getColumnIndex("_id");
@@ -309,14 +249,48 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
     }
 
     @Override
+    public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+        selectItem(position);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (mDrawerToggle.onOptionsItemSelected(item)) {
+            return true;
+        }
+        switch (item.getItemId()) {
+            case R.id.action_sign_out: {
+                SharedPreferences.Editor editor = this.getSharedPreferences(MY_PREF, IsolatedContext.MODE_PRIVATE).edit();
+                mOpenDrawer = true;
+                editor.clear();
+                editor.commit();
+                DBHelper mDbHelper = new DBHelper(this);
+                mDbHelper.truncateDB(mDbHelper.getWritableDatabase());
+                Intent intent = new Intent(this, AuthActivity.class);
+                startActivity(intent);
+                finish();
+                return true;
+            }
+            default: {
+                return super.onOptionsItemSelected(item);
+            }
+        }
+    }
+
+    @Override
+    public void onRefreshStarted(View view) {
+        mPullToRefreshLayout.setRefreshComplete();
+    }
+
+    @Override
     public void onServiceCallback(int requestId, Intent requestIntent, int resultCode, Bundle resultData) {
         // Загрузка кругов
         if (getServiceHelper().check(requestIntent, LoadCirclesDataActionCommand.class)) {
             if (resultCode == LoadCirclesDataActionCommand.RESPONSE_SUCCESS) {
-                dismissProgressDialog(PROGRESS_DIALOG_LOAD_CIRCLES_DATA);
-                //loadNotificationsFromServer(mNotificationFlag);
+                mPullToRefreshLayout.setRefreshComplete();
+                loadNotificationsFromServer(mNotificationFlag);
             } else if (resultCode == LoadCirclesDataActionCommand.RESPONSE_FAILURE) {
-                dismissProgressDialog(PROGRESS_DIALOG_LOAD_CIRCLES_DATA);
+                mPullToRefreshLayout.setRefreshComplete();
                 Toast.makeText(this, resultData.getString("error"), Toast.LENGTH_SHORT).show();
             }
         }
@@ -324,56 +298,41 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         // Загрузка уведомлений
         if (getServiceHelper().check(requestIntent, LoadNotificationsActionCommand.class)) {
             if (resultCode == LoadNotificationsActionCommand.RESPONSE_SUCCESS) {
-                dismissProgressDialog(PROGRESS_DIALOG_LOAD_NOTIFICATIONS);
+                mPullToRefreshLayout.setRefreshComplete();
             } else if (resultCode == LoadNotificationsActionCommand.RESPONSE_FAILURE) {
-                dismissProgressDialog(PROGRESS_DIALOG_LOAD_NOTIFICATIONS);
+                mPullToRefreshLayout.setRefreshComplete();
                 Toast.makeText(this, resultData.getString("error"), Toast.LENGTH_SHORT).show();
             }
         }
     }
 
-//    private void сreateAlertDialogSingIn(String title, String message) {
-//        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-//        builder.setTitle(title)
-//                .setMessage(message)
-//                .setCancelable(false)
-//                .setNegativeButton(this.getResources().getString(R.string.alert_dialog_close_button), new DialogInterface.OnClickListener() {
-//                    public void onClick (DialogInterface dialog, int id) {
-//                        dialog.cancel();
-//                    }
-//                });
-//        AlertDialog alert = builder.create();
-//        alert.show();
-//    }
 
     private void loadCirclesDataFromServer(int mode) {
         if (mode == 1) {
-            ProgressDialogFragment progress = new ProgressDialogFragment(this.getResources().getString(R.string.alert_dialog_message_load_circles_data));
-            progress.show(getSupportFragmentManager(), PROGRESS_DIALOG_LOAD_CIRCLES_DATA);
+            mPullToRefreshLayout.setRefreshing(true);
         }
         mRequestCirclesDataId = getServiceHelper().loadCirclesDataFromServer("");
-        mRequestNotificationsId = getServiceHelper().loadNotificationsFromServer();
     }
 
-//    private void loadNotificationsFromServer (int mode) {
-//        if (mode == 0) {
-//            ProgressDialogFragment progress = new ProgressDialogFragment(this.getResources().getString(R.string.alert_dialog_message_load_notifications));
-//            progress.show(getSupportFragmentManager(), PROGRESS_DIALOG_LOAD_NOTIFICATIONS);
-//        }
-//        mRequestNotificationsId = getServiceHelper().loadNotificationsFromServer();
-//    }
+    private void loadNotificationsFromServer(int mode) {
+        if (mode == 0) {
+            mPullToRefreshLayout.setRefreshing(true);
+        }
+        mRequestNotificationsId = getServiceHelper().loadNotificationsFromServer();
+    }
 
     @Override
     protected void onResume() {
         super.onResume();
 
         if (mRequestCirclesDataId != -1 && !getServiceHelper().isPending(mRequestCirclesDataId)) {
-            dismissProgressDialog(PROGRESS_DIALOG_LOAD_CIRCLES_DATA);
+            mPullToRefreshLayout.setRefreshComplete();
         }
         if (mRequestNotificationsId != -1 && !getServiceHelper().isPending(mRequestNotificationsId)) {
-            dismissProgressDialog(PROGRESS_DIALOG_LOAD_NOTIFICATIONS);
+            mPullToRefreshLayout.setRefreshComplete();
         }
         if (mRequestSendRegIdToServer != -1 && !getServiceHelper().isPending(mRequestSendRegIdToServer)) {
+            mPullToRefreshLayout.setRefreshComplete();
             cancelCommand();
         }
 
@@ -423,43 +382,6 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
     };
     /*------------------------------End LoaderCallbacks---------------------------*/
 
-
-    public static class ProgressDialogFragment extends DialogFragment {
-        private String mMessage = "";
-
-        public ProgressDialogFragment() {
-        }
-
-        public ProgressDialogFragment(String message) {
-
-            mMessage = message;
-        }
-
-        @Override
-        public Dialog onCreateDialog(Bundle savedInstanceState) {
-
-            ProgressDialog progressDialog = new ProgressDialog(getActivity());
-            progressDialog.setCancelable(false);
-            progressDialog.setCanceledOnTouchOutside(false);
-            progressDialog.setMessage(mMessage);
-            return progressDialog;
-        }
-
-        @Override
-        public void onCancel(DialogInterface dialog) {
-            super.onCancel(dialog);
-            ((CirclesActivity) getActivity()).cancelCommand();
-        }
-
-        @Override
-        public void onDestroyView() {
-            if (getDialog() != null && getRetainInstance()) {
-                getDialog().setOnDismissListener(null);
-            }
-            super.onDestroyView();
-        }
-    }
-
     public void cancelCommand() {
         if (mRequestCirclesDataId != -1) {
             getServiceHelper().cancelCommand(mRequestCirclesDataId);
@@ -469,13 +391,6 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         }
         if (mRequestSendRegIdToServer != -1) {
             getServiceHelper().cancelCommand(mRequestSendRegIdToServer);
-        }
-    }
-
-    private void dismissProgressDialog(String tag) {
-        ProgressDialogFragment progress = (ProgressDialogFragment) getSupportFragmentManager().findFragmentByTag(tag);
-        if (progress != null) {
-            progress.dismiss();
         }
     }
 
@@ -618,7 +533,7 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
                     // 'from' address in the message.
 
                     // Persist the regID - no need to register again.
-                    storeRegistrationId(context, regid);
+                    storeRegistrationId(mContext, regid);
                 } catch (IOException ex) {
                     //msg = "Error :" + ex.getMessage();
                     // If there is an error, don't just keep trying to register.
@@ -633,7 +548,7 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
                 if (!msg.isEmpty()) {
                     sendRegistrationIdToBackend(regid);
                 }
-                Toast.makeText(getApplicationContext(), "registerInBackground: " + msg + "\n", Toast.LENGTH_LONG).show();
+                Toast.makeText(mContext, "registerInBackground: " + msg + "\n", Toast.LENGTH_LONG).show();
             }
         }.execute(null, null, null);
     }
@@ -643,13 +558,15 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
      * @return Application's version code from the {@code PackageManager}.
      */
     private static int getAppVersion(Context context) {
+
+        String packageName = context.getPackageName();
+        PackageInfo pinfo = null;
         try {
-            PackageInfo packageInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
-            return packageInfo.versionCode;
+            pinfo = context.getPackageManager().getPackageInfo(packageName, 0);
         } catch (PackageManager.NameNotFoundException e) {
-            // should never happen
-            throw new RuntimeException("Could not get package name: " + e);
+            e.printStackTrace();
         }
+        return pinfo.versionCode;
     }
 
     /**

@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="action_sign_out">Выйти</string>
-    <string name="action_delete_record">Удалить</string>
+    <string name="action_read_record">Прочитать</string>
     <string name="action_refresh">Обновить</string>
     <string name="action_add">Добавить</string>
     <string name="action_send">Отправить</string>
+    <string name="action_open_record">Открыть</string>
 </resources>

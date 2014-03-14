@@ -64,12 +64,10 @@ public class RefreshNotificationsActionCommand extends SFHttpCommand {
 
     public static final Creator<RefreshNotificationsActionCommand> CREATOR = new Creator<RefreshNotificationsActionCommand>() {
         public RefreshNotificationsActionCommand createFromParcel(Parcel in) {
-
             return new RefreshNotificationsActionCommand(in);
         }
 
         public RefreshNotificationsActionCommand[] newArray(int size) {
-
             return new RefreshNotificationsActionCommand[size];
         }
     };
