@@ -10,6 +10,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.database.Cursor;
+import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -45,7 +46,6 @@ import com.hubhead.handlers.impl.LoadCirclesDataActionCommand;
 import com.hubhead.handlers.impl.LoadNotificationsActionCommand;
 import com.hubhead.helpers.DBHelper;
 import com.hubhead.helpers.NotificationHelper;
-import com.hubhead.helpers.TextHelper;
 import com.hubhead.service.WampService;
 
 import java.io.IOException;
@@ -102,6 +102,12 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
     }
 
     @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putString("WORKAROUND_FOR_BUG_19917_KEY", "WORKAROUND_FOR_BUG_19917_VALUE");
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mSavedInstanceState = savedInstanceState;
@@ -111,6 +117,8 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         mNotificationId = getIntent().getIntExtra("notification_id", 0);
         Log.d(TAG, "mCircleId:" + mCircleId + ": mNotificationFlag:" + mNotificationFlag + ": mNotificationId:" + mNotificationId);
         Log.d(TAG, "Extras:" + getIntent().getExtras());
+
+
 
 
         createNavigationDrawer();

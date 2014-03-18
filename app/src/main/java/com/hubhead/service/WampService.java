@@ -12,7 +12,6 @@ import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.hubhead.contentprovider.NotificationsContentProvider;
-import com.hubhead.helpers.NotificationHelper;
 import com.hubhead.helpers.TextHelper;
 import com.hubhead.parsers.AlertDataStructureJson;
 import com.hubhead.parsers.ParseHelper;
@@ -106,10 +105,6 @@ public class WampService extends Service {
                             Log.d(TAG, "WAMP:notification: " + jsonStr);
                             ParseHelper parseHelper = new ParseHelper(getApplicationContext());
                             parseHelper.parseNotifications(jsonStr, true);
-//                            if (event.alert != null) {
-//                                sendNotification(event.alert);
-//
-//                            }
                         } else if (event.type.equals("system")) {
                             Gson gson = new Gson();
                             String jsonStr = gson.toJson(event.data);
@@ -123,7 +118,10 @@ public class WampService extends Service {
                                 }else if (systemEvent.equals("notification-read-all")) {
                                     int circleId = jsonObject.getInt("circle_id");
                                     getContentResolver().delete(NotificationsContentProvider.NOTIFICATION_CONTENT_URI, "circle_id = ?", new String[]{Integer.toString(circleId)});
+                                }else if (systemEvent.equals("update")) {
+                                    Log.d(TAG, "Event UPDATE local DB");
                                 }
+
 
                             } catch (JSONException e) {
                                 e.printStackTrace();

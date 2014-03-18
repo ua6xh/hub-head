@@ -20,6 +20,7 @@ import android.widget.Toast;
 import com.hubhead.R;
 import com.hubhead.SFBaseListFragment;
 import com.hubhead.SFServiceCallbackListener;
+import com.hubhead.adapters.NotificationsCursorAdapter;
 import com.hubhead.contentprovider.NotificationsContentProvider;
 import com.hubhead.handlers.impl.RefreshNotificationsActionCommand;
 import com.hubhead.ui.CirclesActivity;
@@ -37,7 +38,7 @@ public class NotificationsListFragment extends SFBaseListFragment implements Loa
     private static final int CM_OPEN_ID = 2;
     private final String TAG = ((Object) this).getClass().getCanonicalName();
     private static final int NOTIFICATIONS_LOADER_DELTA = 10000;
-    private SimpleCursorAdapter mNotificationsAdapter;
+    private NotificationsCursorAdapter mNotificationsAdapter;
     private int mCircleIdSelected;
     private PullToRefreshLayout mPullToRefreshLayout;
     private static int mRequestRefreshNotificationsId = -1;
@@ -49,7 +50,8 @@ public class NotificationsListFragment extends SFBaseListFragment implements Loa
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         mCircleIdSelected = getArguments().getInt(CircleFragment.ARG_CIRCLE_ID);
-        mNotificationsAdapter = new SimpleCursorAdapter(getActivity(), android.R.layout.simple_list_item_1, null, new String[]{"model_name"}, new int[]{android.R.id.text1}, 0);
+        mNotificationsAdapter = new NotificationsCursorAdapter(getActivity(), null, 0);
+        //mNotificationsAdapter = new NotificationsCursorAdapter(getActivity(), android.R.layout.simple_list_item_1, null, new String[]{"model_name"}, new int[]{android.R.id.text1}, 0);
         getActivity().getSupportLoaderManager().initLoader(NOTIFICATIONS_LOADER_DELTA + mCircleIdSelected, null, this);
         return super.onCreateView(inflater, container, savedInstanceState);
     }

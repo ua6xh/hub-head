@@ -26,6 +26,7 @@
             </intent-filter>
         </activity>
         <activity android:name="com.hubhead.ui.CirclesActivity" />
+        <activity android:name="com.hubhead.ui.NotificationActivity" />
 
         <service
             android:name="com.hubhead.service.SFCommandExecutorService"
@@ -59,6 +60,11 @@
         <provider
             android:name="com.hubhead.contentprovider.CirclesContentProvider"
             android:authorities="com.hubhead.contentproviders.CirclesContentProvider"
+            android:exported="false"
+            android:syncable="false"/>
+        <provider
+            android:name="com.hubhead.contentprovider.OverviewContentProvider"
+            android:authorities="com.hubhead.contentproviders.OverviewContentProvider"
             android:exported="false"
             android:syncable="false"/>
     </application>

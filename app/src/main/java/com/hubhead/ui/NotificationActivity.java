@@ -10,6 +10,5 @@ public class NotificationActivity extends SFBaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getActionBar().setHomeButtonEnabled(true);
-
     }
 }

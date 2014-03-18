@@ -28,7 +28,7 @@ import com.hubhead.R;
 import com.hubhead.handlers.SFHttpCommand;
 import com.hubhead.parsers.AllDataStructureJson;
 import com.hubhead.parsers.ParseHelper;
-import com.hubhead.parsers.SaverHelper;
+import com.hubhead.helpers.SaverHelper;
 
 import java.util.HashMap;
 
@@ -58,9 +58,9 @@ public class LoadCirclesDataActionCommand extends SFHttpCommand {
             AllDataStructureJson allDataStructureJson = ParseHelper.parseAllData(response);
             SaverHelper saverHelper = new SaverHelper(context);
             saverHelper.saveCircles(allDataStructureJson.data.circles);
-            saverHelper.saveSpheres(allDataStructureJson.data.spheres);
-            saverHelper.saveContacts(allDataStructureJson.data.contacts);
             saverHelper.saveReminders(allDataStructureJson.data.reminders);
+//            saverHelper.saveSpheres(allDataStructureJson.data.spheres);
+//            saverHelper.saveContacts(allDataStructureJson.data.contacts);
 //            setSharedPrefUpdateTime(Long.toString(allDataStructureJson.data.last_get_time));
             notifySuccess(data);
         } else {

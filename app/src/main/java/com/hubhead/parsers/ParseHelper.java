@@ -4,7 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.util.Log;
 
-import com.hubhead.contentprovider.NotificationsContentProvider;
+import com.hubhead.helpers.SaverHelper;
 import com.hubhead.models.NotificationModel;
 
 import org.codehaus.jackson.map.ObjectMapper;

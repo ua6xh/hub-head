@@ -49,11 +49,12 @@ public class NotificationsContentProvider extends ContentProvider {
     }
 
     private final String TAG = ((Object) this).getClass().getCanonicalName();
-    private static final String NOTIFICATION_NAME = "model_name";
-    private static final String NOTIFICATION_ID = "_id";
-    private static final String NOTIFICATION_CIRCLE_ID = "circle_id";
+    public static final String NOTIFICATION_NAME = "model_name";
+    public static final String NOTIFICATION_ID = "_id";
+    public static final String NOTIFICATION_CIRCLE_ID = "circle_id";
+    public static final String NOTIFICATION_MESSAGES_COUNT = "messages_count";
     private static final String NOTIFICATION_TABLE = "notifications";
-    private final String[] mProjection = new String[]{NOTIFICATION_ID, NOTIFICATION_NAME};
+    private final String[] mProjection = new String[]{NOTIFICATION_ID, NOTIFICATION_NAME, NOTIFICATION_CIRCLE_ID, NOTIFICATION_MESSAGES_COUNT};
 
     DBHelper dbHelper;
     SQLiteDatabase db;

@@ -10,15 +10,19 @@ import android.widget.CursorAdapter;
 import android.widget.TextView;
 
 import com.hubhead.R;
-import com.hubhead.contentprovider.CirclesContentProvider;
+import com.hubhead.contentprovider.OverviewContentProvider;
 import com.hubhead.helpers.TypefacesHelper;
 
-public class MenuCursorAdapter extends CursorAdapter {
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+
+public class OverviewCursorAdapter extends CursorAdapter {
     private final String TAG = ((Object) this).getClass().getCanonicalName();
     private final Typeface tf;
     private LayoutInflater mInflater;
 
-    public MenuCursorAdapter(Context context, Cursor c, int flags) {
+    public OverviewCursorAdapter(Context context, Cursor c, int flags) {
         super(context, c, flags);
         mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         tf = TypefacesHelper.get(context, "fonts/segoeui.ttf");
@@ -32,13 +36,12 @@ public class MenuCursorAdapter extends CursorAdapter {
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
         TextView contentTV = (TextView) view.findViewById(R.id.text1);
-        contentTV.setText(cursor.getString(cursor.getColumnIndex(CirclesContentProvider.CIRCLE_NAME)));
+        contentTV.setText(cursor.getString(cursor.getColumnIndex(OverviewContentProvider.REMINDER_TASK_NAME)));
         contentTV.setTypeface(tf);
 
         TextView countTV = (TextView) view.findViewById(R.id.text2);
-        int count = cursor.getInt(cursor.getColumnIndex(CirclesContentProvider.CIRCLE_COUNT_NOTIFICATIONS));
-        String countText = count == 0 ? "" : Integer.toString(count);
-        countTV.setText(countText);
+        long deadline = cursor.getLong(cursor.getColumnIndex(OverviewContentProvider.REMINDER_DEADLINE));
+        countTV.setText(new SimpleDateFormat("d MMM, HH:mm").format(new Date(deadline * 1000)));
         countTV.setTypeface(tf);
     }
 }

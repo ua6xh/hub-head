@@ -10,7 +10,7 @@ import android.util.Log;
 public class DBHelper extends SQLiteOpenHelper {
 
     private final String TAG = ((Object) this).getClass().getCanonicalName();
-    private static final int DB_VERSION = 5;
+    private static final int DB_VERSION = 7;
     private static final String DB_NAME = "hubhead";
     public static final String CIRCLES_TABLE_NAME = "circles";
     public static final String SPHERES_TABLE_NAME = "spheres";
@@ -56,9 +56,12 @@ public class DBHelper extends SQLiteOpenHelper {
                     + "_id INTEGER PRIMARY KEY,"
                     + "circle_id INTEGER,"
                     + "sphere_id INTEGER,"
+                    + "task_id INTEGER,"
                     + "task_name TEXT,"
+                    + "task_status INTEGER,"
                     + "start_time INTEGER,"
-                    + "deadline INTEGER"
+                    + "deadline INTEGER,"
+                    + "type_reminder INTEGER"
                     + ");");
 
             Log.d(TAG, "--- onCreate " + NOTIFICATIONS_TABLE_NAME + " ---");
