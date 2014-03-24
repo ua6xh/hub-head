@@ -11,4 +11,10 @@
     <string name="word_task">Task</string>
     <string name="word_sphere">Sphere</string>
     <string name="word_select_circle">Select circle</string>
+    <string name="label">Description</string>
+    <string name="alarm_repeat">Repeat alarm</string>
+    <string name="alarm_vibrate">Vibro</string>
+    <string name="collapse_alarm">Collapse alarm</string>
+    <string name="expand_alarm">Expand alarm</string>
+    <string name="word_delete">Delete</string>
 </resources>

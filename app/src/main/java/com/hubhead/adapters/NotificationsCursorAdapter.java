@@ -18,27 +18,35 @@ public class NotificationsCursorAdapter extends CursorAdapter {
     private final Typeface tf;
     private LayoutInflater mInflater;
 
-    public NotificationsCursorAdapter(Context context, Cursor c, int flags) {
-        super(context, c, flags);
+    public NotificationsCursorAdapter(Context context, Cursor cursor, int flags) {
+        super(context, cursor, flags);
         mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        tf = TypefacesHelper.get(context, "fonts/segoeui.ttf");
+        tf = TypefacesHelper.get(context, "fonts/AndroidClockMono-Light.ttf");
     }
 
     @Override
     public View newView(Context context, Cursor cursor, ViewGroup parent) {
-        return mInflater.inflate(R.layout.item_list_notification, parent, false);
+        View rowView = ((LayoutInflater) context.getSystemService("layout_inflater")).inflate(R.layout.item_list_notification, parent, false);
+        ViewHolder holder = new ViewHolder();
+        holder.v1 = (TextView) rowView.findViewById(R.id.text1);
+        holder.v2 = (TextView) rowView.findViewById(R.id.text2);
+        rowView.setTag(holder);
+        return rowView;
     }
 
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
-        TextView contentTV = (TextView) view.findViewById(R.id.text1);
-        contentTV.setText(cursor.getString(cursor.getColumnIndex(NotificationsContentProvider.NOTIFICATION_NAME)));
-        contentTV.setTypeface(tf);
+        ViewHolder holder = (ViewHolder) view.getTag();
+        holder.v1.setText(cursor.getString(NotificationsContentProvider.MODEL_NAME_INDEX));
+        holder.v1.setTypeface(tf);
 
-        TextView countTV = (TextView) view.findViewById(R.id.text2);
-        int count = cursor.getInt(cursor.getColumnIndex(NotificationsContentProvider.NOTIFICATION_MESSAGES_COUNT));
+        int count = cursor.getInt(NotificationsContentProvider.MESSAGES_COUNT_INDEX);
         String countText = count == 0 ? "" : Integer.toString(count);
-        countTV.setText(countText);
-        countTV.setTypeface(tf);
+        holder.v2.setText(countText);
+        holder.v2.setTypeface(tf);
+    }
+
+    class ViewHolder {
+        TextView v1, v2;
     }
 }

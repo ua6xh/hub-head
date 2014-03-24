@@ -309,6 +309,10 @@ public class AuthActivity extends SFBaseActivity implements OnEditorActionListen
                     Log.d(TAG, "return 5 code");
                     break;
                 }
+                default: {
+                    dismissProgressDialog(PROGRESS_DIALOG_SIGN_IN_GOOGLE);
+                }
+
             }
         }
     }

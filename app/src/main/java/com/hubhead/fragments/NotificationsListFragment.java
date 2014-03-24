@@ -101,6 +101,7 @@ public class NotificationsListFragment extends SFBaseListFragment implements Loa
 
                 Intent intent = new Intent(getActivity(), NotificationActivity.class);
                 intent.putExtra("notification_id", acmi.id);
+                startActivity(intent);
 
                 break;
             }

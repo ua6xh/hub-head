@@ -59,8 +59,8 @@ public class LoadCirclesDataActionCommand extends SFHttpCommand {
             SaverHelper saverHelper = new SaverHelper(context);
             saverHelper.saveCircles(allDataStructureJson.data.circles);
             saverHelper.saveReminders(allDataStructureJson.data.reminders);
-//            saverHelper.saveSpheres(allDataStructureJson.data.spheres);
-//            saverHelper.saveContacts(allDataStructureJson.data.contacts);
+            saverHelper.saveSpheres(allDataStructureJson.data.spheres);
+            saverHelper.saveContacts(allDataStructureJson.data.contacts);
 //            setSharedPrefUpdateTime(Long.toString(allDataStructureJson.data.last_get_time));
             notifySuccess(data);
         } else {

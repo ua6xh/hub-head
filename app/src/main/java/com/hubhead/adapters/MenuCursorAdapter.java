@@ -3,6 +3,7 @@ package com.hubhead.adapters;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Typeface;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,7 +22,7 @@ public class MenuCursorAdapter extends CursorAdapter {
     public MenuCursorAdapter(Context context, Cursor c, int flags) {
         super(context, c, flags);
         mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        tf = TypefacesHelper.get(context, "fonts/segoeui.ttf");
+        tf = TypefacesHelper.get(context, "fonts/AndroidClockMono-Light.ttf");
     }
 
     @Override
@@ -32,7 +33,9 @@ public class MenuCursorAdapter extends CursorAdapter {
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
         TextView contentTV = (TextView) view.findViewById(R.id.text1);
-        contentTV.setText(cursor.getString(cursor.getColumnIndex(CirclesContentProvider.CIRCLE_NAME)));
+        String name = cursor.getString(cursor.getColumnIndex(CirclesContentProvider.CIRCLE_NAME));
+        name = name.substring(0, 1).toUpperCase() + name.substring(1);
+        contentTV.setText(name);
         contentTV.setTypeface(tf);
 
         TextView countTV = (TextView) view.findViewById(R.id.text2);

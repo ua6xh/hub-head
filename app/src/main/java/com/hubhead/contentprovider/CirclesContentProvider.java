@@ -69,7 +69,7 @@ public class CirclesContentProvider extends ContentProvider {
             case URI_CIRCLES: { // общий Uri
                 // если сортировка не указана, ставим свою - по времени добавления
                 if (TextUtils.isEmpty(sortOrder)) {
-                    sortOrder = CIRCLE_ADD_DATE + " ASC";
+                    sortOrder = CIRCLE_ADD_DATE + " ASC, " + CIRCLE_ID + " ASC";
                 }
                 break;
             }
@@ -92,7 +92,7 @@ public class CirclesContentProvider extends ContentProvider {
         } catch (Exception e) {
             Log.e(TAG, e.getMessage());
         }
-
+        Log.d(TAG, sortOrder);
         Cursor cursor = db.query(CIRCLE_TABLE, mProjection, selection, selectionArgs, null, null, sortOrder);
         //  Cursor cursor = db.rawQuery("SELECT , name, _id FROM circles c;", null);
         // просим ContentResolver уведомлять этот курсор

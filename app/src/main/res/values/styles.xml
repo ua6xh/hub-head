@@ -5,4 +5,32 @@
         <!-- Customize your theme here. -->
     </style>
 
+    <style name="body">
+        <item name="android:textSize">@dimen/body_font_size</item>
+        <item name="android:textAllCaps">true</item>
+    </style>
+
+
+    <style name="body_not_caps" parent="body">
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <style name="alarm_label">
+        <item name="android:textSize">@dimen/alarm_label_size</item>
+        <item name="android:textAllCaps">true</item>
+
+    </style>
+
+    <style name="alarm_label_not_caps" parent="alarm_label">
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+    <style name="alarm_label_bold" parent="alarm_label">
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="no_alarms">
+        <item name="android:textSize">@dimen/no_alarms_font_size</item>
+        <item name="android:textStyle">bold</item>
+    </style>
 </resources>

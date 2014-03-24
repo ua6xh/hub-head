@@ -3,34 +3,35 @@
 <RelativeLayout
     android:id="@+id/llMenu"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
+    android:layout_width="wrap_content"
     android:layout_height="fill_parent"
-    android:layout_gravity="left|center_vertical"
-    android:layout_margin="10dp"
-    android:paddingTop="9dp"
     android:background="?android:attr/activatedBackgroundIndicator"
-    android:paddingBottom="9dp">
+    android:paddingLeft="15dp"
+    android:paddingTop="11dp"
+    android:paddingRight="15dp"
+    android:paddingBottom="11dp">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textAppearance="?android:attr/textAppearanceLarge"
         android:id="@+id/text1"
         android:layout_alignParentTop="true"
         android:textColor="@color/menu_item_text"
-        android:layout_marginLeft="12dp"
+        android:layout_toLeftOf="@+id/text2"
         android:layout_alignParentLeft="true"
-        android:ellipsize="end"/>
+        android:gravity="left|center"
+        android:ellipsize="end"
+        android:singleLine="true"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/text2"
-        android:gravity="right"
+        android:gravity="right|center"
         android:textColor="@color/menu_item_text_count_notifications"
         android:textAppearance="?android:attr/textAppearanceSmall"
-        android:layout_toRightOf="@+id/text1"
-        android:layout_alignParentRight="true"
-        android:layout_marginRight="12dp"
-        android:layout_alignParentTop="true" />
+        android:paddingLeft="8dp"
+        android:layout_marginTop="7dp"
+        android:layout_alignParentRight="true" />
 </RelativeLayout>

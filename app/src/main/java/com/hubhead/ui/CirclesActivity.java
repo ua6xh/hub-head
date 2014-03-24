@@ -10,7 +10,6 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.database.Cursor;
-import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -118,9 +117,6 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         Log.d(TAG, "mCircleId:" + mCircleId + ": mNotificationFlag:" + mNotificationFlag + ": mNotificationId:" + mNotificationId);
         Log.d(TAG, "Extras:" + getIntent().getExtras());
 
-
-
-
         createNavigationDrawer();
         createPullToRefresh();
 
@@ -217,23 +213,19 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
 
     private void selectItem(int position) {
         Cursor cursor = (Cursor) mDrawerAdapter.getItem(position);
-        int columnIndexId = cursor.getColumnIndex("_id");
-        int columnIndexName = cursor.getColumnIndex("name");
-        // update the main content by replacing fragments
-        mCircleId = cursor.getInt(columnIndexId);//
-        String circleName = cursor.getString(columnIndexName);
+        mCircleId = cursor.getInt(0);// _id
+        String circleName = cursor.getString(1); // name
         CircleFragment circleFragment = new CircleFragment();
         Bundle args = new Bundle();
         args.putInt(CircleFragment.ARG_CIRCLE_ID, mCircleId);
         args.putString(CircleFragment.ARG_CIRCLE_NAME, circleName);
         circleFragment.setArguments(args);
-
         FragmentManager fragmentManager = getSupportFragmentManager();
         fragmentManager.beginTransaction().replace(R.id.content_frame, circleFragment).commit();
 
-        // update selected item and title, then close the drawer
+//        // update selected item and title, then close the drawer
         mDrawerList.setItemChecked(position, true);
-        setTitle(circleName);
+        setTitle("circleName");
         mDrawerLayout.closeDrawer(mDrawerList);
     }
 

@@ -49,12 +49,40 @@ public class NotificationsContentProvider extends ContentProvider {
     }
 
     private final String TAG = ((Object) this).getClass().getCanonicalName();
-    public static final String NOTIFICATION_NAME = "model_name";
-    public static final String NOTIFICATION_ID = "_id";
-    public static final String NOTIFICATION_CIRCLE_ID = "circle_id";
-    public static final String NOTIFICATION_MESSAGES_COUNT = "messages_count";
-    private static final String NOTIFICATION_TABLE = "notifications";
-    private final String[] mProjection = new String[]{NOTIFICATION_ID, NOTIFICATION_NAME, NOTIFICATION_CIRCLE_ID, NOTIFICATION_MESSAGES_COUNT};
+    private static final String TABLE = "notifications";
+    public static final String _ID = "_id";
+    public static final String TYPE_NOTIFICATION = "type_notification";
+    public static final String MESSAGES_COUNT = "messages_count";
+    public static final String CIRCLE_ID = "circle_id";
+    public static final String SPHERE_ID = "sphere_id";
+    public static final String MODEL_NAME = "model_name";
+    public static final String GROUPS = "groups";
+    public static final String CREATE_DATE = "create_date";
+    public static final String DT = "dt";
+
+    public static final int ID_INDEX = 0;
+    public static final int TYPE_NOTIFICATION_INDEX = 1;
+    public static final int MESSAGES_COUNT_INDEX = 2;
+    public static final int CIRCLE_ID_INDEX = 3;
+    public static final int SPHERE_ID_INDEX = 4;
+    public static final int MODEL_NAME_INDEX = 5;
+    public static final int GROUPS_INDEX = 6;
+    public static final int CREATE_DATE_INDEX = 7;
+    public static final int DT_INDEX = 8;
+
+    public static final String[] QUERY_COLUMNS = {
+            _ID,
+            TYPE_NOTIFICATION,
+            MESSAGES_COUNT,
+            CIRCLE_ID,
+            SPHERE_ID,
+            MODEL_NAME,
+            GROUPS,
+            CREATE_DATE,
+            DT
+    };
+
+    public static final String DEFAULT_SORT_ORDER = DT + " DESC";
 
     DBHelper dbHelper;
     SQLiteDatabase db;
@@ -71,16 +99,16 @@ public class NotificationsContentProvider extends ContentProvider {
             case URI_NOTIFICATIONS: // общий Uri
                 // если сортировка не указана, ставим свою - по имени
                 if (TextUtils.isEmpty(sortOrder)) {
-                    sortOrder = "dt DESC";
+                    sortOrder = DEFAULT_SORT_ORDER;
                 }
                 break;
             case URI_NOTIFICATIONS_ID: { // Uri с ID
                 String id = uri.getLastPathSegment();
                 // добавляем ID к условию выборки
                 if (TextUtils.isEmpty(selection)) {
-                    selection = NOTIFICATION_ID + " = " + id;
+                    selection = _ID + " = " + id;
                 } else {
-                    selection = selection + " AND " + NOTIFICATION_ID + " = " + id;
+                    selection = selection + " AND " + _ID + " = " + id;
                 }
                 break;
             }
@@ -89,7 +117,7 @@ public class NotificationsContentProvider extends ContentProvider {
             }
         }
         db = dbHelper.getWritableDatabase();
-        Cursor cursor = db.query(NOTIFICATION_TABLE, mProjection, selection, selectionArgs, null, null, sortOrder);
+        Cursor cursor = db.query(TABLE, QUERY_COLUMNS, selection, selectionArgs, null, null, sortOrder);
         cursor.setNotificationUri(getContext().getContentResolver(), NOTIFICATION_CONTENT_URI);
         return cursor;
     }
@@ -100,7 +128,7 @@ public class NotificationsContentProvider extends ContentProvider {
         }
 
         db = dbHelper.getWritableDatabase();
-        long rowID = db.insertWithOnConflict(NOTIFICATION_TABLE, null, values, SQLiteDatabase.CONFLICT_REPLACE);
+        long rowID = db.insertWithOnConflict(TABLE, null, values, SQLiteDatabase.CONFLICT_REPLACE);
         if (rowID == -1) {
             Log.e(TAG, "db.insertWithOnConflict: -1");
         } else {
@@ -122,9 +150,9 @@ public class NotificationsContentProvider extends ContentProvider {
             case URI_NOTIFICATIONS_ID: {
                 String id = uri.getLastPathSegment();
                 if (TextUtils.isEmpty(selection)) {
-                    selection = NOTIFICATION_ID + " = " + id;
+                    selection = _ID + " = " + id;
                 } else {
-                    selection = selection + " AND " + NOTIFICATION_ID + " = " + id;
+                    selection = selection + " AND " + _ID + " = " + id;
                 }
                 break;
             }
@@ -133,7 +161,7 @@ public class NotificationsContentProvider extends ContentProvider {
             }
         }
         db = dbHelper.getWritableDatabase();
-        int cnt = db.delete(NOTIFICATION_TABLE, selection, selectionArgs);
+        int cnt = db.delete(TABLE, selection, selectionArgs);
         getContext().getContentResolver().notifyChange(uri, null);
         getContext().getContentResolver().notifyChange(CirclesContentProvider.CIRCLE_CONTENT_URI, null);
         return cnt;
@@ -147,9 +175,9 @@ public class NotificationsContentProvider extends ContentProvider {
             case URI_NOTIFICATIONS_ID: {
                 String id = uri.getLastPathSegment();
                 if (TextUtils.isEmpty(selection)) {
-                    selection = NOTIFICATION_ID + " = " + id;
+                    selection = _ID + " = " + id;
                 } else {
-                    selection = selection + " AND " + NOTIFICATION_ID + " = " + id;
+                    selection = selection + " AND " + _ID + " = " + id;
                 }
                 break;
             }
@@ -158,7 +186,7 @@ public class NotificationsContentProvider extends ContentProvider {
             }
         }
         db = dbHelper.getWritableDatabase();
-        int cnt = db.update(NOTIFICATION_TABLE, values, selection, selectionArgs);
+        int cnt = db.update(TABLE, values, selection, selectionArgs);
         getContext().getContentResolver().notifyChange(uri, null);
         return cnt;
     }
@@ -167,7 +195,7 @@ public class NotificationsContentProvider extends ContentProvider {
     public int bulkInsert(Uri uri, ContentValues[] valueses) {
         if (valueses.length > 0) {
             db = dbHelper.getWritableDatabase();
-            Cursor cursor = db.query(NOTIFICATION_TABLE, null, null, null, null, null, null);
+            Cursor cursor = db.query(TABLE, null, null, null, null, null, null);
             Map<String, ContentValues> valuesNotifications = new HashMap<String, ContentValues>();
             ArrayList<String> deleteNotifications = new ArrayList<String>();
             for (ContentValues values : valueses) {
@@ -194,11 +222,11 @@ public class NotificationsContentProvider extends ContentProvider {
                 while (it.hasNext()) {
                     Map.Entry pairs = (Map.Entry) it.next();
                     ContentValues cv = (ContentValues) pairs.getValue();
-                    db.replace(NOTIFICATION_TABLE, null, cv);
+                    db.replace(TABLE, null, cv);
                     update = true;
                 }
                 for (String deleteId : deleteNotifications) {
-                    db.delete(NOTIFICATION_TABLE, "_id = ?", new String[]{deleteId});
+                    db.delete(TABLE, "_id = ?", new String[]{deleteId});
                     update = true;
                 }
                 db.setTransactionSuccessful();
