@@ -117,7 +117,7 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
     @Override
     public android.support.v4.content.Loader<Cursor> onCreateLoader(int id, Bundle bundle) {
         String[] args = {Integer.toString(mCircleIdSelected)};
-        return new CursorLoader(getActivity(), NotificationsContentProvider.NOTIFICATION_CONTENT_URI, NotificationsContentProvider.QUERY_COLUMNS, "circle_id=?", args, null);
+        return new CursorLoader(getActivity(), NotificationsContentProvider.NOTIFICATION_CONTENT_URI, NotificationsContentProvider.QUERY_COLUMNS, "circle_id=? AND _id NOT IN (SELECT _id FROM notifications WHERE messages_count = 0 AND groups_count = 0) ", args, null);
     }
 
     @Override
@@ -482,12 +482,12 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
 //
 //        // Create and show the dialog.
 //        final LabelDialogFragment newFragment =
-//                LabelDialogFragment.newInstance(notification, notification.label, getTag());
+//                LabelDialogFragment.newInstance(notification, notification.lastActionAuthor, getTag());
 //        newFragment.show(ft, "label_dialog");
 //    }
 //
-//    public void setLabel(Alarm notification, String label) {
-//        notification.label = label;
+//    public void setLabel(Alarm notification, String lastActionAuthor) {
+//        notification.lastActionAuthor = lastActionAuthor;
 //        asyncUpdateAlarm(notification, false);
 //    }
 
@@ -580,13 +580,13 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
             // views for optimization
             LinearLayout notificationItem;
             TextView taskName;
-            TextView daysOfWeek;
-            TextView label;
+            TextView lastAction;
+            TextView lastActionAuthor;
             ImageView delete;
             View expandArea;
             View summary;
             TextView clickableLabel;
-            LinearLayout repeatDays;
+            LinearLayout expandActions;
             View hairLine;
             View arrow;
             View collapseExpandArea;
@@ -856,15 +856,15 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
             final ItemHolder holder = new ItemHolder();
             holder.notificationItem = (LinearLayout) view.findViewById(R.id.notification_item);
             holder.taskName = (TextView) view.findViewById(R.id.task_name);
-            holder.daysOfWeek = (TextView) view.findViewById(R.id.daysOfWeek);
-            holder.label = (TextView) view.findViewById(R.id.label);
+            holder.lastActionAuthor = (TextView) view.findViewById(R.id.last_action_author);
+            holder.lastAction = (TextView) view.findViewById(R.id.last_action);
             holder.delete = (ImageView) view.findViewById(R.id.delete_notification);
             holder.summary = view.findViewById(R.id.summary);
             holder.expandArea = view.findViewById(R.id.expand_area);
             holder.hairLine = view.findViewById(R.id.hairline);
             holder.arrow = view.findViewById(R.id.arrow);
             holder.clickableLabel = (TextView) view.findViewById(R.id.edit_label);
-            holder.repeatDays = (LinearLayout) view.findViewById(R.id.repeat_days);
+            holder.expandActions = (LinearLayout) view.findViewById(R.id.expand_actions);
             holder.collapseExpandArea = view.findViewById(R.id.collapse_expand);
 //            holder.footerFiller = view.findViewById(R.id.alarm_footer_filler);
 //            holder.footerFiller.setOnClickListener(new OnClickListener() {
@@ -878,14 +878,14 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
             // Build button for each day.
 //            for (int i = 0; i < 7; i++) {
 //                final ViewGroup viewgroup = (ViewGroup) mFactory.inflate(R.layout.day_button,
-//                        holder.repeatDays, false);
+//                        holder.expandActions, false);
 //                final ToggleButton button = (ToggleButton) viewgroup.getChildAt(0);
 //                final int dayToShowIndex = DAY_ORDER[i];
 //                button.setText(mShortWeekDayStrings[dayToShowIndex]);
 //                button.setTextOn(mShortWeekDayStrings[dayToShowIndex]);
 //                button.setTextOff(mShortWeekDayStrings[dayToShowIndex]);
 //                button.setContentDescription(mLongWeekDayStrings[dayToShowIndex]);
-//                holder.repeatDays.addView(viewgroup);
+//                holder.expandActions.addView(viewgroup);
 //                holder.dayButtons[i] = button;
 //                holder.dayButtonParents[i] = viewgroup;
 //            }
@@ -958,19 +958,19 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
                 Random r = new Random();
                 int i1 = r.nextInt(contactNames.length);
 
-                itemHolder.label.setText(contactNames[i1]);
-                itemHolder.label.setVisibility(View.VISIBLE);
-                itemHolder.label.setContentDescription("model_name: " + notification.model_name);
-                itemHolder.label.setOnClickListener(new OnClickListener() {
+                itemHolder.lastActionAuthor.setText(contactNames[i1]);
+                itemHolder.lastActionAuthor.setVisibility(View.VISIBLE);
+                itemHolder.lastActionAuthor.setContentDescription("model_name: " + notification.model_name);
+                itemHolder.lastActionAuthor.setOnClickListener(new OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         expandNotification(itemHolder, true);
                         itemHolder.notificationItem.post(mScrollRunnable);
                     }
                 });
-                itemHolder.daysOfWeek.setText(notification.model_name + labelSpace);
+                itemHolder.lastAction.setText(notification.model_name + labelSpace);
             } else {
-                itemHolder.label.setVisibility(View.GONE);
+                itemHolder.lastActionAuthor.setVisibility(View.GONE);
             }
 
             itemHolder.delete.setOnClickListener(new OnClickListener() {
@@ -1020,18 +1020,18 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
 
             if (notification.model_name != null && notification.model_name.length() > 0) {
                 itemHolder.clickableLabel.setText(notification.model_name);
-                itemHolder.clickableLabel.setTextColor(mColorLit);
+                //itemHolder.clickableLabel.setTextColor(mColorLit);
             } else {
                 itemHolder.clickableLabel.setText(R.string.label);
-                itemHolder.clickableLabel.setTextColor(mColorDim);
+                //itemHolder.clickableLabel.setTextColor(mColorDim);
             }
-            itemHolder.clickableLabel.setOnClickListener(new OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    //showLabelDialog(notification);
-                    Toast.makeText(getActivity(), "itemHolder.clickableLabel.click", Toast.LENGTH_SHORT).show();
-                }
-            });
+//            itemHolder.clickableLabel.setOnClickListener(new OnClickListener() {
+//                @Override
+//                public void onClick(View view) {
+//                    //showLabelDialog(notification);
+//                    Toast.makeText(getActivity(), "itemHolder.clickableLabel.click", Toast.LENGTH_SHORT).show();
+//                }
+//            });
 
 
 //
@@ -1089,11 +1089,11 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
             holder.summary.setAlpha(alpha);
             holder.expandArea.setAlpha(alpha);
             holder.delete.setAlpha(alpha);
-            holder.daysOfWeek.setAlpha(alpha);
+            holder.lastAction.setAlpha(alpha);
         }
 
-//        private void updateDaysOfWeekButtons(ItemHolder holder, DaysOfWeek daysOfWeek) {
-//            HashSet<Integer> setDays = daysOfWeek.getSetDays();
+//        private void updateDaysOfWeekButtons(ItemHolder holder, DaysOfWeek lastAction) {
+//            HashSet<Integer> setDays = lastAction.getSetDays();
 //            for (int i = 0; i < 7; i++) {
 //                if (setDays.contains(DAY_ORDER[i])) {
 //                    turnOnDayOfWeek(holder, i);

@@ -42,7 +42,7 @@
             android:textColor="@color/dark_gray"
             android:baselineAligned="true"
             android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Task 1"
+            android:text="Task name"
             android:layout_gravity="center"
             android:gravity="left"/>
         <!--<Space-->
@@ -81,7 +81,7 @@
             <!--android:ellipsize="end"-->
             <!--android:singleLine="true"-->
             <LinearLayout
-                android:id="@+id/repeat_days"
+                android:id="@+id/expand_actions"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:layout_marginLeft="10dp"
@@ -109,7 +109,7 @@
                 android:contentDescription="@string/expand_alarm" />
             <View
                 android:id="@+id/hairline"
-                android:layout_height="1dp"
+                android:layout_height="0.2dp"
                 android:layout_marginLeft="8dp"
                 android:layout_marginStart="8dp"
                 android:layout_marginRight="8dp"
@@ -127,14 +127,14 @@
                 android:layout_marginEnd="40dp"
                 android:orientation="vertical"
                 android:gravity="center_vertical" >
-                <TextView android:id="@+id/label"
+                <TextView android:id="@+id/last_action_author"
                       android:layout_width="wrap_content"
                       android:layout_height="wrap_content"
                       style="@style/alarm_label_not_caps"
                       android:textColor="@color/clock_black"
                       android:ellipsize="end"
                       android:singleLine="true" />
-                <TextView android:id="@+id/daysOfWeek"
+                <TextView android:id="@+id/last_action"
                       android:layout_height="wrap_content"
                       android:layout_width="wrap_content"
                       style="@style/alarm_label_not_caps"

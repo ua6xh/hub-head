@@ -50,7 +50,10 @@ public class CirclesContentProvider extends ContentProvider {
     public static final String CIRCLE_ADD_DATE = "add_date";
     public static final String CIRCLE_COUNT_NOTIFICATIONS = "count_notifications";
     public static final String CIRCLE_TABLE = "circles";
-    private final String[] mProjection = new String[]{CIRCLE_ID, CIRCLE_NAME, "(SELECT COUNT(*) FROM notifications n WHERE circles._id = n.circle_id ) as " + CIRCLE_COUNT_NOTIFICATIONS, CIRCLE_ADD_DATE};
+    private final String[] mProjection = new String[]{
+            CIRCLE_ID, CIRCLE_NAME,
+            "(SELECT COUNT(*) FROM notifications n WHERE circles._id = n.circle_id  AND n._id NOT IN (SELECT _id FROM notifications WHERE messages_count = 0 AND groups_count = 0)) as " + CIRCLE_COUNT_NOTIFICATIONS,
+            CIRCLE_ADD_DATE};
     //private final String[] mProjection = new String[]{CIRCLE_ID, CIRCLE_NAME, "0 as " + CIRCLE_COUNT_NOTIFICATIONS, CIRCLE_ADD_DATE};
 
     DBHelper dbHelper;

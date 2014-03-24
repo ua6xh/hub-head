@@ -73,6 +73,8 @@ public class ParseHelper {
                     cv.put("model_name", notification.model_name);
                     cv.put("sphere_id", notification.sphere_id);
                     cv.put("circle_id", notification.circle_id);
+                    cv.put("groups", notification.groups.toString());
+                    cv.put("groups_count", notification.groups.length());
                     cv.put("dt", notification.dt);
                     contentValuesArrayList.add(cv);
                 }

@@ -57,6 +57,7 @@ public class NotificationsContentProvider extends ContentProvider {
     public static final String SPHERE_ID = "sphere_id";
     public static final String MODEL_NAME = "model_name";
     public static final String GROUPS = "groups";
+    public static final String GROUPS_COUNT = "groups_count";
     public static final String CREATE_DATE = "create_date";
     public static final String DT = "dt";
 
@@ -67,8 +68,9 @@ public class NotificationsContentProvider extends ContentProvider {
     public static final int SPHERE_ID_INDEX = 4;
     public static final int MODEL_NAME_INDEX = 5;
     public static final int GROUPS_INDEX = 6;
-    public static final int CREATE_DATE_INDEX = 7;
-    public static final int DT_INDEX = 8;
+    public static final int GROUPS_COUNT_INDEX = 7;
+    public static final int CREATE_DATE_INDEX = 8;
+    public static final int DT_INDEX = 9;
 
     public static final String[] QUERY_COLUMNS = {
             _ID,
@@ -117,6 +119,7 @@ public class NotificationsContentProvider extends ContentProvider {
             }
         }
         db = dbHelper.getWritableDatabase();
+        Log.d(TAG, selection);
         Cursor cursor = db.query(TABLE, QUERY_COLUMNS, selection, selectionArgs, null, null, sortOrder);
         cursor.setNotificationUri(getContext().getContentResolver(), NOTIFICATION_CONTENT_URI);
         return cursor;
