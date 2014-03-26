@@ -10,7 +10,7 @@ import android.util.Log;
 public class DBHelper extends SQLiteOpenHelper {
 
     private final String TAG = ((Object) this).getClass().getCanonicalName();
-    private static final int DB_VERSION = 8;
+    private static final int DB_VERSION = 9;
     private static final String DB_NAME = "hubhead";
     public static final String CIRCLES_TABLE_NAME = "circles";
     public static final String SPHERES_TABLE_NAME = "spheres";
@@ -75,7 +75,11 @@ public class DBHelper extends SQLiteOpenHelper {
                     + "groups TEXT,"
                     + "groups_count INTEGER,"
                     + "create_date INTEGER,"
-                    + "dt INTEGER"
+                    + "dt INTEGER,"
+                    + "last_action_user_id INTEGER,"
+                    + "last_action_dt INTEGER,"
+                    + "last_action_text TEXT,"
+                    + "last_action_author TEXT"
                     + ");");
 
         } catch (Exception e) {
@@ -101,7 +105,6 @@ public class DBHelper extends SQLiteOpenHelper {
     }
 
     public void truncateDB(SQLiteDatabase db) {
-
         db.execSQL("DELETE FROM " + CIRCLES_TABLE_NAME);
         db.execSQL("DELETE FROM " + SPHERES_TABLE_NAME);
         db.execSQL("DELETE FROM " + CONTACTS_TABLE_NAME);

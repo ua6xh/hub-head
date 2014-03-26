@@ -67,6 +67,16 @@
             android:authorities="com.hubhead.contentproviders.OverviewContentProvider"
             android:exported="false"
             android:syncable="false"/>
+        <provider
+            android:name="com.hubhead.contentprovider.ContactsContentProvider"
+            android:authorities="com.hubhead.contentproviders.ContactsContentProvider"
+            android:exported="false"
+            android:syncable="false"/>
+        <provider
+            android:name="com.hubhead.contentprovider.SpheresContentProvider"
+            android:authorities="com.hubhead.contentproviders.SpheresContentProvider"
+            android:exported="false"
+            android:syncable="false"/>
     </application>
 
 

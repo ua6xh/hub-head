@@ -17,6 +17,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.content.CursorLoader;
+import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -186,7 +187,7 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
 //            }
 //        }
 
-        mEmptyView = v.findViewById(R.id.alarms_empty_view);
+        mEmptyView = v.findViewById(R.id.notifications_empty_view);
 //        mEmptyView.setOnClickListener(new OnClickListener() {
 //            @Override
 //            public void onClick(View v) {
@@ -953,12 +954,16 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
 
             String labelSpace = "";
             // Set the repeat text or leave it blank if it does not repeat.
-
             if (notification.model_name != null && notification.model_name.length() != 0) {
                 Random r = new Random();
                 int i1 = r.nextInt(contactNames.length);
-
-                itemHolder.lastActionAuthor.setText(contactNames[i1]);
+                if(notification.groups_count == 0 && notification.messages_count != 0){
+                    itemHolder.lastActionAuthor.setText("Количество новых сообщений: " + notification.messages_count);
+                    itemHolder.lastAction.setText(labelSpace);
+                } else {
+                    itemHolder.lastActionAuthor.setText(notification.last_action_author);
+                    itemHolder.lastAction.setText(Html.fromHtml(notification.last_action_text));
+                }
                 itemHolder.lastActionAuthor.setVisibility(View.VISIBLE);
                 itemHolder.lastActionAuthor.setContentDescription("model_name: " + notification.model_name);
                 itemHolder.lastActionAuthor.setOnClickListener(new OnClickListener() {
@@ -968,7 +973,7 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
                         itemHolder.notificationItem.post(mScrollRunnable);
                     }
                 });
-                itemHolder.lastAction.setText(notification.model_name + labelSpace);
+
             } else {
                 itemHolder.lastActionAuthor.setVisibility(View.GONE);
             }
@@ -1019,8 +1024,11 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
             // Views in here are not bound until the item is expanded.
 
             if (notification.model_name != null && notification.model_name.length() > 0) {
-                itemHolder.clickableLabel.setText(notification.model_name);
-                //itemHolder.clickableLabel.setTextColor(mColorLit);
+                if(notification.groups_count == 0 && notification.messages_count != 0){
+                    itemHolder.clickableLabel.setText("Количество новых сообщений: " + notification.messages_count);
+                } else {
+                    itemHolder.clickableLabel.setText(notification.model_name);
+                }
             } else {
                 itemHolder.clickableLabel.setText(R.string.label);
                 //itemHolder.clickableLabel.setTextColor(mColorDim);

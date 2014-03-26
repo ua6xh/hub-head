@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="actions_add_members">Пользователи добавлены в мемберы</string>
+    <string name="actions_add_member">Добавлен в мемберы пользователь</string>
+    <string name="action_add_tag">Добавлен тег</string>
+    <string name="action_add_tags">Добавлены теги</string>
+    <string name="action_chg_par_id_move_to_root">Перемещена в корень</string>
+    <string name="action_chg_par_id_move_to">Перемещена в</string>
+    <string name="action_chg_sphere_id_move_to">Перемещена в сферу</string>
+    <string name="action_create_task">Создана</string>
+    <string name="action_deadline_remove">Дедлайн снят</string>
+    <string name="action_delete">Удалена</string>
+    <string name="action_remove_members">Удалены из мемберов</string>
+    <string name="action_remove_member">Удален из мемберов</string>
+    <string name="action_remove_from_sphere">удален из сферы</string>
+    <string name="action_remove_tags">Удалены теги</string>
+    <string name="action_remove_tag">Удален тег</string>
+    <string name="action_archive_sphere_archive">Архивирована</string>
+    <string name="action_archive_sphere_unarchive">Разархивирована</string>
+    <string name="action_archive_sphere_undefined">Неизвестно</string>
+    <string name="action_chg_status_uncomplete">Восстановлена</string>
+    <string name="action_chg_status_complete">Завершена</string>
+</resources>

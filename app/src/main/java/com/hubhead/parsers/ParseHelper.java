@@ -5,19 +5,40 @@ import android.content.Context;
 import android.util.Log;
 
 import com.hubhead.helpers.SaverHelper;
+import com.hubhead.models.ActionModels.AddMembersActionModel;
+import com.hubhead.models.ActionModels.AddRolesActionModel;
+import com.hubhead.models.ActionModels.AddTagActionModel;
+import com.hubhead.models.ActionModels.ChangeParentIdActionModel;
+import com.hubhead.models.ActionModels.ChangeSphereIdActionModel;
+import com.hubhead.models.ActionModels.CreateActionModel;
+import com.hubhead.models.ActionModels.DeadlineActionModel;
+import com.hubhead.models.ActionModels.DeleteActionModel;
+import com.hubhead.models.ActionModels.RemoveMembersActionModel;
+import com.hubhead.models.ActionModels.RemoveRolesActionModel;
+import com.hubhead.models.ActionModels.RemoveTagActionModel;
+import com.hubhead.models.ActionModels.SphereArchivedActionModel;
+import com.hubhead.models.ActionModels.StatusActionModel;
+import com.hubhead.models.ActionModels.TagModel;
+import com.hubhead.models.ActionModels.UserModel;
+import com.hubhead.models.ContactModel;
 import com.hubhead.models.NotificationModel;
+import com.hubhead.models.SphereModel;
 
 import org.codehaus.jackson.map.ObjectMapper;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 
 public class ParseHelper {
     private final String TAG = ((Object) this).getClass().getCanonicalName();
+    private static final String TAGst = "com.hubhead.parsers.ParseHelper";
     private Context mContext;
 
     public ParseHelper(Context context) {
@@ -56,27 +77,18 @@ public class ParseHelper {
             JSONObject json = new JSONObject(response);
             JSONObject notificationsObj = json.getJSONObject("data");
 
-            NotificationModel notification = new NotificationModel();
             Iterator objectsIterator = notificationsObj.keys();
-
+            Map<String, ContactModel> contactMap = ContactModel.getContacts(mContext.getContentResolver(), null);
+            Map<Long, SphereModel> sphereMap = SphereModel.getSpheres(mContext.getContentResolver(), null);
+            Log.d(TAG, "sphereMap" + sphereMap);
+            Log.d(TAG, "contactMap" + contactMap);
             if (objectsIterator.hasNext()) {
                 ArrayList<ContentValues> contentValuesArrayList = new ArrayList<ContentValues>();
                 while (objectsIterator.hasNext()) {
                     String roomName = (String) objectsIterator.next();
                     JSONObject room = notificationsObj.getJSONObject(roomName);
-
-                    notification = createNotification(roomName, room, notification);
-                    ContentValues cv = new ContentValues();
-                    cv.put("_id", notification.id);
-                    cv.put("messages_count", notification.messages_count);
-                    cv.put("create_date", notification.create_date);
-                    cv.put("model_name", notification.model_name);
-                    cv.put("sphere_id", notification.sphere_id);
-                    cv.put("circle_id", notification.circle_id);
-                    cv.put("groups", notification.groups.toString());
-                    cv.put("groups_count", notification.groups.length());
-                    cv.put("dt", notification.dt);
-                    contentValuesArrayList.add(cv);
+                    NotificationModel notification = new NotificationModel(roomName, room, contactMap, sphereMap, mContext);
+                    contentValuesArrayList.add(notification.getContentValues());
                 }
                 ContentValues[] contentValueses = contentValuesArrayList.toArray(new ContentValues[0]);
                 if (socket) {
@@ -88,28 +100,11 @@ public class ParseHelper {
         } catch (JSONException e) {
             Log.e(TAG, "Error parsing data in parseNotifications: " + e.toString());
         } catch (NullPointerException e) {
-            Log.e(TAG, "NullPointerException in ParserHelper");
+            Log.e(TAG, "NullPointerException in ParserHelper:" + e.getMessage());
         }
     }
 
-    protected NotificationModel createNotification(String roomName, JSONObject room, NotificationModel notification) throws JSONException {
-        notification.room_name = roomName;
-        notification.messages_count = room.getInt("messages_count");
-        notification.create_date = room.getInt("create_date");
-        notification.model_name = room.getString("model_name");
-        notification.sphere_id = room.getInt("sphere_id");
-        notification.circle_id = room.getInt("circle_id");
-        notification.dt = room.getLong("dt");
-        notification.groups = room.getJSONArray("groups");
-        //notification.groupsList = ParseHelper.parseNotificationGroup(notification.groups, context, contactMap, notification.circle_id);
-        if (roomName.indexOf("task") == 0) {
-            notification.type_notification = NotificationModel.TYPE_TASK;
-        } else if (roomName.indexOf("sphere") == 0) {
-            notification.type_notification = NotificationModel.TYPE_SPHERE;
-        }
-        notification.id = notification.convertToId(notification.type_notification, roomName);
-        return notification;
-    }
+
 
 //    public static List<NotificationModel> parseNotifications (String response, Context context, Map contactMap) {
 //        //        List<NotificationModel> notifications = new ArrayList<NotificationModel>();
@@ -147,7 +142,7 @@ public class ParseHelper {
 //        return notifications;
 //    }
 
-//    protected static NotificationModel createNotification(String roomName, JSONObject room, NotificationModel notification, Context context, Map contactMap) throws JSONException {
+    //    protected static NotificationModel createNotification(String roomName, JSONObject room, NotificationModel notification, Context context, Map contactMap) throws JSONException {
 //        notification.room_name = roomName;
 //        notification.messages_count = room.getInt("messages_count");
 //        notification.create_date = room.getInt("create_date");
@@ -240,147 +235,157 @@ public class ParseHelper {
 //        return groups;
 //    }
 //
-//    private static SphereArchivedActionModel getSphereArchivedActionModel(String key, JSONObject action, long dt, Context context) throws JSONException {
-//        SphereArchivedActionModel model = new SphereArchivedActionModel(key, dt, action.getInt("value"));
-//        model.setContext(context);
-//        return model;
-//    }
-//
-//    private static RemoveRolesActionModel getRemoveRolesActionModel(String key, JSONObject action, long dt, Context context, Map contactMap, int circleId) throws JSONException {
-//        RemoveRolesActionModel removeRolesActionModel = new RemoveRolesActionModel(key, dt);
-//        removeRolesActionModel.setContext(context);
-//        List<UserModel> modelsUsers = new ArrayList<UserModel>();
-//
-//        JSONObject values = action.getJSONObject("value");
-//        Iterator iter = values.keys();
-//        while (iter.hasNext()) {
-//            String id_user = (String) iter.next();
-//            UserModel user = createUser(context, contactMap, circleId, Integer.parseInt(id_user));
-//            user.role = values.getInt(id_user);
-//            modelsUsers.add(user);
-//        }
-//        removeRolesActionModel.users = modelsUsers;
-//        return removeRolesActionModel;
-//    }
-//
-//    private static AddRolesActionModel getAddRolesActionModel(String key, JSONObject action, long dt, Context context, Map contactMap, int circleId) throws JSONException {
-//        AddRolesActionModel addRolesActionModel = new AddRolesActionModel(key, dt);
-//        addRolesActionModel.setContext(context);
-//        List<UserModel> modelsUsers = new ArrayList<UserModel>();
-//
-//        JSONObject values = action.getJSONObject("value");
-//        Iterator iter = values.keys();
-//        while (iter.hasNext()) {
-//            String id_user = (String) iter.next();
-//            UserModel user = createUser(context, contactMap, circleId, Integer.parseInt(id_user));
-//            user.role = values.getInt(id_user);
-//            modelsUsers.add(user);
-//        }
-//        addRolesActionModel.users = modelsUsers;
-//        return addRolesActionModel;
-//    }
-//
-//    private static DeleteActionModel getDeleteActionModel(String key, JSONObject action, long dt, Context context) throws JSONException {
-//        DeleteActionModel model = new DeleteActionModel(key, dt, action.getInt("value"));
-//        model.setContext(context);
-//        return model;
-//    }
-//
-//    private static ChangeParentIdActionModel getChangeParentIdActionModel(String key, JSONObject action, long dt, Context context) throws JSONException {
-//        JSONObject value = action.getJSONObject("value");
-//        ChangeParentIdActionModel model = new ChangeParentIdActionModel(key, dt, value.getInt("parent_id"), value.getString("parent_name"));
-//        model.setContext(context);
-//        return model;
-//    }
-//
-//    private static ChangeSphereIdActionModel getChangeSphereIdActionModel(String key, JSONObject action, long dt, Context context) throws JSONException {
-//        ChangeSphereIdActionModel model = new ChangeSphereIdActionModel(key, dt, action.getInt("value"));
-//        model.setContext(context);
-//        return model;
-//    }
-//
-//    private static DeadlineActionModel getDeadlineActionModel(String key, JSONObject action, long dt, Context context) throws JSONException {
-//        DeadlineActionModel model = new DeadlineActionModel(key, dt, action.getString("value"));
-//        model.setContext(context);
-//        return model;
-//
-//    }
-//
-//    private static CreateActionModel getCreateActionModel (String key, JSONObject action, long dt, Context context) {
-//        CreateActionModel model = new CreateActionModel(key, dt);
-//        model.setContext(context);
-//        return model;
-//    }
-//
-//    private static RemoveTagActionModel getRemoveTagActionModel(String key, JSONObject action, long dt, Context context) throws JSONException {
-//        RemoveTagActionModel removeTagModel = new RemoveTagActionModel(key, dt);
-//        removeTagModel.setContext(context);
-//        List<TagModel> modelsTags = new ArrayList<TagModel>();
-//        JSONArray values = action.getJSONArray("value");
-//        for (int j = 0; j < values.length(); j++) {
-//            JSONObject value = values.getJSONObject(j);
-//            modelsTags.add(new TagModel(value.getInt("id"), value.getString("name"), value.getString("color")));
-//        }
-//        removeTagModel.tags = modelsTags;
-//        return removeTagModel;
-//    }
-//
-//    private static StatusActionModel getStatusActionModel(String key, JSONObject action, long dt, Context context) throws JSONException {
-//        StatusActionModel model = new StatusActionModel(key, dt, action.getInt("value"));
-//        model.setContext(context);
-//        return model;
-//    }
-//
-//    private static AddTagActionModel getAddTagActionModel(String key, JSONObject action, long dt, Context context) throws JSONException {
-//        AddTagActionModel addTagModel = new AddTagActionModel(key, dt);
-//        addTagModel.setContext(context);
-//        List<TagModel> modelsTags = new ArrayList<TagModel>();
-//
-//        JSONArray values = action.getJSONArray("value");
-//        for (int j = 0; j < values.length(); j++) {
-//            JSONObject value = values.getJSONObject(j);
-//            modelsTags.add(new TagModel(value.getInt("id"), value.getString("name"), value.getString("color")));
-//        }
-//        addTagModel.tags = modelsTags;
-//        return addTagModel;
-//    }
-//
-//    private static RemoveMembersActionModel getRemoveMemberActionModel(String key, JSONObject action, long dt, Context context, Map contactMap, int circleId) throws JSONException {
-//        RemoveMembersActionModel removeMemberModel = new RemoveMembersActionModel(key, dt);
-//        removeMemberModel.setContext(context);
-//        List<UserModel> modelsUsers = new ArrayList<UserModel>();
-//
-//        JSONArray values = action.getJSONArray("value");
-//        for (int j = 0; j < values.length(); j++) {
-//            UserModel user = createUser(context, contactMap, circleId, values.getInt(j));
-//            modelsUsers.add(user);
-//        }
-//        removeMemberModel.users = modelsUsers;
-//        return removeMemberModel;
-//    }
-//
-//    private static AddMembersActionModel getAddMemberActionModel(String key, JSONObject action, long dt, Context context, Map contactMap, int circleId) throws JSONException {
-//        AddMembersActionModel addMemberModel = new AddMembersActionModel(key, dt);
-//        addMemberModel.setContext(context);
-//        List<UserModel> modelsUsers = new ArrayList<UserModel>();
-//
-//        JSONArray values = action.getJSONArray("value");
-//        for (int j = 0; j < values.length(); j++) {
-//            int id = values.getInt(j);
-//            UserModel user = createUser(context, contactMap, circleId, id);
-//            modelsUsers.add(user);
-//        }
-//        addMemberModel.users = modelsUsers;
-//        return addMemberModel;
-//    }
-//
-//    private static UserModel createUser (Context context, Map contactMap, int circleId, int id) {
-//        UserModel user = new UserModel(id, context);
-//        String keyMap = circleId + "_" + id;
-//        if (contactMap.containsKey(keyMap)) {
-//            ContactModel contactModel = (ContactModel) contactMap.get(keyMap);
-//            user.name = contactModel.name;
-//        }
-//        return user;
-//    }
+    public static SphereArchivedActionModel getSphereArchivedActionModel(String key, JSONObject action, long dt, Context context) throws JSONException {
+        SphereArchivedActionModel model = new SphereArchivedActionModel(key, dt, action.getInt("value"));
+        model.setContext(context);
+        return model;
+    }
+
+    public static RemoveRolesActionModel getRemoveRolesActionModel(String key, JSONObject action, long dt, Context context, Map contactMap, int circleId) throws JSONException {
+        RemoveRolesActionModel removeRolesActionModel = new RemoveRolesActionModel(key, dt);
+        removeRolesActionModel.setContext(context);
+        List<UserModel> modelsUsers = new ArrayList<UserModel>();
+
+        JSONObject values = action.getJSONObject("value");
+        Iterator iter = values.keys();
+        while (iter.hasNext()) {
+            String id_user = (String) iter.next();
+            UserModel user = createUser(context, contactMap, circleId, Integer.parseInt(id_user));
+            user.role = values.getInt(id_user);
+            modelsUsers.add(user);
+        }
+        removeRolesActionModel.users = modelsUsers;
+        return removeRolesActionModel;
+    }
+
+    public static AddRolesActionModel getAddRolesActionModel(String key, JSONObject action, long dt, Context context, Map contactMap, int circleId) throws JSONException {
+        AddRolesActionModel addRolesActionModel = new AddRolesActionModel(key, dt);
+        addRolesActionModel.setContext(context);
+        List<UserModel> modelsUsers = new ArrayList<UserModel>();
+
+        JSONObject values = action.getJSONObject("value");
+        Iterator iter = values.keys();
+        while (iter.hasNext()) {
+            String id_user = (String) iter.next();
+            UserModel user = createUser(context, contactMap, circleId, Integer.parseInt(id_user));
+            user.role = values.getInt(id_user);
+            modelsUsers.add(user);
+        }
+        addRolesActionModel.users = modelsUsers;
+        return addRolesActionModel;
+    }
+
+    public static DeleteActionModel getDeleteActionModel(String key, JSONObject action, long dt, Context context) throws JSONException {
+        DeleteActionModel model = new DeleteActionModel(key, dt, action.getInt("value"));
+        model.setContext(context);
+        return model;
+    }
+
+    public static ChangeParentIdActionModel getChangeParentIdActionModel(String key, JSONObject action, long dt, Context context) throws JSONException {
+        JSONObject value = action.getJSONObject("value");
+        ChangeParentIdActionModel model = new ChangeParentIdActionModel(key, dt, value.getInt("parent_id"), value.getString("parent_name"));
+        model.setContext(context);
+        return model;
+    }
+
+    public static ChangeSphereIdActionModel getChangeSphereIdActionModel(String key, JSONObject action, long dt, Context context, Map sphereMap) throws JSONException {
+        long sphereId = action.getLong("value");
+        SphereModel sphereModel;
+        if(sphereMap.containsKey(sphereId)) {
+            sphereModel = (SphereModel) sphereMap.get(sphereId);
+        } else {
+            sphereModel = new SphereModel();
+        }
+        ChangeSphereIdActionModel model = new ChangeSphereIdActionModel(key, dt, sphereId, sphereModel);
+        model.setContext(context);
+        return model;
+    }
+
+    public static DeadlineActionModel getDeadlineActionModel(String key, JSONObject action, long dt, Context context) throws JSONException {
+        DeadlineActionModel model = new DeadlineActionModel(key, dt, action.getString("value"));
+        model.setContext(context);
+        return model;
+
+    }
+
+    public static CreateActionModel getCreateActionModel(String key, JSONObject action, long dt, Context context) {
+        CreateActionModel model = new CreateActionModel(key, dt);
+        model.setContext(context);
+        return model;
+    }
+
+    public static RemoveTagActionModel getRemoveTagActionModel(String key, JSONObject action, long dt, Context context) throws JSONException {
+        RemoveTagActionModel removeTagModel = new RemoveTagActionModel(key, dt);
+        removeTagModel.setContext(context);
+        List<TagModel> modelsTags = new ArrayList<TagModel>();
+        JSONArray values = action.getJSONArray("value");
+        for (int j = 0; j < values.length(); j++) {
+            JSONObject value = values.getJSONObject(j);
+            modelsTags.add(new TagModel(value.getInt("id"), value.getString("name"), value.getString("color")));
+        }
+        removeTagModel.tags = modelsTags;
+        return removeTagModel;
+    }
+
+    public static StatusActionModel getStatusActionModel(String key, JSONObject action, long dt, Context context) throws JSONException {
+        StatusActionModel model = new StatusActionModel(key, dt, action.getInt("value"));
+        model.setContext(context);
+        return model;
+    }
+
+    public static AddTagActionModel getAddTagActionModel(String key, JSONObject action, long dt, Context context) throws JSONException {
+        AddTagActionModel addTagModel = new AddTagActionModel(key, dt);
+        addTagModel.setContext(context);
+        List<TagModel> modelsTags = new ArrayList<TagModel>();
+
+        JSONArray values = action.getJSONArray("value");
+        for (int j = 0; j < values.length(); j++) {
+            JSONObject value = values.getJSONObject(j);
+            modelsTags.add(new TagModel(value.getInt("id"), value.getString("name"), value.getString("color")));
+        }
+        addTagModel.tags = modelsTags;
+        return addTagModel;
+    }
+
+    public static RemoveMembersActionModel getRemoveMemberActionModel(String key, JSONObject action, long dt, Context context, Map contactMap, int circleId) throws JSONException {
+        RemoveMembersActionModel removeMemberModel = new RemoveMembersActionModel(key, dt);
+        removeMemberModel.setContext(context);
+        List<UserModel> modelsUsers = new ArrayList<UserModel>();
+
+        JSONArray values = action.getJSONArray("value");
+        for (int j = 0; j < values.length(); j++) {
+            UserModel user = createUser(context, contactMap, circleId, values.getInt(j));
+            modelsUsers.add(user);
+        }
+        removeMemberModel.users = modelsUsers;
+        return removeMemberModel;
+    }
+
+    public static AddMembersActionModel getAddMemberActionModel(String key, JSONObject action, long dt, Context context, Map contactMap, int circleId) throws JSONException {
+        AddMembersActionModel addMemberModel = new AddMembersActionModel(key, dt);
+        addMemberModel.setContext(context);
+        List<UserModel> modelsUsers = new ArrayList<UserModel>();
+
+        JSONArray values = action.getJSONArray("value");
+        for (int j = 0; j < values.length(); j++) {
+            int id = values.getInt(j);
+            UserModel user = createUser(context, contactMap, circleId, id);
+            modelsUsers.add(user);
+        }
+        addMemberModel.users = modelsUsers;
+        return addMemberModel;
+    }
+
+    private static UserModel createUser(Context context, Map contactMap, int circleId, int id) {
+        UserModel user = new UserModel(id, context);
+        String keyMap = circleId + "_" + id;
+        Log.d(TAGst, "contactMap:" + contactMap);
+        Log.d(TAGst, "keyMap:" + keyMap);
+        if (contactMap.containsKey(keyMap)) {
+            ContactModel contactModel = (ContactModel) contactMap.get(keyMap);
+            user.name = contactModel.name;
+        }
+        return user;
+    }
 }
+

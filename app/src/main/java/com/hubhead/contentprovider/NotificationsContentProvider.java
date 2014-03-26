@@ -60,6 +60,11 @@ public class NotificationsContentProvider extends ContentProvider {
     public static final String GROUPS_COUNT = "groups_count";
     public static final String CREATE_DATE = "create_date";
     public static final String DT = "dt";
+    public static final String LAST_ACTION_USER_ID = "last_action_user_id";
+    public static final String LAST_ACTION_DT = "last_action_dt";
+    public static final String LAST_ACTION_TEXT = "last_action_text";
+    public static final String LAST_ACTION_AUTHOR = "last_action_author";
+
 
     public static final int ID_INDEX = 0;
     public static final int TYPE_NOTIFICATION_INDEX = 1;
@@ -71,6 +76,12 @@ public class NotificationsContentProvider extends ContentProvider {
     public static final int GROUPS_COUNT_INDEX = 7;
     public static final int CREATE_DATE_INDEX = 8;
     public static final int DT_INDEX = 9;
+    public static final int LAST_ACTION_USER_ID_INDEX = 10;
+    public static final int LAST_ACTION_DT_INDEX = 11;
+    public static final int LAST_ACTION_TEXT_INDEX = 12;
+    public static final int LAST_ACTION_AUTHOR_INDEX = 13;
+
+    public static final int COLUMN_COUNT = LAST_ACTION_AUTHOR_INDEX + 1;
 
     public static final String[] QUERY_COLUMNS = {
             _ID,
@@ -80,8 +91,13 @@ public class NotificationsContentProvider extends ContentProvider {
             SPHERE_ID,
             MODEL_NAME,
             GROUPS,
+            GROUPS_COUNT,
             CREATE_DATE,
-            DT
+            DT,
+            LAST_ACTION_USER_ID,
+            LAST_ACTION_DT,
+            LAST_ACTION_TEXT,
+            LAST_ACTION_AUTHOR
     };
 
     public static final String DEFAULT_SORT_ORDER = DT + " DESC";

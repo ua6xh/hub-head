@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="actions_add_members">Add members</string>
+    <string name="actions_add_member">Add member</string>
+    <string name="user_role_guest">Guest</string>
+    <string name="user_role_member">Member</string>
+    <string name="user_role_admin">Administrator</string>
+    <string name="user_role_undefined">Undefined</string>
+    <string name="action_add_tags">Add tags</string>
+    <string name="action_add_tag">Add tag</string>
+    <string name="action_chg_par_id_move_to_root">Move to root</string>
+    <string name="action_chg_par_id_move_to">Move to</string>
+    <string name="action_chg_sphere_id_move_to">Move to</string>
+    <string name="action_create_task">Create</string>
+    <string name="action_deadline_remove">Deadline remove</string>
+    <string name="action_delete">Deleted</string>
+    <string name="action_remove_members">Remove members</string>
+    <string name="action_remove_member">Remove member</string>
+    <string name="action_remove_from_sphere">remove from sphere</string>
+    <string name="action_remove_tags">Remove tags</string>
+    <string name="action_remove_tag">Remove tag</string>
+    <string name="action_archive_sphere_archive">Archived</string>
+    <string name="action_archive_sphere_unarchive">Unarchived</string>
+    <string name="action_archive_sphere_undefined">Undefined</string>
+    <string name="action_chg_status_uncomplete">Uncompleted</string>
+    <string name="action_chg_status_complete">Complete</string>
+</resources>

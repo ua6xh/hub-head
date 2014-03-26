@@ -6,9 +6,11 @@ import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 import com.hubhead.contentprovider.CirclesContentProvider;
+import com.hubhead.contentprovider.ContactsContentProvider;
 import com.hubhead.contentprovider.NotificationsContentProvider;
 import com.hubhead.contentprovider.OverviewContentProvider;
 
+import com.hubhead.contentprovider.SpheresContentProvider;
 import com.hubhead.models.CircleModel;
 import com.hubhead.models.ContactModel;
 import com.hubhead.models.ReminderModel;
@@ -18,12 +20,10 @@ import java.util.List;
 
 public class SaverHelper {
 
-    private final DBHelper dbHelper;
     private String TAG = ((Object) this).getClass().getCanonicalName();
 
     public SaverHelper(Context context) {
         mContext = context;
-        dbHelper = new DBHelper(mContext);
     }
 
     private Context mContext;
@@ -65,36 +65,33 @@ public class SaverHelper {
         mContext.getContentResolver().bulkInsert(OverviewContentProvider.OVERVIEW_CONTENT_URI, values);
     }
 
-    // todo Передалать на getContentResolver
     public void saveContacts(List<ContactModel> items) {
-        ContentValues cv = new ContentValues();
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-        db.beginTransaction();
+        ContentValues[] values;
+        values = new ContentValues[items.size()];
+        int i = 0;
         for (ContactModel item : items) {
+            ContentValues cv = new ContentValues();
             cv.put("_id", item.getId());
-            cv.put("circle_id", item.circle_id);
             cv.put("name", item.name);
+            cv.put("circle_id", item.circle_id);
             cv.put("account_id", item.account_id);
-            db.replace("contacts", null, cv);
+            values[i++] = cv;
         }
-        db.setTransactionSuccessful();
-        db.endTransaction();
-        dbHelper.close();
+        mContext.getContentResolver().bulkInsert(ContactsContentProvider.CONTACT_CONTENT_URI, values);
     }
 
     public void saveSpheres(List<SphereModel> items) {
-        ContentValues cv = new ContentValues();
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-        db.beginTransaction();
+        ContentValues[] values;
+        values = new ContentValues[items.size()];
+        int i = 0;
         for (SphereModel item : items) {
+            ContentValues cv = new ContentValues();
             cv.put("_id", item.getId());
             cv.put("circle_id", item.circle_id);
             cv.put("name", item.name);
-            db.replace("spheres", null, cv);
+            values[i++] = cv;
         }
-        db.setTransactionSuccessful();
-        db.endTransaction();
-        dbHelper.close();
+        mContext.getContentResolver().bulkInsert(SpheresContentProvider.SPHERE_CONTENT_URI, values);
     }
 
     public static void saveNotifications(Context context, ContentValues[] contentValueses) {

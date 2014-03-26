@@ -19,7 +19,6 @@ package com.hubhead.service;
 import android.app.IntentService;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.util.Log;
 
 
@@ -65,16 +64,6 @@ public class GcmIntentService extends IntentService {
                 // If it's a regular GCM message, do some work.
             } else if (GoogleCloudMessaging.MESSAGE_TYPE_MESSAGE.equals(messageType)) {
                 // This loop represents the service doing some work.
-//                for (int i = 0; i < 5; i++) {
-//                    Log.i(TAG, "Working... " + (i + 1)
-//                            + "/5 @ " + SystemClock.elapsedRealtime());
-//                    try {
-//                        Thread.sleep(5000);
-//                    } catch (InterruptedException e) {
-//                        Log.e(TAG, "sleep exception: " + e.getMessage());
-//                    }
-//                }
-                Log.i(TAG, "Completed work @ " + SystemClock.elapsedRealtime());
                 Log.i(TAG, "extras: " + extras);
                 // Post notification of received message.
                 try {

@@ -23,54 +23,23 @@ public final class Notification implements Parcelable {
     /**
      * The default sort order for this table
      */
-    public static final String _ID = "_id";
-    public static final String TYPE_NOTIFICATION = "type_notification";
-    public static final String MESSAGES_COUNT = "messages_count";
-    public static final String CIRCLE_ID = "circle_id";
-    public static final String SPHERE_ID = "sphere_id";
-    public static final String MODEL_NAME = "model_name";
-    public static final String GROUPS = "groups";
-    public static final String CREATE_DATE = "create_date";
-    public static final String DT = "dt";
 
-    public static final int ID_INDEX = 0;
-    public static final int TYPE_NOTIFICATION_INDEX = 1;
-    public static final int MESSAGES_COUNT_INDEX = 2;
-    public static final int CIRCLE_ID_INDEX = 3;
-    public static final int SPHERE_ID_INDEX = 4;
-    public static final int MODEL_NAME_INDEX = 5;
-    public static final int GROUPS_INDEX = 6;
-    public static final int CREATE_DATE_INDEX = 7;
-    public static final int DT_INDEX = 8;
 
-    private static final String[] QUERY_COLUMNS = {
-            _ID,
-            TYPE_NOTIFICATION,
-            MESSAGES_COUNT,
-            CIRCLE_ID,
-            SPHERE_ID,
-            MODEL_NAME,
-            GROUPS,
-            CREATE_DATE,
-            DT
-    };
-
-    private static final int COLUMN_COUNT = DT_INDEX + 1;
 
     public static ContentValues createContentValues(Notification notification) {
-        ContentValues values = new ContentValues(COLUMN_COUNT);
+        ContentValues values = new ContentValues(NotificationsContentProvider.COLUMN_COUNT);
         if (notification.id != INVALID_ID) {
-            values.put(_ID, notification.id);
+            values.put(NotificationsContentProvider._ID, notification.id);
         }
 
-        values.put(TYPE_NOTIFICATION, notification.type_notification);
-        values.put(MESSAGES_COUNT, notification.messages_count);
-        values.put(CIRCLE_ID, notification.circle_id);
-        values.put(SPHERE_ID, notification.sphere_id);
-        values.put(MODEL_NAME, notification.model_name);
-        values.put(GROUPS, notification.groups);
-        values.put(CREATE_DATE, notification.create_date);
-        values.put(DT, notification.dt);
+        values.put(NotificationsContentProvider.TYPE_NOTIFICATION, notification.type_notification);
+        values.put(NotificationsContentProvider.MESSAGES_COUNT, notification.messages_count);
+        values.put(NotificationsContentProvider.CIRCLE_ID, notification.circle_id);
+        values.put(NotificationsContentProvider.SPHERE_ID, notification.sphere_id);
+        values.put(NotificationsContentProvider.MODEL_NAME, notification.model_name);
+        values.put(NotificationsContentProvider.GROUPS, notification.groups);
+        values.put(NotificationsContentProvider.CREATE_DATE, notification.create_date);
+        values.put(NotificationsContentProvider.DT, notification.dt);
 
         return values;
     }
@@ -98,7 +67,7 @@ public final class Notification implements Parcelable {
      * @return cursor loader with all the notifications.
      */
     public static CursorLoader getNotificationsCursorLoader(Context context) {
-        return new CursorLoader(context, NotificationsContentProvider.NOTIFICATION_CONTENT_URI, QUERY_COLUMNS, null, null, NotificationsContentProvider.DEFAULT_SORT_ORDER);
+        return new CursorLoader(context, NotificationsContentProvider.NOTIFICATION_CONTENT_URI, NotificationsContentProvider.QUERY_COLUMNS, null, null, NotificationsContentProvider.DEFAULT_SORT_ORDER);
     }
 
     /**
@@ -109,7 +78,7 @@ public final class Notification implements Parcelable {
      * @return notification if found, null otherwise
      */
     public static Notification getNotification(ContentResolver contentResolver, long notificationId) {
-        Cursor cursor = contentResolver.query(getUri(notificationId), QUERY_COLUMNS, null, null, null);
+        Cursor cursor = contentResolver.query(getUri(notificationId), NotificationsContentProvider.QUERY_COLUMNS, null, null, null);
         Notification result = null;
         if (cursor == null) {
             return result;
@@ -140,7 +109,7 @@ public final class Notification implements Parcelable {
      */
     public static List<Notification> getNotifications(ContentResolver contentResolver,
                                                       String selection, String... selectionArgs) {
-        Cursor cursor = contentResolver.query(NotificationsContentProvider.NOTIFICATION_CONTENT_URI, QUERY_COLUMNS,
+        Cursor cursor = contentResolver.query(NotificationsContentProvider.NOTIFICATION_CONTENT_URI, NotificationsContentProvider.QUERY_COLUMNS,
                 selection, selectionArgs, null);
         List<Notification> result = new LinkedList<Notification>();
         if (cursor == null) {
@@ -199,23 +168,33 @@ public final class Notification implements Parcelable {
     public long sphere_id;
     public String model_name;
     public String groups;
+    public int groups_count;
     public long create_date;
     public long dt;
+    public int last_action_user_id = 0;
+    public long last_action_dt = 0;
+    public String last_action_text = "";
+    public String last_action_author = "";
 
     // Creates a default notification at the current time.
     public Notification() {
     }
 
     public Notification(Cursor c) {
-        id = c.getLong(ID_INDEX);
-        type_notification = c.getInt(TYPE_NOTIFICATION_INDEX);
-        messages_count = c.getInt(MESSAGES_COUNT_INDEX);
-        circle_id = c.getLong(CIRCLE_ID_INDEX);
-        sphere_id = c.getLong(SPHERE_ID_INDEX);
-        model_name = c.getString(MODEL_NAME_INDEX);
-        groups = c.getString(GROUPS_INDEX);
-        create_date = c.getLong(CREATE_DATE_INDEX);
-        dt = c.getLong(DT_INDEX);
+        id = c.getLong(NotificationsContentProvider.ID_INDEX);
+        type_notification = c.getInt(NotificationsContentProvider.TYPE_NOTIFICATION_INDEX);
+        messages_count = c.getInt(NotificationsContentProvider.MESSAGES_COUNT_INDEX);
+        circle_id = c.getLong(NotificationsContentProvider.CIRCLE_ID_INDEX);
+        sphere_id = c.getLong(NotificationsContentProvider.SPHERE_ID_INDEX);
+        model_name = c.getString(NotificationsContentProvider.MODEL_NAME_INDEX);
+        groups = c.getString(NotificationsContentProvider.GROUPS_INDEX);
+        groups_count = c.getInt(NotificationsContentProvider.GROUPS_COUNT_INDEX);
+        create_date = c.getLong(NotificationsContentProvider.CREATE_DATE_INDEX);
+        dt = c.getLong(NotificationsContentProvider.DT_INDEX);
+        last_action_user_id = c.getInt(NotificationsContentProvider.LAST_ACTION_USER_ID_INDEX);
+        last_action_dt = c.getLong(NotificationsContentProvider.LAST_ACTION_DT_INDEX);
+        last_action_text = c.getString(NotificationsContentProvider.LAST_ACTION_TEXT_INDEX);
+        last_action_author = c.getString(NotificationsContentProvider.LAST_ACTION_AUTHOR_INDEX);
     }
 
     Notification(Parcel p) {
@@ -226,6 +205,7 @@ public final class Notification implements Parcelable {
         sphere_id = p.readLong();
         model_name = p.readString();
         groups = p.readString();
+        groups_count = p.readInt();
         create_date = p.readLong();
         dt = p.readLong();
     }
@@ -238,6 +218,7 @@ public final class Notification implements Parcelable {
         p.writeLong(sphere_id);
         p.writeString(model_name);
         p.writeString(groups);
+        p.writeInt(groups_count);
         p.writeLong(create_date);
         p.writeLong(dt);
     }
@@ -268,6 +249,7 @@ public final class Notification implements Parcelable {
                 ", sphere_id=" + sphere_id +
                 ", model_name=" + model_name +
                 ", groups='" + groups + "'" +
+                ", groups_count='" + groups_count + "'" +
                 ", create_date=" + create_date +
                 ", dt='" + dt + "'" +
                 '}';
