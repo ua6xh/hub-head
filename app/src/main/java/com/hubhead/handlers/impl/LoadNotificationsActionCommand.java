@@ -22,11 +22,10 @@ import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.os.ResultReceiver;
-import android.util.Log;
 
 import com.hubhead.R;
 import com.hubhead.handlers.SFHttpCommand;
-import com.hubhead.parsers.ParseHelper;
+import com.hubhead.helpers.ParseHelper;
 
 import java.util.HashMap;
 

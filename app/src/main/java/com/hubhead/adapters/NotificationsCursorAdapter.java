@@ -13,6 +13,9 @@ import com.hubhead.R;
 import com.hubhead.contentprovider.NotificationsContentProvider;
 import com.hubhead.helpers.TypefacesHelper;
 
+/**
+ * @deprecated
+ */
 public class NotificationsCursorAdapter extends CursorAdapter {
     private final String TAG = ((Object) this).getClass().getCanonicalName();
     private final Typeface tf;

@@ -10,6 +10,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -19,6 +20,7 @@ public final class Notification implements Parcelable {
      * Alarms start with an invalid id when it hasn't been saved to the database.
      */
     public static final long INVALID_ID = -1;
+    private final String TAG = ((Object) this).getClass().getCanonicalName();
 
     /**
      * The default sort order for this table

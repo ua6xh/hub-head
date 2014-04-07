@@ -13,8 +13,8 @@ import android.widget.Toast;
 import com.google.gson.Gson;
 import com.hubhead.contentprovider.NotificationsContentProvider;
 import com.hubhead.helpers.TextHelper;
-import com.hubhead.parsers.AlertDataStructureJson;
-import com.hubhead.parsers.ParseHelper;
+import com.hubhead.helpers.AlertDataStructureJson;
+import com.hubhead.helpers.ParseHelper;
 
 import org.json.JSONException;
 import org.json.JSONObject;

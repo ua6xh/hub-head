@@ -6,6 +6,7 @@ import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
@@ -136,6 +137,7 @@ public class NotificationsContentProvider extends ContentProvider {
         }
         db = dbHelper.getWritableDatabase();
         Log.d(TAG, selection);
+
         Cursor cursor = db.query(TABLE, QUERY_COLUMNS, selection, selectionArgs, null, null, sortOrder);
         cursor.setNotificationUri(getContext().getContentResolver(), NOTIFICATION_CONTENT_URI);
         return cursor;

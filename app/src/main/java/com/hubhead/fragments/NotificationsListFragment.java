@@ -31,7 +31,9 @@ import uk.co.senab.actionbarpulltorefresh.library.PullToRefreshLayout;
 import uk.co.senab.actionbarpulltorefresh.library.listeners.OnRefreshListener;
 import uk.co.senab.actionbarpulltorefresh.library.viewdelegates.ViewDelegate;
 
-
+/**
+ * @deprecated
+ */
 public class NotificationsListFragment extends SFBaseListFragment implements LoaderManager.LoaderCallbacks<Cursor>, OnRefreshListener, SFServiceCallbackListener {
 
     private static final int CM_READ_ID = 1;

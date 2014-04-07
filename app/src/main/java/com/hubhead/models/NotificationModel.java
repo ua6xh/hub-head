@@ -2,15 +2,16 @@ package com.hubhead.models;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.util.Log;
 
-import com.hubhead.parsers.ParseHelper;
+import com.hubhead.helpers.ParseHelper;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 
@@ -31,7 +32,7 @@ public class NotificationModel {
     public long last_action_dt = 0;
     public String last_action_text = "";
     public String last_action_author = "";
-    //public List<NotificationGroupModel> groupsList = new ArrayList<NotificationGroupModel>();
+    public List<NotificationGroupModel> groupsList = new ArrayList<NotificationGroupModel>();
     public String room_name = "";
 
     public NotificationModel(String roomName, JSONObject room, Map<String, ContactModel> contactMap, Map<Long, SphereModel> sphereMap, Context context) throws JSONException {
@@ -44,61 +45,50 @@ public class NotificationModel {
         this.dt = room.getLong("dt");
         this.groups = room.getJSONArray("groups");
 
-        if (this.groups.length() > 0) {
-            JSONObject lastGroup = (JSONObject) this.groups.get(0);
-            JSONObject actions = lastGroup.getJSONObject("actions");
-            this.last_action_user_id = lastGroup.getInt("user_id");
-            String contactKey = this.circle_id + "_" + last_action_user_id;
-            Log.d(TAG, "contactMap:" + contactMap);
-            Log.d(TAG, "contactKey:" + contactKey);
-            if(contactMap.containsKey(contactKey)){
-                this.last_action_author = contactMap.get(contactKey).name;
-            }
-            Log.d(TAG, "this.last_action_author:" + this.last_action_author);
+        getLastAction(contactMap, sphereMap, context);
 
-            Iterator actionsIterator = actions.keys();
-            int circleId = this.circle_id;
-            while (actionsIterator.hasNext()) {
-                String key = (String) actionsIterator.next();
-                JSONObject action = actions.getJSONObject(key);
 
-                long dt = action.getLong("dt");
-                if (key.equals("add-tags")) {
-                    last_action_text = ParseHelper.getAddTagActionModel(key, action, dt, context).toString();
-                } else if (key.equals("remove-tags")) {
-                    last_action_text = ParseHelper.getRemoveTagActionModel(key, action, dt, context).toString();
-                } else if (key.equals("remove-members")) {
-                    last_action_text = ParseHelper.getRemoveMemberActionModel(key, action, dt, context, contactMap, circleId).toString();
-                } else if (key.equals("add-members")) {
-                    last_action_text = ParseHelper.getAddMemberActionModel(key, action, dt, context, contactMap, circleId).toString();
-                } else if (key.equals("create")) {
-                    last_action_text = ParseHelper.getCreateActionModel(key, action, dt, context).toString();
-                } else if (key.equals("status")) {
-                    last_action_text = ParseHelper.getStatusActionModel(key, action, dt, context).toString();
-                } else if (key.equals("deadline")) {
-                    last_action_text = ParseHelper.getDeadlineActionModel(key, action, dt, context).toString();
-                } else if (key.equals("parent_id")) {
-                    last_action_text = ParseHelper.getChangeParentIdActionModel(key, action, dt, context).toString();
-                } else if (key.equals("sphere_id")) {
-                    last_action_text = ParseHelper.getChangeSphereIdActionModel(key, action, dt, context, sphereMap).toString();
-                } else if (key.equals("deleted")) {
-                    last_action_text = ParseHelper.getDeleteActionModel(key, action, dt, context).toString();
-                } else if (key.equals("add-roles")) {
-                    last_action_text = ParseHelper.getAddRolesActionModel(key, action, dt, context, contactMap, circleId).toString();
-                } else if (key.equals("remove-roles")) {
-                    last_action_text = ParseHelper.getRemoveRolesActionModel(key, action, dt, context, contactMap, circleId).toString();
-                } else if (key.equals("sphere-archived")) {
-                    last_action_text = ParseHelper.getSphereArchivedActionModel(key, action, dt, context).toString();
-                }
-                break;
-            }
-        }
         if (roomName.indexOf("task") == 0) {
             this.type_notification = NotificationModel.TYPE_TASK;
         } else if (roomName.indexOf("sphere") == 0) {
             this.type_notification = NotificationModel.TYPE_SPHERE;
         }
         this.id = this.convertToId(this.type_notification, roomName);
+    }
+
+    private void getLastAction(Map<String, ContactModel> contactMap, Map<Long, SphereModel> sphereMap, Context context) throws JSONException {
+        if (this.groups.length() > 0) {
+            JSONObject lastGroup = (JSONObject) this.groups.get(0);
+            JSONObject actions = lastGroup.getJSONObject("actions");
+            this.last_action_user_id = lastGroup.getInt("user_id");
+            String contactKey = this.circle_id + "_" + last_action_user_id;
+            if (contactMap.containsKey(contactKey)) {
+                this.last_action_author = contactMap.get(contactKey).name;
+            }
+
+            Iterator actionsIterator = actions.keys();
+            int circleId = this.circle_id;
+            long lastDtAction = 0;
+            JSONObject lastAction = new JSONObject();
+            String lastKey = "";
+            if (actionsIterator.hasNext()) {
+                lastKey = (String) actionsIterator.next();
+                lastAction = actions.getJSONObject(lastKey);
+                lastDtAction = lastAction.getLong("dt");
+            }
+            while (actionsIterator.hasNext()) {
+                String key = (String) actionsIterator.next();
+                JSONObject action = actions.getJSONObject(key);
+                long dtAction = action.getLong("dt");
+                if (dtAction > lastDtAction) {
+                    lastAction = action;
+                    lastKey = key;
+                }
+            }
+            if (lastDtAction != 0 && !lastKey.equals("")) {
+                last_action_text = ParseHelper.getAction(lastKey, lastAction, dt, context, contactMap,sphereMap, circleId).toString();
+            }
+        }
     }
 
     public int getId() {
@@ -123,6 +113,7 @@ public class NotificationModel {
         cv.put("model_name", model_name);
         cv.put("sphere_id", sphere_id);
         cv.put("circle_id", circle_id);
+        cv.put("dt", dt);
         cv.put("groups", groups.toString());
         cv.put("groups_count", groups.length());
         cv.put("last_action_user_id", last_action_user_id);

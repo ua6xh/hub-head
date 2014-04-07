@@ -1,16 +1,11 @@
 package com.hubhead.models;
 
 import android.content.Context;
-
 import com.hubhead.R;
 
-import java.util.Date;
-
 public class NotificationActionModel {
-    public String actionName = "ActionModel";
-    public long dt = new Date().getTime();
     protected Context context;
-
+    public long dt;
 
     public int getId(){
         return -1;

@@ -39,9 +39,17 @@ import android.widget.Toast;
 import com.hubhead.R;
 import com.hubhead.contentprovider.Notification;
 import com.hubhead.contentprovider.NotificationsContentProvider;
+import com.hubhead.helpers.ViewHelper;
+import com.hubhead.models.ContactModel;
+import com.hubhead.models.NotificationGroupModel;
+import com.hubhead.models.SphereModel;
+import com.hubhead.helpers.ParseHelper;
+
+import org.json.JSONException;
 
 import java.util.HashSet;
-import java.util.Random;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -60,7 +68,6 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
     private static final String KEY_UNDO_SHOWING = "undoShowing";
     private static final String KEY_PREVIOUS_DAY_MAP = "previousDayMap";
     private static final int NOTIFICATIONS_LOADER_DELTA = 10000;
-    private static final String[] contactNames = {"Максим", "Тимашев Максим", "Тимашев Максим Сергеевич", "Вячеслав", "Мельников Вячеслав", "Мельников Вячеслав Юрьевич", "Вадим", "Нечаев Вадим", "Илья", " Матрохин Илья"};
 
     private ListView mNotificationsList;
     private NotificationItemAdapter mAdapter;
@@ -572,6 +579,8 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
         private final HashSet<Long> mExpanded = new HashSet<Long>();
         private final HashSet<Long> mRepeatChecked = new HashSet<Long>();
         private final HashSet<Long> mSelectedNotifications = new HashSet<Long>();
+        private final Map<String, ContactModel> mContactMap;
+        private final Map<Long, SphereModel> mSphereMap;
         private Bundle mPreviousDaysOfWeekMap = new Bundle();
         private final int mCollapseExpandHeight;
 
@@ -616,6 +625,8 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
         public NotificationItemAdapter(Context context, long[] expandedIds, long[] repeatCheckedIds, long[] selectedAlarms, Bundle previousDaysOfWeekMap, ListView list) {
             super(context, null, 0);
             mContext = context;
+            mContactMap = ContactModel.getContacts(mContext.getContentResolver(), null);
+            mSphereMap = SphereModel.getSpheres(mContext.getContentResolver(), null);
             mFactory = LayoutInflater.from(context);
             mList = list;
 
@@ -955,17 +966,15 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
             String labelSpace = "";
             // Set the repeat text or leave it blank if it does not repeat.
             if (notification.model_name != null && notification.model_name.length() != 0) {
-                Random r = new Random();
-                int i1 = r.nextInt(contactNames.length);
-                if(notification.groups_count == 0 && notification.messages_count != 0){
-                    itemHolder.lastActionAuthor.setText("Количество новых сообщений: " + notification.messages_count);
-                    itemHolder.lastAction.setText(labelSpace);
+                if (notification.groups_count == 0 && notification.messages_count != 0) {
+                    itemHolder.lastActionAuthor.setText(labelSpace);
+                    itemHolder.lastAction.setText("Новых сообщений: " + notification.messages_count);
                 } else {
                     itemHolder.lastActionAuthor.setText(notification.last_action_author);
                     itemHolder.lastAction.setText(Html.fromHtml(notification.last_action_text));
                 }
                 itemHolder.lastActionAuthor.setVisibility(View.VISIBLE);
-                itemHolder.lastActionAuthor.setContentDescription("model_name: " + notification.model_name);
+                itemHolder.lastActionAuthor.setContentDescription(notification.model_name);
                 itemHolder.lastActionAuthor.setOnClickListener(new OnClickListener() {
                     @Override
                     public void onClick(View view) {
@@ -1023,16 +1032,31 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
         private void bindExpandArea(final ItemHolder itemHolder, final Notification notification) {
             // Views in here are not bound until the item is expanded.
 
-            if (notification.model_name != null && notification.model_name.length() > 0) {
-                if(notification.groups_count == 0 && notification.messages_count != 0){
-                    itemHolder.clickableLabel.setText("Количество новых сообщений: " + notification.messages_count);
-                } else {
-                    itemHolder.clickableLabel.setText(notification.model_name);
+
+            try {
+                List<NotificationGroupModel> groupsActions = ParseHelper.parseNotificationGroup(notification.groups, mContext, mContactMap, mSphereMap, notification.circle_id);
+                //ViewHelper.createNotificationGroupView(groupsActions, mContext);
+                String result = "";
+                for(NotificationGroupModel groupModel : groupsActions){
+                    result += groupModel.toString() + "<br>";
                 }
-            } else {
-                itemHolder.clickableLabel.setText(R.string.label);
-                //itemHolder.clickableLabel.setTextColor(mColorDim);
+                itemHolder.clickableLabel.setText(Html.fromHtml(result));
+            } catch (JSONException e) {
+                Log.e(TAG, "ParseNotificationGroup in Adapter", e);
             }
+
+            //            if (notification.model_name != null && notification.model_name.length() > 0) {
+//                if (notification.groups_count == 0 && notification.messages_count != 0) {
+//                    itemHolder.clickableLabel.setText("Количество новых сообщений: " + notification.messages_count);
+//                } else {
+//                    itemHolder.clickableLabel.setText(notification.model_name);
+//                }
+//            } else {
+//                itemHolder.clickableLabel.setText(R.string.label);
+//                //itemHolder.clickableLabel.setTextColor(mColorDim);
+//            }
+
+
 //            itemHolder.clickableLabel.setOnClickListener(new OnClickListener() {
 //                @Override
 //                public void onClick(View view) {

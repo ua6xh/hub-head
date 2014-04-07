@@ -20,7 +20,6 @@ public class ChangeSphereIdActionModel extends NotificationActionModel implement
         this.dt = dt;
         this.sphere_id = sphere_id;
         this.sphere = sphere;
-        Log.d(TAG, "sphere in ChangeSphereIdActionModel:" + sphere);
     }
 
     public String toString() {

@@ -13,6 +13,7 @@
     <string name="action_chg_sphere_id_move_to">Move to</string>
     <string name="action_create_task">Create</string>
     <string name="action_deadline_remove">Deadline remove</string>
+    <string name="action_deadline">Deadline</string>
     <string name="action_delete">Deleted</string>
     <string name="action_remove_members">Remove members</string>
     <string name="action_remove_member">Remove member</string>
