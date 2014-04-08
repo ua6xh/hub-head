@@ -40,6 +40,7 @@ import com.hubhead.R;
 import com.hubhead.contentprovider.Notification;
 import com.hubhead.contentprovider.NotificationsContentProvider;
 import com.hubhead.helpers.ViewHelper;
+import com.hubhead.models.CircleModel;
 import com.hubhead.models.ContactModel;
 import com.hubhead.models.NotificationGroupModel;
 import com.hubhead.models.SphereModel;
@@ -80,17 +81,17 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
 
     private Bundle mRingtoneTitleCache; // Key: ringtone uri, value: ringtone title
     //    private ActionableToastBar mUndoBar;
-    private View mUndoFrame;
+//    private View mUndoFrame;
 
     //    private Alarm mSelectedAlarm;
-    private long mScrollToAlarmId = -1;
+//    private long mScrollToAlarmId = -1;
 
     private android.support.v4.content.Loader<Cursor> mCursorLoader = null;
 
     // Saved states for undo
 //    private Alarm mDeletedNotification;
 //    private Alarm mAddedAlarm;
-    private boolean mUndoShowing = false;
+//    private boolean mUndoShowing = false;
 
     private Animator mFadeIn;
     private Animator mFadeOut;
@@ -155,7 +156,7 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
             repeatCheckedIds = savedState.getLongArray(KEY_REPEAT_CHECKED_IDS);
             mRingtoneTitleCache = savedState.getBundle(KEY_RINGTONE_TITLE_CACHE);
 //            mDeletedNotification = savedState.getParcelable(KEY_DELETED_ALARM);
-            mUndoShowing = savedState.getBoolean(KEY_UNDO_SHOWING);
+            //mUndoShowing = savedState.getBoolean(KEY_UNDO_SHOWING);
             selectedAlarms = savedState.getLongArray(KEY_SELECTED_NOTIFICATIONS);
             previousDayMap = savedState.getBundle(KEY_PREVIOUS_DAY_MAP);
 //            mSelectedAlarm = savedState.getParcelable(KEY_SELECTED_ALARM);
@@ -426,18 +427,18 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
         Toast.makeText(getActivity(), "showUndoBar", Toast.LENGTH_SHORT).show();
     }
 
-//    @Override
-//    public void onSaveInstanceState(Bundle outState) {
-//        super.onSaveInstanceState(outState);
-//        outState.putLongArray(KEY_EXPANDED_IDS, mAdapter.getExpandedArray());
-//        outState.putLongArray(KEY_REPEAT_CHECKED_IDS, mAdapter.getRepeatArray());
-//        outState.putLongArray(KEY_SELECTED_NOTIFICATIONS, mAdapter.getSelectedAlarmsArray());
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putLongArray(KEY_EXPANDED_IDS, mAdapter.getExpandedArray());
+        outState.putLongArray(KEY_REPEAT_CHECKED_IDS, mAdapter.getRepeatArray());
+        outState.putLongArray(KEY_SELECTED_NOTIFICATIONS, mAdapter.getSelectedAlarmsArray());
 //        outState.putBundle(KEY_RINGTONE_TITLE_CACHE, mRingtoneTitleCache);
-////        outState.putParcelable(KEY_DELETED_ALARM, mDeletedNotification);
+//        outState.putParcelable(KEY_DELETED_ALARM, mDeletedNotification);
 //        outState.putBoolean(KEY_UNDO_SHOWING, mUndoShowing);
 //        outState.putBundle(KEY_PREVIOUS_DAY_MAP, mAdapter.getPreviousDaysOfWeekMap());
-////        outState.putParcelable(KEY_SELECTED_ALARM, mSelectedAlarm);
-//    }
+//        outState.putParcelable(KEY_SELECTED_ALARM, mSelectedAlarm);
+    }
 
 //    @Override
 //    public void onDestroy() {
@@ -581,6 +582,7 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
         private final HashSet<Long> mSelectedNotifications = new HashSet<Long>();
         private final Map<String, ContactModel> mContactMap;
         private final Map<Long, SphereModel> mSphereMap;
+        private final Map<Long, CircleModel> mCircleMap;
         private Bundle mPreviousDaysOfWeekMap = new Bundle();
         private final int mCollapseExpandHeight;
 
@@ -595,13 +597,13 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
             ImageView delete;
             View expandArea;
             View summary;
-            TextView clickableLabel;
+            //TextView clickableLabel;
             LinearLayout expandActions;
             View hairLine;
             View arrow;
             View collapseExpandArea;
-            //View footerFiller;
 
+            //View footerFiller;
             // Other states
             Notification notification;
         }
@@ -625,8 +627,9 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
         public NotificationItemAdapter(Context context, long[] expandedIds, long[] repeatCheckedIds, long[] selectedAlarms, Bundle previousDaysOfWeekMap, ListView list) {
             super(context, null, 0);
             mContext = context;
-            mContactMap = ContactModel.getContacts(mContext.getContentResolver(), null);
-            mSphereMap = SphereModel.getSpheres(mContext.getContentResolver(), null);
+            mContactMap = ContactModel.getMap(mContext.getContentResolver(), null);
+            mSphereMap = SphereModel.getMap(mContext.getContentResolver(), null);
+            mCircleMap = CircleModel.getMap(mContext.getContentResolver(), null);
             mFactory = LayoutInflater.from(context);
             mList = list;
 
@@ -875,35 +878,8 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
             holder.expandArea = view.findViewById(R.id.expand_area);
             holder.hairLine = view.findViewById(R.id.hairline);
             holder.arrow = view.findViewById(R.id.arrow);
-            holder.clickableLabel = (TextView) view.findViewById(R.id.edit_label);
             holder.expandActions = (LinearLayout) view.findViewById(R.id.expand_actions);
             holder.collapseExpandArea = view.findViewById(R.id.collapse_expand);
-//            holder.footerFiller = view.findViewById(R.id.alarm_footer_filler);
-//            holder.footerFiller.setOnClickListener(new OnClickListener() {
-//
-//                @Override
-//                public void onClick(View v) {
-//                    // Do nothing.
-//                }
-//            });
-
-            // Build button for each day.
-//            for (int i = 0; i < 7; i++) {
-//                final ViewGroup viewgroup = (ViewGroup) mFactory.inflate(R.layout.day_button,
-//                        holder.expandActions, false);
-//                final ToggleButton button = (ToggleButton) viewgroup.getChildAt(0);
-//                final int dayToShowIndex = DAY_ORDER[i];
-//                button.setText(mShortWeekDayStrings[dayToShowIndex]);
-//                button.setTextOn(mShortWeekDayStrings[dayToShowIndex]);
-//                button.setTextOff(mShortWeekDayStrings[dayToShowIndex]);
-//                button.setContentDescription(mLongWeekDayStrings[dayToShowIndex]);
-//                holder.expandActions.addView(viewgroup);
-//                holder.dayButtons[i] = button;
-//                holder.dayButtonParents[i] = viewgroup;
-//            }
-//            holder.vibrate = (CheckBox) view.findViewById(R.id.vibrate_onoff);
-//            holder.ringtone = (TextView) view.findViewById(R.id.choose_ringtone);
-
             view.setTag(holder);
         }
 
@@ -928,36 +904,6 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
                 itemHolder.notificationItem.setBackgroundResource(mBackgroundColor);
             }
             itemHolder.taskName.setText(notification.model_name);
-//            itemHolder.taskName.setFormat(
-//                    (int) mContext.getResources().getDimension(R.dimen.alarm_label_size));
-//            itemHolder.taskName.setTime(notification.hour, notification.minutes);
-//            itemHolder.taskName.setClickable(true);
-//            itemHolder.taskName.setOnClickListener(new OnClickListener() {
-//                @Override
-//                public void onClick(View view) {
-//                    mSelectedAlarm = itemHolder.notification;
-//                    AlarmUtils.showTimeEditDialog(getFragmentManager(),
-//                            notification, NotificationsFragment.this
-//                            , DateFormat.is24HourFormat(getActivity()));
-//                    expandNotification(itemHolder, true);
-//                    itemHolder.notificationItem.post(mScrollRunnable);
-//                }
-//            });
-
-//            final CompoundButton.OnCheckedChangeListener onOffListener =
-//                    new CompoundButton.OnCheckedChangeListener() {
-//                        @Override
-//                        public void onCheckedChanged(CompoundButton compoundButton,
-//                                                     boolean checked) {
-//                            if (checked != notification.enabled) {
-//                                setItemAlpha(itemHolder, checked);
-//                                notification.enabled = checked;
-//                                asyncUpdateAlarm(notification, notification.enabled);
-//                            }
-//                        }
-//                    };
-//
-//            itemHolder.onoff.setOnCheckedChangeListener(onOffListener);
 
             boolean expanded = isNotificationExpanded(notification);
             itemHolder.expandArea.setVisibility(expanded ? View.VISIBLE : View.GONE);
@@ -1031,86 +977,16 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
 
         private void bindExpandArea(final ItemHolder itemHolder, final Notification notification) {
             // Views in here are not bound until the item is expanded.
-
-
             try {
                 List<NotificationGroupModel> groupsActions = ParseHelper.parseNotificationGroup(notification.groups, mContext, mContactMap, mSphereMap, notification.circle_id);
-                //ViewHelper.createNotificationGroupView(groupsActions, mContext);
-                String result = "";
-                for(NotificationGroupModel groupModel : groupsActions){
-                    result += groupModel.toString() + "<br>";
+                View addView = ViewHelper.createNotificationGroupView(notification, groupsActions, mContactMap, mSphereMap, mCircleMap, mContext);
+                if (addView != null) {
+                    itemHolder.expandActions.removeAllViews();
+                    itemHolder.expandActions.addView(addView, 0);
                 }
-                itemHolder.clickableLabel.setText(Html.fromHtml(result));
             } catch (JSONException e) {
                 Log.e(TAG, "ParseNotificationGroup in Adapter", e);
             }
-
-            //            if (notification.model_name != null && notification.model_name.length() > 0) {
-//                if (notification.groups_count == 0 && notification.messages_count != 0) {
-//                    itemHolder.clickableLabel.setText("Количество новых сообщений: " + notification.messages_count);
-//                } else {
-//                    itemHolder.clickableLabel.setText(notification.model_name);
-//                }
-//            } else {
-//                itemHolder.clickableLabel.setText(R.string.label);
-//                //itemHolder.clickableLabel.setTextColor(mColorDim);
-//            }
-
-
-//            itemHolder.clickableLabel.setOnClickListener(new OnClickListener() {
-//                @Override
-//                public void onClick(View view) {
-//                    //showLabelDialog(notification);
-//                    Toast.makeText(getActivity(), "itemHolder.clickableLabel.click", Toast.LENGTH_SHORT).show();
-//                }
-//            });
-
-
-//
-//            if (!mHasVibrator) {
-//                itemHolder.vibrate.setVisibility(View.INVISIBLE);
-//            } else {
-//                itemHolder.vibrate.setVisibility(View.VISIBLE);
-//                if (!notification.vibrate) {
-//                    itemHolder.vibrate.setChecked(false);
-//                    itemHolder.vibrate.setTextColor(mColorDim);
-//                } else {
-//                    itemHolder.vibrate.setChecked(true);
-//                    itemHolder.vibrate.setTextColor(mColorLit);
-//                }
-//            }
-//
-//            itemHolder.vibrate.setOnClickListener(new OnClickListener() {
-//                @Override
-//                public void onClick(View v) {
-//                    final boolean checked = ((CheckBox) v).isChecked();
-//                    if (checked) {
-//                        itemHolder.vibrate.setTextColor(mColorLit);
-//                    } else {
-//                        itemHolder.vibrate.setTextColor(mColorDim);
-//                    }
-//                    notification.vibrate = checked;
-//                    asyncUpdateAlarm(notification, false);
-//                }
-//            });
-//
-//            final String ringtone;
-//            if (Alarm.NO_RINGTONE_URI.equals(notification.alert)) {
-//                ringtone = mContext.getResources().getString(R.string.silent_alarm_summary);
-//            } else {
-//                ringtone = getRingToneTitle(notification.alert);
-//            }
-//            itemHolder.ringtone.setText(ringtone);
-//            itemHolder.ringtone.setContentDescription(
-//                    mContext.getResources().getString(R.string.ringtone_description) + " "
-//                            + ringtone
-//            );
-//            itemHolder.ringtone.setOnClickListener(new OnClickListener() {
-//                @Override
-//                public void onClick(View view) {
-//                    launchRingTonePicker(notification);
-//                }
-//            });
         }
 
         // Sets the alpha of the item except the on/off switch. This gives a visual effect
@@ -1305,8 +1181,7 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
                         @Override
                         public void onAnimationEnd(Animator animation) {
                             // Set it back to wrap content since we'd explicitly set the height.
-                            itemHolder.notificationItem.getLayoutParams().height =
-                                    LayoutParams.WRAP_CONTENT;
+                            itemHolder.notificationItem.getLayoutParams().height = LayoutParams.WRAP_CONTENT;
                             itemHolder.arrow.setRotation(180);
                             itemHolder.hairLine.setTranslationY(-hairlineDistance);
                             itemHolder.summary.setVisibility(View.GONE);
@@ -1557,7 +1432,7 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
                 return null;
             }
         };
-        mUndoShowing = true;
+        //mUndoShowing = true;
         deleteTask.execute();
     }
 

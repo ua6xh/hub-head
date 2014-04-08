@@ -45,15 +45,24 @@ public class CirclesContentProvider extends ContentProvider {
     }
 
     private final String TAG = ((Object) this).getClass().getCanonicalName();
+    public static final String CIRCLE_TABLE = "circles";
+
     public static final String CIRCLE_ID = "_id";
     public static final String CIRCLE_NAME = "name";
     public static final String CIRCLE_ADD_DATE = "add_date";
     public static final String CIRCLE_COUNT_NOTIFICATIONS = "count_notifications";
-    public static final String CIRCLE_TABLE = "circles";
-    private final String[] mProjection = new String[]{
-            CIRCLE_ID, CIRCLE_NAME,
+
+    public static final int ID_INDEX = 0;
+    public static final int NAME_INDEX = 1;
+    public static final int ADD_DATE_INDEX = 2;
+    public static final int COUNT_NOTIFICATIONS_INDEX = 3;
+
+    public static final String[] QUERY_COLUMNS = {
+            CIRCLE_ID,
+            CIRCLE_NAME,
             "(SELECT COUNT(*) FROM notifications n WHERE circles._id = n.circle_id  AND n._id NOT IN (SELECT _id FROM notifications WHERE messages_count = 0 AND groups_count = 0)) as " + CIRCLE_COUNT_NOTIFICATIONS,
-            CIRCLE_ADD_DATE};
+            CIRCLE_ADD_DATE
+    };
     //private final String[] mProjection = new String[]{CIRCLE_ID, CIRCLE_NAME, "0 as " + CIRCLE_COUNT_NOTIFICATIONS, CIRCLE_ADD_DATE};
 
     DBHelper dbHelper;
@@ -96,7 +105,7 @@ public class CirclesContentProvider extends ContentProvider {
             Log.e(TAG, e.getMessage());
         }
         Log.d(TAG, sortOrder);
-        Cursor cursor = db.query(CIRCLE_TABLE, mProjection, selection, selectionArgs, null, null, sortOrder);
+        Cursor cursor = db.query(CIRCLE_TABLE, QUERY_COLUMNS, selection, selectionArgs, null, null, sortOrder);
         //  Cursor cursor = db.rawQuery("SELECT , name, _id FROM circles c;", null);
         // просим ContentResolver уведомлять этот курсор
         // об изменениях данных в CIRCLE_CONTENT_URI

@@ -60,7 +60,7 @@ public class ContactModel {
         return circle_id + "_" + account_id;
     }
 
-    public static Map<String, ContactModel> getContacts(ContentResolver contentResolver, String selection, String... selectionArgs) {
+    public static Map<String, ContactModel> getMap(ContentResolver contentResolver, String selection, String... selectionArgs) {
         Cursor cursor = contentResolver.query(ContactsContentProvider.CONTACT_CONTENT_URI, ContactsContentProvider.QUERY_COLUMNS, selection, selectionArgs, null);
         Map<String,ContactModel> result = new HashMap<String, ContactModel>();
         if (cursor == null) {
@@ -83,6 +83,6 @@ public class ContactModel {
 
     @Override
     public String toString() {
-        return getIdForMap() + ":" + this.name;
+        return this.name;
     }
 }

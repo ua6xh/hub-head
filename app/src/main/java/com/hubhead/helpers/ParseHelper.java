@@ -62,18 +62,18 @@ public class ParseHelper {
         return allDataStructureJson;
     }
 
-    public static AlertDataStructureJson parseAlertData(String JSON) {
-        ObjectMapper mapper = new ObjectMapper();
-        AlertDataStructureJson alertDataStructureJson = null;
-        try {
-            alertDataStructureJson = mapper.readValue(JSON, AlertDataStructureJson.class);
-            System.out.println("JACKSON JSON PARSE GOOD!");
-        } catch (IOException e) {
-            System.out.println("JACKSON json parse bad!:" + JSON);
-            e.printStackTrace();
-        }
-        return alertDataStructureJson;
-    }
+//    public static AlertDataStructureJson parseAlertData(String JSON) {
+//        ObjectMapper mapper = new ObjectMapper();
+//        AlertDataStructureJson alertDataStructureJson = null;
+//        try {
+//            alertDataStructureJson = mapper.readValue(JSON, AlertDataStructureJson.class);
+//            System.out.println("JACKSON JSON PARSE GOOD!");
+//        } catch (IOException e) {
+//            System.out.println("JACKSON json parse bad!:" + JSON);
+//            e.printStackTrace();
+//        }
+//        return alertDataStructureJson;
+//    }
 
 
     public void parseNotifications(String response, boolean socket) {
@@ -82,10 +82,8 @@ public class ParseHelper {
             JSONObject notificationsObj = json.getJSONObject("data");
 
             Iterator objectsIterator = notificationsObj.keys();
-            Map<String, ContactModel> contactMap = ContactModel.getContacts(mContext.getContentResolver(), null);
-            Map<Long, SphereModel> sphereMap = SphereModel.getSpheres(mContext.getContentResolver(), null);
-            Log.d(TAG, "sphereMap" + sphereMap);
-            Log.d(TAG, "contactMap" + contactMap);
+            Map<String, ContactModel> contactMap = ContactModel.getMap(mContext.getContentResolver(), null);
+            Map<Long, SphereModel> sphereMap = SphereModel.getMap(mContext.getContentResolver(), null);
             if (objectsIterator.hasNext()) {
                 ArrayList<ContentValues> contentValuesArrayList = new ArrayList<ContentValues>();
                 while (objectsIterator.hasNext()) {
@@ -94,7 +92,7 @@ public class ParseHelper {
                     NotificationModel notification = new NotificationModel(roomName, room, contactMap, sphereMap, mContext);
                     contentValuesArrayList.add(notification.getContentValues());
                 }
-                ContentValues[] contentValueses = contentValuesArrayList.toArray(new ContentValues[0]);
+                ContentValues[] contentValueses = contentValuesArrayList.toArray(new ContentValues[contentValuesArrayList.size()]);
                 if (socket) {
                     SaverHelper.saveNotificationsSocket(mContext, contentValueses);
                 } else {

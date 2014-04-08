@@ -1,7 +1,6 @@
 package com.hubhead.contentprovider;
 
 import android.content.ContentProvider;
-import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.UriMatcher;
@@ -12,12 +11,6 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.hubhead.helpers.DBHelper;
-import com.hubhead.models.ContactModel;
-
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
 public class ContactsContentProvider extends ContentProvider {
     public static final String AUTHORITY = "com.hubhead.contentproviders.ContactsContentProvider";
@@ -107,14 +100,19 @@ public class ContactsContentProvider extends ContentProvider {
         try {
             db = dbHelper.getWritableDatabase();
         } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, e.getMessage(), e);
         }
-        Log.d(TAG, sortOrder);
-        Cursor cursor = db.query(CONTACT_TABLE, QUERY_COLUMNS, selection, selectionArgs, null, null, sortOrder);
-        //  Cursor cursor = db.rawQuery("SELECT , name, _id FROM contacts c;", null);
-        // просим ContentResolver уведомлять этот курсор
-        // об изменениях данных в CONTACT_CONTENT_URI
-        cursor.setNotificationUri(getContext().getContentResolver(), CONTACT_CONTENT_URI);
+        Cursor cursor = null;
+        try {
+
+            cursor = db.query(CONTACT_TABLE, QUERY_COLUMNS, selection, selectionArgs, null, null, sortOrder);
+            //  Cursor cursor = db.rawQuery("SELECT , name, _id FROM contacts c;", null);
+            // просим ContentResolver уведомлять этот курсор
+            // об изменениях данных в CONTACT_CONTENT_URI
+            cursor.setNotificationUri(getContext().getContentResolver(), CONTACT_CONTENT_URI);
+        } catch (NullPointerException e){
+            Log.e(TAG, "NullPointerException in ContactsContentProvider", e);
+        }
         return cursor;
     }
 
@@ -196,7 +194,7 @@ public class ContactsContentProvider extends ContentProvider {
                 }
                 db.setTransactionSuccessful();
             } catch (NullPointerException e) {
-                Log.e(TAG, e.getMessage());
+                Log.e(TAG, e.getMessage(), e);
             } finally {
                 db.endTransaction();
                 db.close();

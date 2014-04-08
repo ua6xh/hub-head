@@ -95,7 +95,6 @@ public class CircleFragment extends Fragment {
         @Override
         public Fragment getItem(int i) {
             Bundle args = getBundleArgs();
-            Log.d(TAG, "getItem:" + i);
             switch (i) {
                 case 0: {
                     NotificationsFragment nfr = new NotificationsFragment();

@@ -102,9 +102,8 @@ public class SpheresContentProvider extends ContentProvider {
         try {
             db = dbHelper.getWritableDatabase();
         } catch (Exception e) {
-            Log.e(TAG, e.getMessage());
+            Log.e(TAG, e.getMessage(), e);
         }
-        Log.d(TAG, sortOrder);
         Cursor cursor = db.query(SPHERE_TABLE, QUERY_COLUMNS, selection, selectionArgs, null, null, sortOrder);
         //  Cursor cursor = db.rawQuery("SELECT , name, _id FROM spheres c;", null);
         // просим ContentResolver уведомлять этот курсор
@@ -191,7 +190,7 @@ public class SpheresContentProvider extends ContentProvider {
                 }
                 db.setTransactionSuccessful();
             } catch (NullPointerException e) {
-                Log.e(TAG, e.getMessage());
+                Log.e(TAG, e.getMessage(), e);
             } finally {
                 db.endTransaction();
                 db.close();
