@@ -61,7 +61,7 @@ public class WampService extends Service {
 
     private final WampConnection mConnection = new WampConnection();
     private static final String MY_PREF = "MY_PREF";
-    private static final String wsuri = "ws://tm.dev-lds.ru:12126";
+    private static final String wsuri = "ws://ua6xh.task.dev-lds.ru/:12126";
 
     private void start() {
 

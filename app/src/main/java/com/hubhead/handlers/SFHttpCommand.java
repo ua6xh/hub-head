@@ -28,7 +28,7 @@ public class SFHttpCommand extends SFBaseCommand {
 
     private static final String MY_PREF = "MY_PREF";
     protected String TAG = ((Object) this).getClass().getCanonicalName();
-    protected static String DOMAINE = "http://tm.dev-lds.ru";
+    protected static String DOMAINE = "http://ua6xh.task.dev-lds.ru/";
     //protected static String DOMAINE = "http://ua6xh.task.dev-lds.ru";
 
     @Override

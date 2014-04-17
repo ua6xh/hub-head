@@ -10,19 +10,19 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class SphereModel {
-//    private String TAG = ((Object) this).getClass().getCanonicalName();
+    private String TAG = ((Object) this).getClass().getCanonicalName();
     public long id = 0;
     public long circle_id = 0;
     public String name = "";
-//    public int user_id;
-//    public int sphere_group_id;
-//    public int archived;
-//    public int deleted;
-//    public String followers;
-//    public String roles;
-//    public long create_date;
-//    public long archived_time;
-//    public long update_time;
+    public int user_id;
+    public int sphere_group_id;
+    public int archived;
+    public int deleted;
+    public String followers;
+    public String roles;
+    public long create_date;
+    public long archived_time;
+    public long update_time;
 
     public SphereModel() {
     }

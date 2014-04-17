@@ -1,26 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/llNotification"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
-    android:id="@+id/llNotification"
-    android:padding="10dp">
+    android:padding="12dp">
 
-    <LinearLayout
+    <TextView
+        android:id="@+id/tvSphereName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:text="Sphere name"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:textStyle="bold" />
 
-        <TextView
-            android:minLines="1"
-            android:maxLines="1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:textStyle="bold"
-            android:text="Sphere name"
-            android:id="@+id/tvSphereName" />
 
-    </LinearLayout>
 </LinearLayout>

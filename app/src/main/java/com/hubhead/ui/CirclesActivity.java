@@ -223,9 +223,8 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         FragmentManager fragmentManager = getSupportFragmentManager();
         fragmentManager.beginTransaction().replace(R.id.content_frame, circleFragment).commit();
 
-//        // update selected item and title, then close the drawer
+        // update selected item and title, then close the drawer
         mDrawerList.setItemChecked(position, true);
-        setTitle("circleName");
         mDrawerLayout.closeDrawer(mDrawerList);
     }
 
@@ -548,7 +547,7 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
                 if (!msg.isEmpty()) {
                     sendRegistrationIdToBackend(regid);
                 }
-                Toast.makeText(mContext, "registerInBackground: " + msg + "\n", Toast.LENGTH_LONG).show();
+                //Toast.makeText(mContext, "registerInBackground: " + msg + "\n", Toast.LENGTH_LONG).show();
             }
         }.execute(null, null, null);
     }

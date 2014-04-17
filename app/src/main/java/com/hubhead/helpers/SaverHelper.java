@@ -2,7 +2,6 @@ package com.hubhead.helpers;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 import com.hubhead.contentprovider.CirclesContentProvider;
@@ -28,21 +27,25 @@ public class SaverHelper {
 
     private Context mContext;
 
-    public void saveCircles(List<CircleModel> items) {
-        ContentValues[] circlesValues;
-        circlesValues = new ContentValues[items.size()];
-        int i = 0;
-        for (CircleModel item : items) {
-            ContentValues cv = new ContentValues();
-            cv.put("_id", item.getId());
-            cv.put("name", item.name);
-            cv.put("add_date", item.add_date);
-            cv.put("user_id", item.user_id);
-            cv.put("contact_id", item.contact_id);
-            cv.put("status", item.status);
-            circlesValues[i++] = cv;
+    public void saveCircles(List<CircleModel> items){
+        try {
+            ContentValues[] circlesValues;
+            circlesValues = new ContentValues[items.size()];
+            int i = 0;
+            for (CircleModel item : items) {
+                ContentValues cv = new ContentValues();
+                cv.put("_id", item.getId());
+                cv.put("name", item.name);
+                cv.put("add_date", item.add_date);
+                cv.put("user_id", item.user_id);
+                cv.put("contact_id", item.contact_id);
+                cv.put("status", item.status);
+                circlesValues[i++] = cv;
+            }
+            mContext.getContentResolver().bulkInsert(CirclesContentProvider.CIRCLE_CONTENT_URI, circlesValues);
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage(), e);
         }
-        mContext.getContentResolver().bulkInsert(CirclesContentProvider.CIRCLE_CONTENT_URI, circlesValues);
     }
 
     public void saveReminders(List<ReminderModel> items) {

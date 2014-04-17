@@ -1,38 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:id="@+id/llGroup">
 
-    <RelativeLayout
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/layout_group"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:paddingLeft="12dp"
+    android:paddingRight="1dp"
+    android:paddingTop="1dp">
+
+    <TextView
+        android:id="@+id/text_view_group_date"
         android:layout_width="wrap_content"
-        android:layout_height="fill_parent">
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:gravity="right|center_vertical"
+        android:text="@string/bung_date_time" />
 
-        <TextView
-            android:minLines="1"
-            android:maxLines="160"
-            android:singleLine="false"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text="tvGroupName"
-            android:layout_toLeftOf="@+id/tvGroupDate"
-            android:id="@+id/tvGroupName"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentLeft="true"
-            android:layout_marginLeft="5dp"
-            android:textStyle="bold" />
+    <TextView
+        android:id="@+id/text_view_group_name"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_toLeftOf="@id/text_view_group_date"
+        android:ellipsize="end"
+        android:singleLine="true"
+        android:text="@string/bung_long_name"
+        android:textStyle="bold" />
+</RelativeLayout>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text="tvGroupDate"
-            android:id="@+id/tvGroupDate"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentRight="true"
-            android:layout_marginRight="10dp" />
-    </RelativeLayout>
-</LinearLayout>

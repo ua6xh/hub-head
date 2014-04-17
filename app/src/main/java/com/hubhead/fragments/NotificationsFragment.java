@@ -12,7 +12,6 @@ import android.database.Cursor;
 import android.database.DataSetObserver;
 import android.graphics.Rect;
 import android.graphics.Typeface;
-
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -56,8 +55,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * NotificationClock application.
  */
-public class NotificationsFragment extends android.support.v4.app.Fragment implements
-        View.OnTouchListener, android.support.v4.app.LoaderManager.LoaderCallbacks<Cursor> {
+public class NotificationsFragment extends android.support.v4.app.Fragment implements View.OnTouchListener, android.support.v4.app.LoaderManager.LoaderCallbacks<Cursor> {
     private final String TAG = ((Object) this).getClass().getCanonicalName();
     private static final float EXPAND_DECELERATION = 1f;
     private static final float COLLAPSE_DECELERATION = 0.7f;

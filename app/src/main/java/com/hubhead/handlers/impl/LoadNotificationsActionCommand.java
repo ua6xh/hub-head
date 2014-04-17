@@ -22,6 +22,7 @@ import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.os.ResultReceiver;
+import android.util.Log;
 
 import com.hubhead.R;
 import com.hubhead.handlers.SFHttpCommand;
@@ -38,9 +39,8 @@ public class LoadNotificationsActionCommand extends SFHttpCommand {
     public void doExecute(Intent intent, Context context, ResultReceiver callback) {
         Bundle data = new Bundle();
 
-
         String response = sendHttpQuery(url, new HashMap<String, String>(), context);
-
+        Log.d(TAG, url + ": RESPONSE:" + response);
         if (response.isEmpty()) {
             data.putString("error", context.getResources().getString(R.string.error_loading_data_fail));
             notifyFailure(data);

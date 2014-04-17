@@ -2,7 +2,6 @@ package com.hubhead.helpers;
 
 import android.content.Context;
 import android.text.Html;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
@@ -14,7 +13,6 @@ import com.hubhead.contentprovider.Notification;
 import com.hubhead.models.CircleModel;
 import com.hubhead.models.ContactModel;
 import com.hubhead.models.NotificationGroupModel;
-import com.hubhead.models.NotificationModel;
 import com.hubhead.models.SphereModel;
 
 
@@ -70,7 +68,7 @@ public class ViewHelper {
                 for (NotificationGroupModel group : groups) {
                     View groupView = LayoutInflater.from(context).inflate(R.layout.notification_group, null, false);
 
-                    TextView tvGroupName = (TextView) groupView.findViewById(R.id.tvGroupName);
+                    TextView tvGroupName = (TextView) groupView.findViewById(R.id.text_view_group_name);
                     if (circle != null) {
                         ContactModel contact = contactMap.get(circle.getId() + "_" + group.user_id);
                         tvGroupName.setText(contact.toString());
@@ -78,7 +76,7 @@ public class ViewHelper {
                         tvGroupName.setText(context.getResources().getString(R.string.word_delete) + " " + group.user_id);
                     }
 
-                    TextView tvGroupDate = (TextView) groupView.findViewById(R.id.tvGroupDate);
+                    TextView tvGroupDate = (TextView) groupView.findViewById(R.id.text_view_group_date);
                     tvGroupDate.setText(group.getDt());
 
                     llNotification.addView(groupView);
@@ -86,8 +84,8 @@ public class ViewHelper {
                     for (int actCnt = 0; actCnt < group.actions.size(); actCnt++) {
                         View actionView = LayoutInflater.from(context).inflate(R.layout.notification_action, null, false);
 
-                        TextView tvActionName = (TextView) actionView.findViewById(R.id.tvActionName);
-                        ImageView imgIconAction = (ImageView) actionView.findViewById(R.id.imgIconAction);
+                        TextView tvActionName = (TextView) actionView.findViewById(R.id.text_view_action_name);
+                        ImageView imgIconAction = (ImageView) actionView.findViewById(R.id.icon_action);
 
                         tvActionName.setText(Html.fromHtml(group.actions.get(actCnt).toString()));
                         imgIconAction.setImageResource(group.actions.get(actCnt).getImgResource());
