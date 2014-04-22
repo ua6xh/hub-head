@@ -173,7 +173,6 @@ public class AuthActivity extends SFBaseActivity implements OnEditorActionListen
         private String mMessage = "";
 
         public ProgressDialogFragment() {
-
         }
 
         public ProgressDialogFragment(String message) {
