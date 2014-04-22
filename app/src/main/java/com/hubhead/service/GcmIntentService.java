@@ -73,7 +73,7 @@ public class GcmIntentService extends IntentService {
                     }
                     sendNotification(extras.getString("title"), circleId);
                 } catch (ClassCastException e) {
-                    Log.d(TAG, e.getMessage());
+                    Log.d(TAG, e.getMessage(), e);
                 }
             }
         }
