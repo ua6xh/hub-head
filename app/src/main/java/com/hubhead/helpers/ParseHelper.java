@@ -62,20 +62,6 @@ public class ParseHelper {
         return allDataStructureJson;
     }
 
-//    public static AlertDataStructureJson parseAlertData(String JSON) {
-//        ObjectMapper mapper = new ObjectMapper();
-//        AlertDataStructureJson alertDataStructureJson = null;
-//        try {
-//            alertDataStructureJson = mapper.readValue(JSON, AlertDataStructureJson.class);
-//            System.out.println("JACKSON JSON PARSE GOOD!");
-//        } catch (IOException e) {
-//            System.out.println("JACKSON json parse bad!:" + JSON);
-//            e.printStackTrace();
-//        }
-//        return alertDataStructureJson;
-//    }
-
-
     public void parseNotifications(String response, boolean socket) {
         try {
             JSONObject json = new JSONObject(response);
@@ -106,81 +92,6 @@ public class ParseHelper {
         }
     }
 
-
-//    public static List<NotificationModel> parseNotifications (String response, Context context, Map contactMap) {
-//        //        List<NotificationModel> notifications = new ArrayList<NotificationModel>();
-//        Map<Integer, Integer> notificationsMap = new HashMap<Integer, Integer>();
-//        try {
-//            JSONObject json = new JSONObject(response);
-//            Log.d(TAG, "1");
-//            JSONObject notificationsObj = json.getJSONObject("data");
-//            Log.d(TAG, "2");
-//            if (notificationsObj == null) {
-//                Log.d(TAG, "3");
-//                notificationsObj = json.getJSONObject("notifications");
-//            }
-//            Iterator objectsIterator = notificationsObj.keys();
-//            while (objectsIterator.hasNext()) {
-//
-//                String roomName = (String) objectsIterator.next();
-//                JSONObject room = notificationsObj.getJSONObject(roomName);
-//
-//                NotificationModel notification = new NotificationModel();
-//                notification = createNotification(roomName, room, notification, context, contactMap);
-//                notifications.add(notification);
-//            }
-//
-//            Collections.sort(notifications, new NotificationActionComparator());
-//            int i = 0;
-//            for (NotificationModel n : notifications) {
-//                notificationsMap.put(n.id, i);
-//                i++;
-//            }
-//            EntityActivity.notificationsMap = notificationsMap;
-//        } catch (JSONException e) {
-//            Log.e(TAG, "Error parsing data in parseNotifications: " + e.toString());
-//        }
-//        return notifications;
-//    }
-
-    //    protected static NotificationModel createNotification(String roomName, JSONObject room, NotificationModel notification, Context context, Map contactMap) throws JSONException {
-//        notification.room_name = roomName;
-//        notification.messages_count = room.getInt("messages_count");
-//        notification.create_date = room.getInt("create_date");
-//        notification.model_name = room.getString("model_name");
-//        notification.sphere_id = room.getInt("sphere_id");
-//        notification.circle_id = room.getInt("circle_id");
-//        notification.dt = room.getInt("dt");
-//        notification.groups = room.getJSONArray("groups");
-//        notification.groupsList = ParseHelper.parseNotificationGroup(notification.groups, context, contactMap, notification.circle_id);
-//        if (roomName.indexOf("task") == 0) {
-//            notification.type_notification = NotificationModel.TYPE_TASK;
-//        } else if (roomName.indexOf("sphere") == 0) {
-//            notification.type_notification = NotificationModel.TYPE_SPHERE;
-//        }
-//        notification.id = notification.convertToId(notification.type_notification, roomName);
-//        return notification;
-//    }
-//
-//    public static NotificationModel parseNotificationSocket (String response, Context context, Map contactMap) {
-//        NotificationModel notification = new NotificationModel();
-//        try {
-//            JSONObject json = new JSONObject(response);
-//            JSONObject notificationObj = json.getJSONObject("data");
-//            Iterator iterator = notificationObj.keys();
-//            String roomName;
-//            JSONObject room;
-//
-//            roomName = (String) iterator.next();
-//            room = notificationObj.getJSONObject(roomName);
-//            createNotification(roomName, room, notification, context, contactMap);
-//        } catch (JSONException e) {
-//            Log.e(TAG, "Error parsing data in parseNotificationSocket: " + e.toString());
-//        }
-//        return notification;
-//    }
-//
-//
     public static List<NotificationGroupModel> parseNotificationGroup(String jsonGroup, Context context, Map<String, ContactModel> contactMap, Map<Long, SphereModel> sphereMap, long circleId) throws JSONException {
         JSONArray items = new JSONArray(jsonGroup);
         List<NotificationGroupModel> groups = new ArrayList<NotificationGroupModel>();
@@ -214,7 +125,6 @@ public class ParseHelper {
         return groups;
     }
 
-    //
     public static NotificationActionModel getAction(String key, JSONObject action, long dt, Context context, Map<String, ContactModel> contactMap, Map<Long, SphereModel> sphereMap, long circleId) throws JSONException {
         if (key.equals("add-tags")) {
             return getAddTagActionModel(key, action, dt, context);

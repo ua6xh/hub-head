@@ -13,6 +13,7 @@ import com.hubhead.R;
 import com.hubhead.handlers.SFHttpCommand;
 
 import java.util.HashMap;
+import java.util.Map;
 
 
 public class AuthActionCommand extends SFHttpCommand {
@@ -27,7 +28,10 @@ public class AuthActionCommand extends SFHttpCommand {
     public void doExecute(Intent intent, Context context, ResultReceiver callback) {
         Bundle data = new Bundle();
         HashMap<String, String> postData = new HashMap<String, String>();
+        Map result;
         String response = "";
+        String cookie = "";
+
 
         if (TextUtils.isEmpty(mEmail) || TextUtils.isEmpty(mPassword)) {
             data.putString("error", context.getResources().getString(R.string.error_invalid_email_or_pass));
@@ -35,8 +39,12 @@ public class AuthActionCommand extends SFHttpCommand {
         }
 
         postData.put("login", mEmail);
-        postData.put("mPassword", mPassword);
-        response = sendHttpQuery(DOMAINE + "/auth/auth", postData, context);
+        postData.put("password", mPassword);
+        result = sendHttpQuery(DOMAINE + "/auth/auth", postData, context);
+        response = (String) result.get("response");
+        if (result.containsKey("cookie")) {
+            cookie = (String) result.get("cookie");
+        }
         Log.d(TAG, "RESPONSE:" + response);
         if (response.equals("")) {
             data.putString("error", context.getResources().getString(R.string.error_undefined_error_network));
@@ -44,6 +52,7 @@ public class AuthActionCommand extends SFHttpCommand {
         } else if (checkResponse(response)) {
             data.putString("data", "ok");
             data.putString("response", response);
+            setCookiesPreference(cookie, context);
             notifySuccess(data);
         } else {
             data.putString("error", context.getResources().getString(R.string.error_invalid_email_or_pass));

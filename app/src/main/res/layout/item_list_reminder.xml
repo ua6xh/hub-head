@@ -1,36 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 
+
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/llMenu"
-    android:layout_width="wrap_content"
+    android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:background="?android:attr/activatedBackgroundIndicator"
-    android:paddingBottom="11dp"
     android:paddingLeft="15dp"
+    android:paddingTop="11dp"
     android:paddingRight="15dp"
-    android:paddingTop="11dp">
+    android:paddingBottom="11dp">
 
     <TextView
         android:id="@+id/text1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
-        android:layout_marginRight="30dp"
-        android:ellipsize="end"
-        android:singleLine="true"
+        android:layout_marginRight="105dp"
         android:text="@string/bung_long_name"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textColor="@color/menu_item_text" />
-
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        />
     <TextView
         android:id="@+id/text2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:text="@string/bung_date_time"
         android:layout_centerVertical="true"
-        android:text="@string/bung_number"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textColor="@color/menu_item_text_count_notifications" />
-
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
 </RelativeLayout>

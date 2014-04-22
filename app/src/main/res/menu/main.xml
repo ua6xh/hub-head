@@ -2,8 +2,11 @@
 
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
+        android:id="@+id/action_read_all"
+        android:title="@string/action_read_all"
+        android:showAsAction="never" />
+    <item
         android:id="@+id/action_sign_out"
         android:title="@string/action_sign_out"
         android:showAsAction="never" />
-
 </menu>

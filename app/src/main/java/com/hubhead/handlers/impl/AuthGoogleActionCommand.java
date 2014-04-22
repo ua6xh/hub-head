@@ -14,6 +14,7 @@ import com.hubhead.R;
 import com.hubhead.handlers.SFHttpCommand;
 
 import java.util.HashMap;
+import java.util.Map;
 
 
 public class AuthGoogleActionCommand extends SFHttpCommand {
@@ -25,11 +26,17 @@ public class AuthGoogleActionCommand extends SFHttpCommand {
     public void doExecute(Intent intent, Context context, ResultReceiver callback) {
         Bundle data = new Bundle();
         HashMap<String, String> postData = new HashMap<String, String>();
+        Map result = new HashMap<String, String>();
         String response = "";
+        String cookie = "";
 
         postData.put("token", mToken);
         postData.put("account_name", mAccountName);
-        response = sendHttpQuery(DOMAINE + "/auth/gglogin", postData, context);
+        result = sendHttpQuery(DOMAINE + "/auth/gglogin", postData, context);
+        response = (String) result.get("response");
+        if(result.containsKey("cookie")){
+            cookie = (String) result.get("cookie");
+        }
         Log.d(TAG, "RESPONSE:" + response);
         if (response.equals("")) {
             data.putString("error", context.getResources().getString(R.string.error_undefined_error_network));
@@ -37,6 +44,7 @@ public class AuthGoogleActionCommand extends SFHttpCommand {
         } else if (checkResponse(response)) {
             data.putString("data", "ok");
             data.putString("response", response);
+                setCookiesPreference(cookie, context);
             notifySuccess(data);
         } else {
             data.putString("error", context.getResources().getString(R.string.error_invalid_email_or_pass));

@@ -16,8 +16,7 @@ import android.widget.TextView;
 
 import com.hubhead.R;
 import com.hubhead.SFBaseListFragment;
-import com.hubhead.SFServiceCallbackListener;
-import com.hubhead.adapters.OverviewCursorAdapter;
+import com.hubhead.adapters.RemindersCursorAdapter;
 import com.hubhead.contentprovider.OverviewContentProvider;
 
 import uk.co.senab.actionbarpulltorefresh.library.ActionBarPullToRefresh;
@@ -25,24 +24,24 @@ import uk.co.senab.actionbarpulltorefresh.library.PullToRefreshLayout;
 import uk.co.senab.actionbarpulltorefresh.library.listeners.OnRefreshListener;
 import uk.co.senab.actionbarpulltorefresh.library.viewdelegates.ViewDelegate;
 
-public class OverviewListFragment extends SFBaseListFragment implements LoaderManager.LoaderCallbacks<Cursor>, OnRefreshListener {
+public class RemindersListFragment extends SFBaseListFragment implements LoaderManager.LoaderCallbacks<Cursor>, OnRefreshListener {
 
     private static final int CM_READ_ID = 1;
     private static final int CM_OPEN_ID = 2;
     private final String TAG = ((Object) this).getClass().getCanonicalName();
     private static final int OVERVIEW_LOADER_DELTA = 11000;
-    private OverviewCursorAdapter mOverviewAdapter;
+    private RemindersCursorAdapter remindersCursorAdapter;
     private int mCircleIdSelected;
     private PullToRefreshLayout mPullToRefreshLayout;
 
-    public OverviewListFragment() {
+    public RemindersListFragment() {
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         mCircleIdSelected = getArguments().getInt(CircleFragment.ARG_CIRCLE_ID);
-        mOverviewAdapter = new OverviewCursorAdapter(getActivity(), null, 0);
-        //mOverviewAdapter = new OverviewCursorAdapter(getActivity(), android.R.layout.simple_list_item_1, null, new String[]{"model_name"}, new int[]{android.R.id.text1}, 0);
+        remindersCursorAdapter = new RemindersCursorAdapter(getActivity(), null, 0);
+        //remindersCursorAdapter = new RemindersCursorAdapter(getActivity(), android.R.layout.simple_list_item_1, null, new String[]{"model_name"}, new int[]{android.R.id.text1}, 0);
         getActivity().getSupportLoaderManager().initLoader(OVERVIEW_LOADER_DELTA + mCircleIdSelected, null, this);
         return super.onCreateView(inflater, container, savedInstanceState);
     }
@@ -71,7 +70,7 @@ public class OverviewListFragment extends SFBaseListFragment implements LoaderMa
     /*----------------------Create Context Menu --------------------------*/
     public void onActivityCreated(Bundle savedState) {
         registerForContextMenu(getListView());
-        setListAdapter(mOverviewAdapter);
+        setListAdapter(remindersCursorAdapter);
         setListShownNoAnimation(true);
         super.onActivityCreated(savedState);
     }
@@ -132,18 +131,19 @@ public class OverviewListFragment extends SFBaseListFragment implements LoaderMa
 
     @Override
     public void onLoaderReset(android.support.v4.content.Loader<Cursor> loader) {
-        mOverviewAdapter.swapCursor(null);
+        remindersCursorAdapter.swapCursor(null);
     }
 
     @Override
     public void onLoadFinished(android.support.v4.content.Loader<Cursor> loader, Cursor cursor) {
-        mOverviewAdapter.swapCursor(cursor);
+        remindersCursorAdapter.swapCursor(cursor);
     }
 
     /*------------------------------End LoaderCallbacks---------------------------*/
 
     @Override
     public void onRefreshStarted(View view) {
+        Log.d(TAG, "onRefreshStarted");
         //mRequestRefreshOverviewId = getServiceHelper().refreshOverviewFromServer();
     }
 

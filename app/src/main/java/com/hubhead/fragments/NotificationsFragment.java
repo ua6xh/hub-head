@@ -12,7 +12,6 @@ import android.database.Cursor;
 import android.database.DataSetObserver;
 import android.graphics.Rect;
 import android.graphics.Typeface;
-
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -39,12 +38,14 @@ import android.widget.Toast;
 import com.hubhead.R;
 import com.hubhead.contentprovider.Notification;
 import com.hubhead.contentprovider.NotificationsContentProvider;
+import com.hubhead.helpers.TypefacesHelper;
 import com.hubhead.helpers.ViewHelper;
 import com.hubhead.models.CircleModel;
 import com.hubhead.models.ContactModel;
 import com.hubhead.models.NotificationGroupModel;
 import com.hubhead.models.SphereModel;
 import com.hubhead.helpers.ParseHelper;
+import com.hubhead.ui.CirclesActivity;
 
 import org.json.JSONException;
 
@@ -56,8 +57,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * NotificationClock application.
  */
-public class NotificationsFragment extends android.support.v4.app.Fragment implements
-        View.OnTouchListener, android.support.v4.app.LoaderManager.LoaderCallbacks<Cursor> {
+public class NotificationsFragment extends android.support.v4.app.Fragment implements View.OnTouchListener, android.support.v4.app.LoaderManager.LoaderCallbacks<Cursor> {
     private final String TAG = ((Object) this).getClass().getCanonicalName();
     private static final float EXPAND_DECELERATION = 1f;
     private static final float COLLAPSE_DECELERATION = 0.7f;
@@ -267,7 +267,8 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
 //                    .getDimensionPixelOffset(R.dimen.alarm_timeline_layout_width);
 //        }
 
-        mAdapter = new NotificationItemAdapter(getActivity(),expandedIds, repeatCheckedIds, selectedAlarms, previousDayMap, mNotificationsList);
+
+        mAdapter = new NotificationItemAdapter(getActivity(), expandedIds, repeatCheckedIds, selectedAlarms, previousDayMap, mNotificationsList);
         mAdapter.registerDataSetObserver(new DataSetObserver() {
 
             private int prevAdapterCount = -1;
@@ -572,8 +573,9 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
         private final int mColorDim;
         private final int mBackgroundColorExpanded;
         private final int mBackgroundColor;
-        private final Typeface mRobotoNormal;
-        private final Typeface mRobotoBold;
+        private final Typeface mMuseosancyrl;
+//        private final Typeface mRobotoNormal;
+//        private final Typeface mRobotoBold;
         private final ListView mList;
 
         private final HashSet<Long> mExpanded = new HashSet<Long>();
@@ -584,6 +586,8 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
         private final Map<Long, CircleModel> mCircleMap;
         private Bundle mPreviousDaysOfWeekMap = new Bundle();
         private final int mCollapseExpandHeight;
+        private ItemHolder mItemHolderForAsyncTask;
+        private Notification mNotificationForAsyncTask;
 
 
         public class ItemHolder {
@@ -637,9 +641,9 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
             mColorDim = res.getColor(R.color.clock_gray);
             mBackgroundColorExpanded = res.getColor(R.color.alarm_whiteish);
             mBackgroundColor = R.drawable.alarm_background_normal;
-
-            mRobotoBold = Typeface.create("sans-serif-condensed", Typeface.BOLD);
-            mRobotoNormal = Typeface.create("sans-serif-condensed", Typeface.NORMAL);
+            mMuseosancyrl = TypefacesHelper.get(context, "fonts/exljbris_-_museosanscyrl-300-webfont.ttf");
+//            mRobotoBold = Typeface.create("sans-serif-condensed", Typeface.BOLD);
+//            mRobotoNormal = Typeface.create("sans-serif-condensed", Typeface.NORMAL);
 
             if (expandedIds != null) {
                 buildHashSetFromArray(expandedIds, mExpanded);
@@ -879,6 +883,11 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
             holder.arrow = view.findViewById(R.id.arrow);
             holder.expandActions = (LinearLayout) view.findViewById(R.id.expand_actions);
             holder.collapseExpandArea = view.findViewById(R.id.collapse_expand);
+
+            holder.taskName.setTypeface(mMuseosancyrl);
+            holder.lastActionAuthor.setTypeface(mMuseosancyrl);
+            holder.lastAction.setTypeface(mMuseosancyrl);
+
             view.setTag(holder);
         }
 
@@ -903,6 +912,7 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
                 itemHolder.notificationItem.setBackgroundResource(mBackgroundColor);
             }
             itemHolder.taskName.setText(notification.model_name);
+
 
             boolean expanded = isNotificationExpanded(notification);
             itemHolder.expandArea.setVisibility(expanded ? View.VISIBLE : View.GONE);
@@ -976,15 +986,32 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
 
         private void bindExpandArea(final ItemHolder itemHolder, final Notification notification) {
             // Views in here are not bound until the item is expanded.
-            try {
-                List<NotificationGroupModel> groupsActions = ParseHelper.parseNotificationGroup(notification.groups, mContext, mContactMap, mSphereMap, notification.circle_id);
-                View addView = ViewHelper.createNotificationGroupView(notification, groupsActions, mContactMap, mSphereMap, mCircleMap, mContext);
-                if (addView != null) {
-                    itemHolder.expandActions.removeAllViews();
-                    itemHolder.expandActions.addView(addView, 0);
+            mItemHolderForAsyncTask = itemHolder;
+            mNotificationForAsyncTask = notification;
+            MyTask task = new MyTask();
+            task.execute();
+        }
+
+        class MyTask extends AsyncTask<Void,View, View> {
+
+            @Override
+            protected View doInBackground(Void... params) {
+                try {
+                    List<NotificationGroupModel> groupsActions = ParseHelper.parseNotificationGroup(mNotificationForAsyncTask.groups, mContext, mContactMap, mSphereMap, mNotificationForAsyncTask.circle_id);
+                    return ViewHelper.createNotificationGroupView(mNotificationForAsyncTask, groupsActions, mContactMap, mSphereMap, mCircleMap, mContext, mMuseosancyrl);
+                } catch (JSONException e) {
+                    Log.e(TAG, "ParseNotificationGroup in Adapter", e);
                 }
-            } catch (JSONException e) {
-                Log.e(TAG, "ParseNotificationGroup in Adapter", e);
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(View addView) {
+                super.onPostExecute(addView);
+                if (addView != null) {
+                    mItemHolderForAsyncTask.expandActions.removeAllViews();
+                    mItemHolderForAsyncTask.expandActions.addView(addView, 0);
+                }
             }
         }
 
@@ -1427,6 +1454,8 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
                     ContentResolver cr = context.getContentResolver();
 
                     Notification.deleteNotification(cr, notification.id);
+                    CirclesActivity circlesActivity = (CirclesActivity) getActivity();
+                    circlesActivity.sendNotificationSetReaded(notification.id);
                 }
                 return null;
             }

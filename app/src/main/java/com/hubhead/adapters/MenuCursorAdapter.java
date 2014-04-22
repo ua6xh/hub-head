@@ -22,7 +22,7 @@ public class MenuCursorAdapter extends CursorAdapter {
     public MenuCursorAdapter(Context context, Cursor c, int flags) {
         super(context, c, flags);
         mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        tf = TypefacesHelper.get(context, "fonts/AndroidClockMono-Light.ttf");
+        tf = TypefacesHelper.get(context, "fonts/exljbris_-_museosanscyrl-300-webfont.ttf");
     }
 
     @Override

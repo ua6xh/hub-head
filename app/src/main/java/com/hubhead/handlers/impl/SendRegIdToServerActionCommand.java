@@ -27,6 +27,7 @@ import com.hubhead.R;
 import com.hubhead.handlers.SFHttpCommand;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class SendRegIdToServerActionCommand extends SFHttpCommand {
 
@@ -38,16 +39,23 @@ public class SendRegIdToServerActionCommand extends SFHttpCommand {
     public void doExecute(Intent intent, Context context, ResultReceiver callback) {
         Bundle data = new Bundle();
         HashMap<String, String> postData = new HashMap<String, String>();
+        Map result;
         String response = "";
+        String cookie = "";
 
         if (!mRegId.isEmpty()) {
             postData.put("token", mRegId);
         }
-        response = sendHttpQuery(DOMAINE + "/api/add-android-token", postData, context);
+        result = sendHttpQuery(DOMAINE + "/api/add-android-token", postData, context);
+        response = (String) result.get("response");
+        if (result.containsKey("cookie")) {
+            cookie = (String) result.get("cookie");
+        }
         Log.d(TAG, "RESPONSE:" + response);
         if (checkResponse(response)) {
             data.putString("data", "token-ok");
             data.putString("response", response);
+            setCookiesPreference(cookie, context);
             notifySuccess(data);
         } else {
             data.putString("error", context.getResources().getString(R.string.error_loading_data_fail));

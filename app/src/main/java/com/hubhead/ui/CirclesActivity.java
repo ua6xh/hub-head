@@ -208,6 +208,7 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
     public boolean onPrepareOptionsMenu(Menu menu) {
         boolean drawerOpen = mDrawerLayout.isDrawerOpen(mDrawerList);
         menu.findItem(R.id.action_sign_out).setVisible(!drawerOpen);
+        menu.findItem(R.id.action_read_all).setVisible(!drawerOpen);
         return super.onPrepareOptionsMenu(menu);
     }
 
@@ -223,9 +224,8 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         FragmentManager fragmentManager = getSupportFragmentManager();
         fragmentManager.beginTransaction().replace(R.id.content_frame, circleFragment).commit();
 
-//        // update selected item and title, then close the drawer
+        // update selected item and title, then close the drawer
         mDrawerList.setItemChecked(position, true);
-        setTitle("circleName");
         mDrawerLayout.closeDrawer(mDrawerList);
     }
 
@@ -270,6 +270,9 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
                 startActivity(intent);
                 finish();
                 return true;
+            }
+            case R.id.action_read_all:{
+                Toast.makeText(this, "Read all", Toast.LENGTH_LONG).show();
             }
             default: {
                 return super.onOptionsItemSelected(item);
@@ -548,7 +551,7 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
                 if (!msg.isEmpty()) {
                     sendRegistrationIdToBackend(regid);
                 }
-                Toast.makeText(mContext, "registerInBackground: " + msg + "\n", Toast.LENGTH_LONG).show();
+                //Toast.makeText(mContext, "registerInBackground: " + msg + "\n", Toast.LENGTH_LONG).show();
             }
         }.execute(null, null, null);
     }

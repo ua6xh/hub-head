@@ -180,17 +180,18 @@ public class CirclesContentProvider extends ContentProvider {
     }
 
     @Override
-    public int bulkInsert(Uri uri, ContentValues[] valueses) {
-        if (valueses.length > 0) {
+    public int bulkInsert(Uri uri, ContentValues[] values) {
+        if (values.length > 0) {
             db = dbHelper.getWritableDatabase();
             db.beginTransaction();
             try {
                 db.delete(CIRCLE_TABLE, null, null);
-                for (ContentValues values : valueses) {
-                    db.insert(CIRCLE_TABLE, null, values);
+                for (ContentValues value : values) {
+                    db.insert(CIRCLE_TABLE, null, value);
                 }
                 db.setTransactionSuccessful();
             } catch (NullPointerException e) {
+                Log.e(TAG, e.getMessage(), e);
             } finally {
                 db.endTransaction();
                 db.close();
