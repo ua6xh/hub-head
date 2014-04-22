@@ -267,8 +267,7 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
 //                    .getDimensionPixelOffset(R.dimen.alarm_timeline_layout_width);
 //        }
 
-        mAdapter = new NotificationItemAdapter(getActivity(),
-                expandedIds, repeatCheckedIds, selectedAlarms, previousDayMap, mNotificationsList);
+        mAdapter = new NotificationItemAdapter(getActivity(),expandedIds, repeatCheckedIds, selectedAlarms, previousDayMap, mNotificationsList);
         mAdapter.registerDataSetObserver(new DataSetObserver() {
 
             private int prevAdapterCount = -1;
