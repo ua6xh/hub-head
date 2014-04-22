@@ -20,6 +20,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -28,7 +29,7 @@ public class SFHttpCommand extends SFBaseCommand {
 
     private static final String MY_PREF = "MY_PREF";
     protected String TAG = ((Object) this).getClass().getCanonicalName();
-    protected static String DOMAINE = "http://ua6xh.task.dev-lds.ru/";
+    protected static String DOMAINE = "http://tm.dev-lds.ru";
     //protected static String DOMAINE = "http://ua6xh.task.dev-lds.ru";
 
     @Override
@@ -44,14 +45,15 @@ public class SFHttpCommand extends SFBaseCommand {
         return 0;
     }
 
-    protected String sendHttpQuery(String url, Map<String, String> postData, Context context) {
-        String response = "";
+    protected Map<String, String> sendHttpQuery(String url, Map<String, String> postData, Context context) {
+        Map<String, String> response = new HashMap<String, String>();
         try {
             DefaultHttpClient httpClient = new DefaultHttpClient();
             ResponseHandler<String> responseHandler = new BasicResponseHandler();
             HttpPost httpPost = new HttpPost(url);
             httpPost.setHeader("Accept", "application/json");
             httpPost.addHeader("Cookie", getCookiesPreference(context));
+            Log.d(TAG, "Post data: " + postData);
             if (!postData.isEmpty()) {
                 List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(postData.size());
                 for (Map.Entry<String, String> entry : postData.entrySet()) {
@@ -60,7 +62,7 @@ public class SFHttpCommand extends SFBaseCommand {
                 httpPost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
             }
 
-            response = httpClient.execute(httpPost, responseHandler);
+            response.put("response", httpClient.execute(httpPost, responseHandler));
 
             List<Cookie> cookiesReq = httpClient.getCookieStore().getCookies();
             if (!cookiesReq.isEmpty()) {
@@ -71,14 +73,14 @@ public class SFHttpCommand extends SFBaseCommand {
                     Log.d(TAG, cookieStr);
                 }
                 if (!cookieStr.equals("")) {
-                    setCookiesPreference(cookieStr, context);
+                    response.put("cookie", cookieStr);
+
                 }
             }
         } catch (IOException e) {
             Log.e(TAG, "IOException: " + e.getLocalizedMessage());
-            response = "";
         } finally {
-            Log.d(TAG + ": url:" + url + ":", response);
+            Log.d(TAG + ": url:" + url + ":",  response.get("response"));
         }
         return response;
     }
@@ -99,8 +101,11 @@ public class SFHttpCommand extends SFBaseCommand {
     }
 
     protected void setCookiesPreference(String value, Context context) {
-        SharedPreferences.Editor editor = context.getSharedPreferences(MY_PREF, IsolatedContext.MODE_PRIVATE).edit();
-        editor.putString("cookies", value);
-        editor.commit();
+        if(!value.isEmpty()) {
+            SharedPreferences.Editor editor = context.getSharedPreferences(MY_PREF, IsolatedContext.MODE_PRIVATE).edit();
+            editor.putString("cookies", value);
+            editor.commit();
+            Log.d(TAG, "cookie not empty: " + value);
+        }
     }
 }

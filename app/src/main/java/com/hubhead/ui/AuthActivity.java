@@ -243,7 +243,7 @@ public class AuthActivity extends SFBaseActivity implements OnEditorActionListen
             try {
                 String scopes = "oauth2:https://www.googleapis.com/auth/userinfo.email" + " " + "https://www.googleapis.com/auth/userinfo.profile";
                 String token = GoogleAuthUtil.getToken(getApplicationContext(), mAccountName, scopes);
-                String url = "http://ua6xh.task.dev-lds.ru//auth/gglogin/?account_name=" + mAccountName + "&token=" + token;
+                String url = "http://tm.dev-lds.ru/auth/gglogin/?account_name=" + mAccountName + "&token=" + token;
                 Log.d("hub-head", url);
 
                 DefaultHttpClient httpClient = new DefaultHttpClient();

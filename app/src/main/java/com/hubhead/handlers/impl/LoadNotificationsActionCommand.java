@@ -29,6 +29,7 @@ import com.hubhead.handlers.SFHttpCommand;
 import com.hubhead.helpers.ParseHelper;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class LoadNotificationsActionCommand extends SFHttpCommand {
 
@@ -38,8 +39,16 @@ public class LoadNotificationsActionCommand extends SFHttpCommand {
     @Override
     public void doExecute(Intent intent, Context context, ResultReceiver callback) {
         Bundle data = new Bundle();
+        Map result;
+        String response = "";
+        String cookie = "";
 
-        String response = sendHttpQuery(url, new HashMap<String, String>(), context);
+        result = sendHttpQuery(url, new HashMap<String, String>(), context);
+        response = (String) result.get("response");
+        if(result.containsKey("cookie")){
+            cookie = (String) result.get("cookie");
+        }
+
         Log.d(TAG, url + ": RESPONSE:" + response);
         if (response.isEmpty()) {
             data.putString("error", context.getResources().getString(R.string.error_loading_data_fail));
@@ -47,6 +56,7 @@ public class LoadNotificationsActionCommand extends SFHttpCommand {
         } else {
             data.putString("data", "ok");
             data.putString("response", response);
+                setCookiesPreference(cookie, context);
             ParseHelper parseHelper = new ParseHelper(context);
             parseHelper.parseNotifications(response, false);
             notifySuccess(data);

@@ -31,6 +31,7 @@ import com.hubhead.helpers.ParseHelper;
 import com.hubhead.helpers.SaverHelper;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class LoadCirclesDataActionCommand extends SFHttpCommand {
 
@@ -43,18 +44,25 @@ public class LoadCirclesDataActionCommand extends SFHttpCommand {
         try {
             Bundle data = new Bundle();
             HashMap<String, String> postData = new HashMap<String, String>();
+            Map result;
             String response = "";
+            String cookie = "";
 
             if (!mUpdateTime.isEmpty()) {
                 postData.put("update_time", mUpdateTime);
             }
-            response = sendHttpQuery(DOMAINE + "/api/get-all-data", postData, context);
+            result = sendHttpQuery(DOMAINE + "/api/get-all-data", postData, context);
+            response = (String) result.get("response");
+            if(result.containsKey("cookie")){
+                cookie = (String) result.get("cookie");
+            }
             if (response.equals("")) {
                 data.putString("error", context.getResources().getString(R.string.error_loading_data_fail));
                 notifyFailure(data);
             } else if (checkResponse(response)) {
                 data.putString("data", "ok");
                 data.putString("response", response);
+                    setCookiesPreference(cookie, context);
                 AllDataStructureJson allDataStructureJson = ParseHelper.parseAllData(response);
                 SaverHelper saverHelper = new SaverHelper(context);
                 saverHelper.saveCircles(allDataStructureJson.data.circles);

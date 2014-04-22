@@ -17,20 +17,20 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 
-public class OverviewCursorAdapter extends CursorAdapter {
+public class RemindersCursorAdapter extends CursorAdapter {
     private final String TAG = ((Object) this).getClass().getCanonicalName();
     private final Typeface tf;
     private LayoutInflater mInflater;
 
-    public OverviewCursorAdapter(Context context, Cursor c, int flags) {
+    public RemindersCursorAdapter(Context context, Cursor c, int flags) {
         super(context, c, flags);
         mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        tf = TypefacesHelper.get(context, "fonts/AndroidClockMono-Light.ttf");
+        tf = TypefacesHelper.get(context, "fonts/exljbris_-_museosanscyrl-300-webfont.ttf");
     }
 
     @Override
     public View newView(Context context, Cursor cursor, ViewGroup parent) {
-        return mInflater.inflate(R.layout.item_list_menu, parent, false);
+        return mInflater.inflate(R.layout.item_list_reminder, parent, false);
     }
 
     @Override

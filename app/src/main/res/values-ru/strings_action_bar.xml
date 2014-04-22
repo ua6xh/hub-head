@@ -6,4 +6,5 @@
     <string name="action_add">Добавить</string>
     <string name="action_send">Отправить</string>
     <string name="action_open_record">Открыть</string>
+    <string name="action_read_all">Прочитать все</string>
 </resources>

@@ -25,7 +25,6 @@ public class AddMembersActionModel extends NotificationActionModel implements IA
             result = context.getResources().getString(R.string.actions_add_member) + " ";
         }
 
-
         for (UserModel user : users) {
             result += " <b>" + user.toString() + "</b>,";
         }

@@ -21,12 +21,14 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.ResultReceiver;
+import android.util.Log;
 
 import com.hubhead.R;
 import com.hubhead.handlers.SFHttpCommand;
 import com.hubhead.helpers.ParseHelper;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class RefreshNotificationsActionCommand extends SFHttpCommand {
 
@@ -36,15 +38,21 @@ public class RefreshNotificationsActionCommand extends SFHttpCommand {
     @Override
     public void doExecute(Intent intent, Context context, ResultReceiver callback) {
         Bundle data = new Bundle();
-
-        String response = sendHttpQuery(url, new HashMap<String, String>(), context);
-
+        Map result;
+        String response = "";
+        String cookie = "";
+        result = sendHttpQuery(url, new HashMap<String, String>(), context);
+        response = (String) result.get("response");
+        if(result.containsKey("cookie")){
+            cookie = (String) result.get("cookie");
+        }
         if (response.isEmpty()) {
             data.putString("error", context.getResources().getString(R.string.error_loading_data_fail));
             notifyFailure(data);
         } else {
             data.putString("data", "ok");
             data.putString("response", response);
+                setCookiesPreference(cookie, context);
             ParseHelper parseHelper = new ParseHelper(context);
             parseHelper.parseNotifications(response, false);
             notifySuccess(data);

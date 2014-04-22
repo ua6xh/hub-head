@@ -9,13 +9,11 @@ import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.PagerTabStrip;
 import android.support.v4.view.ViewPager;
 import android.test.IsolatedContext;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.hubhead.R;
-import com.hubhead.helpers.TextHelper;
 
 public class CircleFragment extends Fragment {
     private static final String MY_PREF = "MY_PREF";
@@ -102,7 +100,7 @@ public class CircleFragment extends Fragment {
                     return nfr;
                 }
                 case 1: {
-                    OverviewListFragment ofr = new OverviewListFragment();
+                    RemindersListFragment ofr = new RemindersListFragment();
                     ofr.setArguments(args);
                     return ofr;
                 }

@@ -36,7 +36,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:contentDescription="@string/error_empty_list_notifications"
-        android:drawableTop="@drawable/ic_launcher"
+        android:drawableTop="@drawable/ic_notifications"
         android:text="@string/error_empty_list_notifications"
         android:textColor="#4c111111"
         android:paddingBottom="88dp" />

@@ -208,6 +208,7 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
     public boolean onPrepareOptionsMenu(Menu menu) {
         boolean drawerOpen = mDrawerLayout.isDrawerOpen(mDrawerList);
         menu.findItem(R.id.action_sign_out).setVisible(!drawerOpen);
+        menu.findItem(R.id.action_read_all).setVisible(!drawerOpen);
         return super.onPrepareOptionsMenu(menu);
     }
 
@@ -269,6 +270,9 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
                 startActivity(intent);
                 finish();
                 return true;
+            }
+            case R.id.action_read_all:{
+                Toast.makeText(this, "Read all", Toast.LENGTH_LONG).show();
             }
             default: {
                 return super.onOptionsItemSelected(item);
