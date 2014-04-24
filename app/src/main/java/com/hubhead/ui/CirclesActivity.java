@@ -1,5 +1,6 @@
 package com.hubhead.ui;
 
+import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
 
@@ -43,6 +44,7 @@ import com.hubhead.fragments.CircleFragment;
 import com.hubhead.fragments.EmptyFragment;
 import com.hubhead.handlers.impl.LoadCirclesDataActionCommand;
 import com.hubhead.handlers.impl.LoadNotificationsActionCommand;
+import com.hubhead.helpers.AlarmHelper;
 import com.hubhead.helpers.DBHelper;
 import com.hubhead.helpers.NotificationHelper;
 import com.hubhead.service.WampService;
@@ -271,14 +273,32 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
                 finish();
                 return true;
             }
-            case R.id.action_read_all:{
+            case R.id.action_read_all: {
                 Toast.makeText(this, "Read all", Toast.LENGTH_LONG).show();
+                Intent intent1 = createIntent("action 1", "extra 1");
+                PendingIntent pIntent1 = PendingIntent.getBroadcast(this, 0, intent1, 0);
+
+                Intent intent2 = createIntent("action 2", "extra 2");
+                PendingIntent pIntent2 = PendingIntent.getBroadcast(this, 0, intent2, 0);
+
+                Log.d(TAG, "start");
+                AlarmHelper.testAlarm1(this);
+                AlarmHelper.testAlarm2(this);
+
             }
             default: {
                 return super.onOptionsItemSelected(item);
             }
         }
     }
+
+    private Intent createIntent(String action, String extra) {
+        Intent intent = new Intent(this, CirclesActivity.class);
+        intent.setAction(action);
+        intent.putExtra("extra", extra);
+        return intent;
+    }
+
 
     @Override
     public void onRefreshStarted(View view) {

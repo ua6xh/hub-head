@@ -1,13 +1,6 @@
 package com.hubhead.helpers;
 
 
-import com.hubhead.models.CircleModel;
-import com.hubhead.models.ContactModel;
-import com.hubhead.models.ReminderModel;
-import com.hubhead.models.SphereModel;
-
-import java.util.List;
-
 public class AlertDataStructureJson {
     public String event;
     public String model;

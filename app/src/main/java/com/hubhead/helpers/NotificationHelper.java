@@ -46,13 +46,7 @@ public class NotificationHelper {
     }
 
     public int createInfoNotification(String message, int circleId) {
-        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(mContext)
-                .setSmallIcon(R.drawable.ic_notification)
-                .setContentTitle("HubHead")
-                .setContentText(message)
-                .setTicker(message) //текст, который отобразится вверху статус-бара при создании уведомления
-                .setAutoCancel(true) //уведомление закроется по клику на него
-                .setWhen(System.currentTimeMillis()); //отображаемое время уведомления
+        NotificationCompat.Builder mBuilder = getBuilder(message);
         // Creates an explicit intent for an Activity in your app
         Intent resultIntent = new Intent(mContext, CirclesActivity.class);
         Log.d(TAG, "CircleId: " + circleId);
@@ -85,13 +79,7 @@ public class NotificationHelper {
     }
 
     public void updateInfoNotification(int notificationId, String message, int circleId) {
-        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(mContext)
-                .setSmallIcon(R.drawable.ic_notification)
-                .setContentTitle("HubHead")
-                .setContentText(message)
-                .setTicker(message) //текст, который отобразится вверху статус-бара при создании уведомления
-                .setAutoCancel(true) //уведомление закроется по клику на него
-                .setWhen(System.currentTimeMillis()); //отображаемое время уведомления
+        NotificationCompat.Builder mBuilder = getBuilder(message);
 
         Intent notificationIntent = new Intent(mContext, CirclesActivity.class); // по клику на уведомлении откроется HomeActivity
         Log.d(TAG, "circle_id: " + circleId);
@@ -110,5 +98,17 @@ public class NotificationHelper {
         Notification notification = mBuilder.build();
 
         manager.notify(notificationId, notification);
+    }
+
+    private NotificationCompat.Builder getBuilder(String message) {
+        return new NotificationCompat.Builder(mContext)
+                .setSmallIcon(R.drawable.ic_notification)
+                .setContentTitle("HubHead")
+                .setContentText(message)
+                .setStyle(new NotificationCompat.BigTextStyle()
+                        .bigText(message))
+                .setTicker(message) //текст, который отобразится вверху статус-бара при создании уведомления
+                .setAutoCancel(true) //уведомление закроется по клику на него
+                .setWhen(System.currentTimeMillis());
     }
 }

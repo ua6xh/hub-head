@@ -162,7 +162,6 @@ public final class Notification implements Parcelable {
     };
 
     // Public fields
-    // TODO: Refactor instance names
     public long id;
     public int type_notification;
     public int messages_count;

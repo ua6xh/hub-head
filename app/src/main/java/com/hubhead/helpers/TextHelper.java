@@ -1,7 +1,5 @@
 package com.hubhead.helpers;
 
-import android.util.Log;
-
 public class TextHelper {
     private static final String TAG = "com.hubhead.TextHelper";
 

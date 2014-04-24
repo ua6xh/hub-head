@@ -8,7 +8,6 @@ import com.hubhead.contentprovider.CirclesContentProvider;
 import com.hubhead.contentprovider.ContactsContentProvider;
 import com.hubhead.contentprovider.NotificationsContentProvider;
 import com.hubhead.contentprovider.OverviewContentProvider;
-
 import com.hubhead.contentprovider.SpheresContentProvider;
 import com.hubhead.models.CircleModel;
 import com.hubhead.models.ContactModel;

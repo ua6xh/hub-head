@@ -677,7 +677,6 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
             if (convertView == null) {
                 v = newView(mContext, getCursor(), parent);
             } else {
-                // TODO temporary hack to prevent the convertView from not having stuff we need.
                 boolean badConvertView = convertView.findViewById(R.id.task_name) == null;
                 // Do a translation check to test for animation. Change this to something more
                 // reliable and robust in the future.
@@ -1533,7 +1532,7 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
                         return null;
                     }
 
-                    //                    @Override
+//                    @Override
                     protected void onPostExecute() {
 //                        if (popToast && instance != null) {
 //                            AlarmUtils.popAlarmSetToast(context, instance.getAlarmTime().getTimeInMillis());
