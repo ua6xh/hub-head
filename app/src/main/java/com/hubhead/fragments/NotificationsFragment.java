@@ -38,13 +38,13 @@ import android.widget.Toast;
 import com.hubhead.R;
 import com.hubhead.contentprovider.Notification;
 import com.hubhead.contentprovider.NotificationsContentProvider;
+import com.hubhead.helpers.ParseHelper;
 import com.hubhead.helpers.TypefacesHelper;
 import com.hubhead.helpers.ViewHelper;
 import com.hubhead.models.CircleModel;
 import com.hubhead.models.ContactModel;
 import com.hubhead.models.NotificationGroupModel;
 import com.hubhead.models.SphereModel;
-import com.hubhead.helpers.ParseHelper;
 import com.hubhead.ui.CirclesActivity;
 
 import org.json.JSONException;
@@ -58,7 +58,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * NotificationClock application.
  */
 public class NotificationsFragment extends android.support.v4.app.Fragment implements View.OnTouchListener, android.support.v4.app.LoaderManager.LoaderCallbacks<Cursor> {
-    private final String TAG = ((Object) this).getClass().getCanonicalName();
     private static final float EXPAND_DECELERATION = 1f;
     private static final float COLLAPSE_DECELERATION = 0.7f;
     private static final int ANIMATION_DURATION = 300;
@@ -69,7 +68,7 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
     private static final String KEY_UNDO_SHOWING = "undoShowing";
     private static final String KEY_PREVIOUS_DAY_MAP = "previousDayMap";
     private static final int NOTIFICATIONS_LOADER_DELTA = 10000;
-
+    private final String TAG = ((Object) this).getClass().getCanonicalName();
     private ListView mNotificationsList;
     private NotificationItemAdapter mAdapter;
     private View mEmptyView;
@@ -126,7 +125,7 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
     @Override
     public android.support.v4.content.Loader<Cursor> onCreateLoader(int id, Bundle bundle) {
         String[] args = {Integer.toString(mCircleIdSelected)};
-        return new CursorLoader(getActivity(), NotificationsContentProvider.NOTIFICATION_CONTENT_URI, NotificationsContentProvider.QUERY_COLUMNS, "circle_id=? AND _id NOT IN (SELECT _id FROM notifications WHERE messages_count = 0 AND groups_count = 0) ", args, null);
+        return new CursorLoader(getActivity(), NotificationsContentProvider.CONTENT_URI, NotificationsContentProvider.QUERY_COLUMNS, "circle_id=? AND _id NOT IN (SELECT _id FROM notifications WHERE messages_count = 0 AND groups_count = 0) ", args, null);
     }
 
     @Override
@@ -563,6 +562,152 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
 //        }
 //    }
 
+    private void asyncDeleteAlarm(final Notification notification, final View viewToRemove) {
+        final Context context = NotificationsFragment.this.getActivity().getApplicationContext();
+        final AsyncTask<Void, Void, Void> deleteTask = new AsyncTask<Void, Void, Void>() {
+            @Override
+            public synchronized void onPreExecute() {
+                if (viewToRemove == null) {
+                    return;
+                }
+                // The notification list needs to be disabled until the animation finishes to prevent
+                // possible concurrency issues.  It becomes re-enabled after the animations have
+                // completed.
+                mNotificationsList.setEnabled(false);
+
+                // Store all of the current list view item positions in memory for animation.
+                final ListView list = mNotificationsList;
+                int firstVisiblePosition = list.getFirstVisiblePosition();
+                for (int i = 0; i < list.getChildCount(); i++) {
+                    View child = list.getChildAt(i);
+                    if (child != viewToRemove) {
+                        int position = firstVisiblePosition + i;
+                        long itemId = mAdapter.getItemId(position);
+                        mItemIdTopMap.put(itemId, child.getTop());
+                    }
+                }
+            }
+
+            @Override
+            protected Void doInBackground(Void... parameters) {
+                // Activity may be closed at this point , make sure data is still valid
+                if (context != null && notification != null) {
+                    ContentResolver cr = context.getContentResolver();
+
+                    Notification.deleteNotification(cr, notification.id);
+                    CirclesActivity circlesActivity = (CirclesActivity) getActivity();
+                    circlesActivity.sendNotificationSetReaded(notification.id);
+                }
+                return null;
+            }
+        };
+        //mUndoShowing = true;
+        deleteTask.execute();
+    }
+
+//    private void startCreatingAlarm() {
+//        // Set the "selected" notification as null, and we'll create the new one when the timepicker
+//        // comes back.
+//        mSelectedAlarm = null;
+//        AlarmUtils.showTimeEditDialog(getFragmentManager(),
+//                null, NotificationsFragment.this, DateFormat.is24HourFormat(getActivity()));
+//    }
+
+//    private static AlarmInstance setupAlarmInstance(Context context, Alarm alarm) {
+//        ContentResolver cr = context.getContentResolver();
+//        AlarmInstance newInstance = alarm.createInstanceAfter(Calendar.getInstance());
+//        newInstance = AlarmInstance.addInstance(cr, newInstance);
+//        // Register instance to state manager
+//        AlarmStateManager.registerInstance(context, newInstance, true);
+//        return newInstance;
+//    }
+
+    private void asyncUpdateAlarm(final Notification notification, final boolean popToast) {
+        final Context context = NotificationsFragment.this.getActivity().getApplicationContext();
+        final AsyncTask<Void, Void, Void> updateTask =
+                new AsyncTask<Void, Void, Void>() {
+                    @Override
+                    protected Void doInBackground(Void... parameters) {
+                        ContentResolver cr = context.getContentResolver();
+
+                        // Dismiss all old instances
+//                        AlarmStateManager.deleteAllInstances(context, notification.id);
+
+                        // Update notification
+                        Notification.updateNotification(cr, notification);
+//                        if (notification.enabled) {
+//                            return setupAlarmInstance(context, notification);
+//                        }
+
+                        return null;
+                    }
+
+                    //                    @Override
+                    protected void onPostExecute() {
+//                        if (popToast && instance != null) {
+//                            AlarmUtils.popAlarmSetToast(context, instance.getAlarmTime().getTimeInMillis());
+//                        }
+                        Toast.makeText(getActivity(), "updateNotification", Toast.LENGTH_SHORT).show();
+                    }
+                };
+        updateTask.execute();
+    }
+
+//    private void asyncAddAlarm(final Notification notification) {
+//        final Context context = NotificationsFragment.this.getActivity().getApplicationContext();
+//        final AsyncTask<Void, Void, AlarmInstance> updateTask =
+//                new AsyncTask<Void, Void, AlarmInstance>() {
+//                    @Override
+//                    public synchronized void onPreExecute() {
+//                        final ListView list = mNotificationsList;
+//                        // The notification list needs to be disabled until the animation finishes to prevent
+//                        // possible concurrency issues.  It becomes re-enabled after the animations have
+//                        // completed.
+//                        mNotificationsList.setEnabled(false);
+//
+//                        // Store all of the current list view item positions in memory for animation.
+//                        int firstVisiblePosition = list.getFirstVisiblePosition();
+//                        for (int i = 0; i < list.getChildCount(); i++) {
+//                            View child = list.getChildAt(i);
+//                            int position = firstVisiblePosition + i;
+//                            long itemId = mAdapter.getItemId(position);
+//                            mItemIdTopMap.put(itemId, child.getTop());
+//                        }
+//                    }
+//
+//                    @Override
+//                    protected AlarmInstance doInBackground(Void... parameters) {
+//                        if (context != null && notification != null) {
+//                            ContentResolver cr = context.getContentResolver();
+//
+//                            // Add notification to db
+//                            Alarm newAlarm = Alarm.addAlarm(cr, notification);
+//                            mScrollToAlarmId = newAlarm.id;
+//
+//                            // Create and add instance to db
+//                            if (newAlarm.enabled) {
+//                                return setupAlarmInstance(context, newAlarm);
+//                            }
+//                        }
+//                        return null;
+//                    }
+//
+//                    @Override
+//                    protected void onPostExecute(AlarmInstance instance) {
+//                        if (instance != null) {
+//                            AlarmUtils.popAlarmSetToast(context, instance.getAlarmTime().getTimeInMillis());
+//                        }
+//                    }
+//                };
+//        updateTask.execute();
+//    }
+
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        //hideUndoBar(true, event);
+        return false;
+    }
+
     public class NotificationItemAdapter extends CursorAdapter {
         private static final int EXPAND_DURATION = 300;
         private static final int COLLAPSE_DURATION = 250;
@@ -574,7 +719,7 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
         private final int mBackgroundColorExpanded;
         private final int mBackgroundColor;
         private final Typeface mMuseosancyrl;
-//        private final Typeface mRobotoNormal;
+        //        private final Typeface mRobotoNormal;
 //        private final Typeface mRobotoBold;
         private final ListView mList;
 
@@ -584,35 +729,7 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
         private final Map<String, ContactModel> mContactMap;
         private final Map<Long, SphereModel> mSphereMap;
         private final Map<Long, CircleModel> mCircleMap;
-        private Bundle mPreviousDaysOfWeekMap = new Bundle();
         private final int mCollapseExpandHeight;
-        private ItemHolder mItemHolderForAsyncTask;
-        private Notification mNotificationForAsyncTask;
-
-
-        public class ItemHolder {
-
-            // views for optimization
-            LinearLayout notificationItem;
-            TextView taskName;
-            TextView lastAction;
-            TextView lastActionAuthor;
-            ImageView delete;
-            View expandArea;
-            View summary;
-            //TextView clickableLabel;
-            LinearLayout expandActions;
-            View hairLine;
-            View arrow;
-            View collapseExpandArea;
-
-            //View footerFiller;
-            // Other states
-            Notification notification;
-        }
-
-        // Used for scrolling an expanded item in the list to make sure it is fully visible.
-        private long mScrollAlarmId = -1;
         private final Runnable mScrollRunnable = new Runnable() {
             @Override
             public void run() {
@@ -626,6 +743,11 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
                 }
             }
         };
+        private Bundle mPreviousDaysOfWeekMap = new Bundle();
+        private ItemHolder mItemHolderForAsyncTask;
+        private Notification mNotificationForAsyncTask;
+        // Used for scrolling an expanded item in the list to make sure it is fully visible.
+        private long mScrollAlarmId = -1;
 
         public NotificationItemAdapter(Context context, long[] expandedIds, long[] repeatCheckedIds, long[] selectedAlarms, Bundle previousDaysOfWeekMap, ListView list) {
             super(context, null, 0);
@@ -883,9 +1005,9 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
             holder.expandActions = (LinearLayout) view.findViewById(R.id.expand_actions);
             holder.collapseExpandArea = view.findViewById(R.id.collapse_expand);
 
-            holder.taskName.setTypeface(mMuseosancyrl);
-            holder.lastActionAuthor.setTypeface(mMuseosancyrl);
-            holder.lastAction.setTypeface(mMuseosancyrl);
+            //holder.taskName.setTypeface(mMuseosancyrl);
+            //holder.lastActionAuthor.setTypeface(mMuseosancyrl);
+            //holder.lastAction.setTypeface(mMuseosancyrl);
 
             view.setTag(holder);
         }
@@ -991,29 +1113,6 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
             task.execute();
         }
 
-        class MyTask extends AsyncTask<Void,View, View> {
-
-            @Override
-            protected View doInBackground(Void... params) {
-                try {
-                    List<NotificationGroupModel> groupsActions = ParseHelper.parseNotificationGroup(mNotificationForAsyncTask.groups, mContext, mContactMap, mSphereMap, mNotificationForAsyncTask.circle_id);
-                    return ViewHelper.createNotificationGroupView(mNotificationForAsyncTask, groupsActions, mContactMap, mSphereMap, mCircleMap, mContext, mMuseosancyrl);
-                } catch (JSONException e) {
-                    Log.e(TAG, "ParseNotificationGroup in Adapter", e);
-                }
-                return null;
-            }
-
-            @Override
-            protected void onPostExecute(View addView) {
-                super.onPostExecute(addView);
-                if (addView != null) {
-                    mItemHolderForAsyncTask.expandActions.removeAllViews();
-                    mItemHolderForAsyncTask.expandActions.addView(addView, 0);
-                }
-            }
-        }
-
         // Sets the alpha of the item except the on/off switch. This gives a visual effect
         // for enabled/disabled notification while leaving the on/off switch more visible
         private void setItemAlpha(ItemHolder holder, boolean enabled) {
@@ -1024,76 +1123,6 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
             holder.delete.setAlpha(alpha);
             holder.lastAction.setAlpha(alpha);
         }
-
-//        private void updateDaysOfWeekButtons(ItemHolder holder, DaysOfWeek lastAction) {
-//            HashSet<Integer> setDays = lastAction.getSetDays();
-//            for (int i = 0; i < 7; i++) {
-//                if (setDays.contains(DAY_ORDER[i])) {
-//                    turnOnDayOfWeek(holder, i);
-//                } else {
-//                    turnOffDayOfWeek(holder, i);
-//                }
-//            }
-//        }
-
-//        public void toggleSelectState(View v) {
-//            // long press could be on the parent view or one of its childs, so find the parent view
-//            v = getTopParent(v);
-//            if (v != null) {
-//                long id = ((ItemHolder) v.getTag()).notification.id;
-//                if (mSelectedNotifications.contains(id)) {
-//                    mSelectedNotifications.remove(id);
-//                } else {
-//                    mSelectedNotifications.add(id);
-//                }
-//            }
-//        }
-
-//        private View getTopParent(View v) {
-//            while (v != null && v.getId() != R.id.notification_item) {
-//                v = (View) v.getParent();
-//            }
-//            return v;
-//        }
-//
-//        public int getSelectedItemsNum() {
-//            return mSelectedNotifications.size();
-//        }
-
-//        private void turnOffDayOfWeek(ItemHolder holder, int dayIndex) {
-//            holder.dayButtons[dayIndex].setChecked(false);
-//            holder.dayButtons[dayIndex].setTextColor(mColorDim);
-//            holder.dayButtons[dayIndex].setTypeface(mRobotoNormal);
-//        }
-//
-//        private void turnOnDayOfWeek(ItemHolder holder, int dayIndex) {
-//            holder.dayButtons[dayIndex].setChecked(true);
-//            holder.dayButtons[dayIndex].setTextColor(mColorLit);
-//            holder.dayButtons[dayIndex].setTypeface(mRobotoBold);
-//        }
-
-
-//        /**
-//         * Does a read-through cache for ringtone titles.
-//         *
-//         * @param uri The uri of the ringtone.
-//         * @return The ringtone title. {@literal null} if no matching ringtone found.
-//         */
-//        private String getRingToneTitle(Uri uri) {
-//            // Try the cache first
-//            String title = mRingtoneTitleCache.getString(uri.toString());
-//            if (title == null) {
-//                // This is slow because a media player is created during Ringtone object creation.
-//                Ringtone ringTone = RingtoneManager.getRingtone(mContext, uri);
-//                if (ringTone != null) {
-//                    title = ringTone.getTitle(mContext);
-//                    if (title != null) {
-//                        mRingtoneTitleCache.putString(uri.toString(), title);
-//                    }
-//                }
-//            }
-//            return title;
-//        }
 
         public void setNewNotification(long notificationId) {
             mExpanded.add(notificationId);
@@ -1233,6 +1262,76 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
                 }
             });
         }
+
+//        private void updateDaysOfWeekButtons(ItemHolder holder, DaysOfWeek lastAction) {
+//            HashSet<Integer> setDays = lastAction.getSetDays();
+//            for (int i = 0; i < 7; i++) {
+//                if (setDays.contains(DAY_ORDER[i])) {
+//                    turnOnDayOfWeek(holder, i);
+//                } else {
+//                    turnOffDayOfWeek(holder, i);
+//                }
+//            }
+//        }
+
+//        public void toggleSelectState(View v) {
+//            // long press could be on the parent view or one of its childs, so find the parent view
+//            v = getTopParent(v);
+//            if (v != null) {
+//                long id = ((ItemHolder) v.getTag()).notification.id;
+//                if (mSelectedNotifications.contains(id)) {
+//                    mSelectedNotifications.remove(id);
+//                } else {
+//                    mSelectedNotifications.add(id);
+//                }
+//            }
+//        }
+
+//        private View getTopParent(View v) {
+//            while (v != null && v.getId() != R.id.notification_item) {
+//                v = (View) v.getParent();
+//            }
+//            return v;
+//        }
+//
+//        public int getSelectedItemsNum() {
+//            return mSelectedNotifications.size();
+//        }
+
+//        private void turnOffDayOfWeek(ItemHolder holder, int dayIndex) {
+//            holder.dayButtons[dayIndex].setChecked(false);
+//            holder.dayButtons[dayIndex].setTextColor(mColorDim);
+//            holder.dayButtons[dayIndex].setTypeface(mRobotoNormal);
+//        }
+//
+//        private void turnOnDayOfWeek(ItemHolder holder, int dayIndex) {
+//            holder.dayButtons[dayIndex].setChecked(true);
+//            holder.dayButtons[dayIndex].setTextColor(mColorLit);
+//            holder.dayButtons[dayIndex].setTypeface(mRobotoBold);
+//        }
+
+
+//        /**
+//         * Does a read-through cache for ringtone titles.
+//         *
+//         * @param uri The uri of the ringtone.
+//         * @return The ringtone title. {@literal null} if no matching ringtone found.
+//         */
+//        private String getRingToneTitle(Uri uri) {
+//            // Try the cache first
+//            String title = mRingtoneTitleCache.getString(uri.toString());
+//            if (title == null) {
+//                // This is slow because a media player is created during Ringtone object creation.
+//                Ringtone ringTone = RingtoneManager.getRingtone(mContext, uri);
+//                if (ringTone != null) {
+//                    title = ringTone.getTitle(mContext);
+//                    if (title != null) {
+//                        mRingtoneTitleCache.putString(uri.toString(), title);
+//                    }
+//                }
+//            }
+//            return title;
+//        }
 
         private boolean isNotificationExpanded(Notification notification) {
             return mExpanded.contains(notification.id);
@@ -1401,151 +1500,49 @@ public class NotificationsFragment extends android.support.v4.app.Fragment imple
                 set.add(id);
             }
         }
-    }
 
-//    private void startCreatingAlarm() {
-//        // Set the "selected" notification as null, and we'll create the new one when the timepicker
-//        // comes back.
-//        mSelectedAlarm = null;
-//        AlarmUtils.showTimeEditDialog(getFragmentManager(),
-//                null, NotificationsFragment.this, DateFormat.is24HourFormat(getActivity()));
-//    }
+        public class ItemHolder {
 
-//    private static AlarmInstance setupAlarmInstance(Context context, Alarm alarm) {
-//        ContentResolver cr = context.getContentResolver();
-//        AlarmInstance newInstance = alarm.createInstanceAfter(Calendar.getInstance());
-//        newInstance = AlarmInstance.addInstance(cr, newInstance);
-//        // Register instance to state manager
-//        AlarmStateManager.registerInstance(context, newInstance, true);
-//        return newInstance;
-//    }
+            // views for optimization
+            LinearLayout notificationItem;
+            TextView taskName;
+            TextView lastAction;
+            TextView lastActionAuthor;
+            ImageView delete;
+            View expandArea;
+            View summary;
+            //TextView clickableLabel;
+            LinearLayout expandActions;
+            View hairLine;
+            View arrow;
+            View collapseExpandArea;
 
-    private void asyncDeleteAlarm(final Notification notification, final View viewToRemove) {
-        final Context context = NotificationsFragment.this.getActivity().getApplicationContext();
-        final AsyncTask<Void, Void, Void> deleteTask = new AsyncTask<Void, Void, Void>() {
-            @Override
-            public synchronized void onPreExecute() {
-                if (viewToRemove == null) {
-                    return;
-                }
-                // The notification list needs to be disabled until the animation finishes to prevent
-                // possible concurrency issues.  It becomes re-enabled after the animations have
-                // completed.
-                mNotificationsList.setEnabled(false);
+            //View footerFiller;
+            // Other states
+            Notification notification;
+        }
 
-                // Store all of the current list view item positions in memory for animation.
-                final ListView list = mNotificationsList;
-                int firstVisiblePosition = list.getFirstVisiblePosition();
-                for (int i = 0; i < list.getChildCount(); i++) {
-                    View child = list.getChildAt(i);
-                    if (child != viewToRemove) {
-                        int position = firstVisiblePosition + i;
-                        long itemId = mAdapter.getItemId(position);
-                        mItemIdTopMap.put(itemId, child.getTop());
-                    }
-                }
-            }
+        class MyTask extends AsyncTask<Void, View, View> {
 
             @Override
-            protected Void doInBackground(Void... parameters) {
-                // Activity may be closed at this point , make sure data is still valid
-                if (context != null && notification != null) {
-                    ContentResolver cr = context.getContentResolver();
-
-                    Notification.deleteNotification(cr, notification.id);
-                    CirclesActivity circlesActivity = (CirclesActivity) getActivity();
-                    circlesActivity.sendNotificationSetReaded(notification.id);
+            protected View doInBackground(Void... params) {
+                try {
+                    List<NotificationGroupModel> groupsActions = ParseHelper.parseNotificationGroup(mNotificationForAsyncTask.groups, mContext, mContactMap, mSphereMap, mNotificationForAsyncTask.circle_id);
+                    return ViewHelper.createNotificationGroupView(mNotificationForAsyncTask, groupsActions, mContactMap, mSphereMap, mCircleMap, mContext, mMuseosancyrl);
+                } catch (JSONException e) {
+                    Log.e(TAG, "ParseNotificationGroup in Adapter", e);
                 }
                 return null;
             }
-        };
-        //mUndoShowing = true;
-        deleteTask.execute();
-    }
 
-//    private void asyncAddAlarm(final Notification notification) {
-//        final Context context = NotificationsFragment.this.getActivity().getApplicationContext();
-//        final AsyncTask<Void, Void, AlarmInstance> updateTask =
-//                new AsyncTask<Void, Void, AlarmInstance>() {
-//                    @Override
-//                    public synchronized void onPreExecute() {
-//                        final ListView list = mNotificationsList;
-//                        // The notification list needs to be disabled until the animation finishes to prevent
-//                        // possible concurrency issues.  It becomes re-enabled after the animations have
-//                        // completed.
-//                        mNotificationsList.setEnabled(false);
-//
-//                        // Store all of the current list view item positions in memory for animation.
-//                        int firstVisiblePosition = list.getFirstVisiblePosition();
-//                        for (int i = 0; i < list.getChildCount(); i++) {
-//                            View child = list.getChildAt(i);
-//                            int position = firstVisiblePosition + i;
-//                            long itemId = mAdapter.getItemId(position);
-//                            mItemIdTopMap.put(itemId, child.getTop());
-//                        }
-//                    }
-//
-//                    @Override
-//                    protected AlarmInstance doInBackground(Void... parameters) {
-//                        if (context != null && notification != null) {
-//                            ContentResolver cr = context.getContentResolver();
-//
-//                            // Add notification to db
-//                            Alarm newAlarm = Alarm.addAlarm(cr, notification);
-//                            mScrollToAlarmId = newAlarm.id;
-//
-//                            // Create and add instance to db
-//                            if (newAlarm.enabled) {
-//                                return setupAlarmInstance(context, newAlarm);
-//                            }
-//                        }
-//                        return null;
-//                    }
-//
-//                    @Override
-//                    protected void onPostExecute(AlarmInstance instance) {
-//                        if (instance != null) {
-//                            AlarmUtils.popAlarmSetToast(context, instance.getAlarmTime().getTimeInMillis());
-//                        }
-//                    }
-//                };
-//        updateTask.execute();
-//    }
-
-    private void asyncUpdateAlarm(final Notification notification, final boolean popToast) {
-        final Context context = NotificationsFragment.this.getActivity().getApplicationContext();
-        final AsyncTask<Void, Void, Void> updateTask =
-                new AsyncTask<Void, Void, Void>() {
-                    @Override
-                    protected Void doInBackground(Void... parameters) {
-                        ContentResolver cr = context.getContentResolver();
-
-                        // Dismiss all old instances
-//                        AlarmStateManager.deleteAllInstances(context, notification.id);
-
-                        // Update notification
-                        Notification.updateNotification(cr, notification);
-//                        if (notification.enabled) {
-//                            return setupAlarmInstance(context, notification);
-//                        }
-
-                        return null;
-                    }
-
-//                    @Override
-                    protected void onPostExecute() {
-//                        if (popToast && instance != null) {
-//                            AlarmUtils.popAlarmSetToast(context, instance.getAlarmTime().getTimeInMillis());
-//                        }
-                        Toast.makeText(getActivity(), "updateNotification", Toast.LENGTH_SHORT).show();
-                    }
-                };
-        updateTask.execute();
-    }
-
-    @Override
-    public boolean onTouch(View v, MotionEvent event) {
-        //hideUndoBar(true, event);
-        return false;
+            @Override
+            protected void onPostExecute(View addView) {
+                super.onPostExecute(addView);
+                if (addView != null) {
+                    mItemHolderForAsyncTask.expandActions.removeAllViews();
+                    mItemHolderForAsyncTask.expandActions.addView(addView, 0);
+                }
+            }
+        }
     }
 }

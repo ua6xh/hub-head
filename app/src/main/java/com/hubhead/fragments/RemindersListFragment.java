@@ -13,11 +13,10 @@ import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.TextView;
 
-
 import com.hubhead.R;
 import com.hubhead.SFBaseListFragment;
 import com.hubhead.adapters.RemindersCursorAdapter;
-import com.hubhead.contentprovider.OverviewContentProvider;
+import com.hubhead.contentprovider.RemindersContentProvider;
 
 import uk.co.senab.actionbarpulltorefresh.library.ActionBarPullToRefresh;
 import uk.co.senab.actionbarpulltorefresh.library.PullToRefreshLayout;
@@ -28,8 +27,8 @@ public class RemindersListFragment extends SFBaseListFragment implements LoaderM
 
     private static final int CM_READ_ID = 1;
     private static final int CM_OPEN_ID = 2;
-    private final String TAG = ((Object) this).getClass().getCanonicalName();
     private static final int OVERVIEW_LOADER_DELTA = 11000;
+    private final String TAG = ((Object) this).getClass().getCanonicalName();
     private RemindersCursorAdapter remindersCursorAdapter;
     private int mCircleIdSelected;
     private PullToRefreshLayout mPullToRefreshLayout;
@@ -89,7 +88,7 @@ public class RemindersListFragment extends SFBaseListFragment implements LoaderM
 //
 //                // извлекаем id записи и удаляем соответствующую запись в БД
 //
-//                Intent intent = new Intent(getActivity(), OverviewActivity.class);
+//                Intent intent = new Intent(getActivity(), RemindersActivity.class);
 //                intent.putExtra("notification_id", acmi.id);
 //
 //                break;
@@ -101,7 +100,7 @@ public class RemindersListFragment extends SFBaseListFragment implements LoaderM
 //                // извлекаем id записи и удаляем соответствующую запись в БД
 //
 //                CirclesActivity circlesActivity = (CirclesActivity) getActivity();
-//                circlesActivity.sendOverviewSetReaded(acmi.id);
+//                circlesActivity.sendRemindersSetReaded(acmi.id);
 //
 //                break;
 //            }
@@ -118,7 +117,7 @@ public class RemindersListFragment extends SFBaseListFragment implements LoaderM
         super.onListItemClick(l, v, position, id);
 //        mPullToRefreshLayout.setRefreshing(true);
 //        //Toast.makeText(getActivity(), "Click!", Toast.LENGTH_SHORT).show();
-//        mRequestRefreshOverviewId = getServiceHelper().refreshOverviewFromServer();
+//        mRequestRefreshRemindersId = getServiceHelper().refreshRemindersFromServer();
 
     }
 
@@ -126,7 +125,7 @@ public class RemindersListFragment extends SFBaseListFragment implements LoaderM
     @Override
     public android.support.v4.content.Loader<Cursor> onCreateLoader(int id, Bundle bundle) {
         String[] args = {Integer.toString(mCircleIdSelected)};
-        return new CursorLoader(getActivity(), OverviewContentProvider.OVERVIEW_CONTENT_URI, new String[]{"model_name"}, "circle_id=?", args, null);
+        return new CursorLoader(getActivity(), RemindersContentProvider.CONTENT_URI, new String[]{"model_name"}, "circle_id=?", args, null);
     }
 
     @Override
@@ -144,16 +143,16 @@ public class RemindersListFragment extends SFBaseListFragment implements LoaderM
     @Override
     public void onRefreshStarted(View view) {
         Log.d(TAG, "onRefreshStarted");
-        //mRequestRefreshOverviewId = getServiceHelper().refreshOverviewFromServer();
+        //mRequestRefreshRemindersId = getServiceHelper().refreshRemindersFromServer();
     }
 
 
     @Override
     public void onServiceCallback(int requestId, Intent requestIntent, int resultCode, Bundle resultData) {
-//        if (getServiceHelper().check(requestIntent, RefreshOverviewActionCommand.class)) {
-//            if (resultCode == RefreshOverviewActionCommand.RESPONSE_SUCCESS) {
+//        if (getServiceHelper().check(requestIntent, RefreshRemindersActionCommand.class)) {
+//            if (resultCode == RefreshRemindersActionCommand.RESPONSE_SUCCESS) {
 //                mPullToRefreshLayout.setRefreshComplete();
-//            } else if (resultCode == RefreshOverviewActionCommand.RESPONSE_FAILURE) {
+//            } else if (resultCode == RefreshRemindersActionCommand.RESPONSE_FAILURE) {
 //                mPullToRefreshLayout.setRefreshComplete();
 //                Toast.makeText(getActivity(), resultData.getString("error"), Toast.LENGTH_SHORT).show();
 //            }
@@ -164,9 +163,9 @@ public class RemindersListFragment extends SFBaseListFragment implements LoaderM
     public void onResume() {
         super.onResume();
             mPullToRefreshLayout.setRefreshComplete();
-//        if (mRequestRefreshOverviewId != -1 && !getServiceHelper().isPending(mRequestRefreshOverviewId)) {
+//        if (mRequestRefreshRemindersId != -1 && !getServiceHelper().isPending(mRequestRefreshRemindersId)) {
 //            mPullToRefreshLayout.setRefreshComplete();
-//        } else if (mRequestRefreshOverviewId != -1 && getServiceHelper().isPending(mRequestRefreshOverviewId)) {
+//        } else if (mRequestRefreshRemindersId != -1 && getServiceHelper().isPending(mRequestRefreshRemindersId)) {
 //            Toast.makeText(getActivity(), "Refresh", Toast.LENGTH_LONG).show();
 //            mPullToRefreshLayout.setRefreshing(true);
 //        }

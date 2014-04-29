@@ -50,13 +50,24 @@ public class AuthActivity extends SFBaseActivity implements OnEditorActionListen
     private static final String PROGRESS_DIALOG_SIGN_IN = "progress-dialog-sign-in";
     private static final String PROGRESS_DIALOG_SIGN_IN_GOOGLE = "progress-dialog-sign-in-google";
     private static final String MY_PREF = "MY_PREF";
-
-    private final String TAG = ((Object) this).getClass().getCanonicalName();
     private static final int REQUEST_AVAILABILITY_ERROR = 48123;
     private static final int REQUEST_PICK_ACCOUNT = 48125;
     private static final int REQUEST_AUTH = 48127;
+    private final String TAG = ((Object) this).getClass().getCanonicalName();
+    private final TextWatcher mTextWatcher = new TextWatcher() {
+        @Override
+        public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3) {
+        }
 
+        @Override
+        public void onTextChanged(CharSequence charSequence, int i, int i2, int i3) {
+        }
 
+        @Override
+        public void afterTextChanged(Editable editable) {
+            checkFieldsForEmptyValues();
+        }
+    };
     private String mAccountName;
     private EditText mEditEmail;
     private EditText mEditPassword;
@@ -109,7 +120,6 @@ public class AuthActivity extends SFBaseActivity implements OnEditorActionListen
         startActivity(i);
         finish();
     }
-
 
     @Override
     public void onServiceCallback(int requestId, Intent requestIntent, int resultCode, Bundle resultData) {
@@ -169,43 +179,6 @@ public class AuthActivity extends SFBaseActivity implements OnEditorActionListen
         return false;
     }
 
-    public static class ProgressDialogFragment extends DialogFragment {
-        private String mMessage = "";
-
-        public ProgressDialogFragment() {
-        }
-
-        public ProgressDialogFragment(String message) {
-
-            mMessage = message;
-        }
-
-        @Override
-        public Dialog onCreateDialog(Bundle savedInstanceState) {
-
-            ProgressDialog progressDialog = new ProgressDialog(getActivity());
-            progressDialog.setCancelable(false);
-            progressDialog.setCanceledOnTouchOutside(false);
-            progressDialog.setMessage(mMessage);
-            return progressDialog;
-        }
-
-        @Override
-        public void onCancel(DialogInterface dialog) {
-
-            super.onCancel(dialog);
-            ((AuthActivity) getActivity()).cancelCommand();
-        }
-
-        @Override
-        public void onDestroyView() {
-            if (getDialog() != null && getRetainInstance()) {
-                getDialog().setOnDismissListener(null);
-            }
-            super.onDestroyView();
-        }
-    }
-
     public void cancelCommand() {
         if (mRequestAuthId != -1) {
             getServiceHelper().cancelCommand(mRequestAuthId);
@@ -225,6 +198,56 @@ public class AuthActivity extends SFBaseActivity implements OnEditorActionListen
             if (result == Activity.RESULT_OK) {
                 new SignInTask().execute();
             }
+        }
+    }
+
+    private void dismissProgressDialog(String tag) {
+        ProgressDialogFragment progress = (ProgressDialogFragment) getSupportFragmentManager().findFragmentByTag(tag);
+        if (progress != null) {
+            progress.dismiss();
+        }
+    }
+
+    private boolean checkFieldsForEmptyValues() {
+        String s1 = mEditEmail.getText().toString();
+        String s2 = mEditPassword.getText().toString();
+        boolean check = !(s1.equals("") || s2.equals(""));
+        mButtonSignIn.setEnabled(check);
+        return check;
+    }
+
+    public static class ProgressDialogFragment extends DialogFragment {
+        private String mMessage = "";
+
+        public ProgressDialogFragment() {
+        }
+
+        public ProgressDialogFragment(String message) {
+
+            mMessage = message;
+        }
+
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            ProgressDialog progressDialog = new ProgressDialog(getActivity());
+            progressDialog.setCancelable(false);
+            progressDialog.setCanceledOnTouchOutside(false);
+            progressDialog.setMessage(mMessage);
+            return progressDialog;
+        }
+
+        @Override
+        public void onCancel(DialogInterface dialog) {
+            super.onCancel(dialog);
+            ((AuthActivity) getActivity()).cancelCommand();
+        }
+
+        @Override
+        public void onDestroyView() {
+            if (getDialog() != null && getRetainInstance()) {
+                getDialog().setOnDismissListener(null);
+            }
+            super.onDestroyView();
         }
     }
 
@@ -314,35 +337,5 @@ public class AuthActivity extends SFBaseActivity implements OnEditorActionListen
 
             }
         }
-    }
-
-    private void dismissProgressDialog(String tag) {
-        ProgressDialogFragment progress = (ProgressDialogFragment) getSupportFragmentManager().findFragmentByTag(tag);
-        if (progress != null) {
-            progress.dismiss();
-        }
-    }
-
-    private final TextWatcher mTextWatcher = new TextWatcher() {
-        @Override
-        public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3) {
-        }
-
-        @Override
-        public void onTextChanged(CharSequence charSequence, int i, int i2, int i3) {
-        }
-
-        @Override
-        public void afterTextChanged(Editable editable) {
-            checkFieldsForEmptyValues();
-        }
-    };
-
-    private boolean checkFieldsForEmptyValues() {
-        String s1 = mEditEmail.getText().toString();
-        String s2 = mEditPassword.getText().toString();
-        boolean check = !(s1.equals("") || s2.equals(""));
-        mButtonSignIn.setEnabled(check);
-        return check;
     }
 }

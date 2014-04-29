@@ -14,11 +14,11 @@ import com.hubhead.ui.CirclesActivity;
 
 import java.util.HashMap;
 
-public class NotificationHelper {
+public class SystemNotificationHelper {
 
-    private static final String TAG = "com.hubhead." + NotificationHelper.class.getSimpleName();
+    private static final String TAG = "com.hubhead." + SystemNotificationHelper.class.getSimpleName();
 
-    private static NotificationHelper instance;
+    private static SystemNotificationHelper instance;
 
     private Context mContext;
     private NotificationManager manager; // Системная утилита, упарляющая уведомлениями
@@ -27,7 +27,7 @@ public class NotificationHelper {
 
 
     //приватный контструктор для Singleton
-    private NotificationHelper(Context context) {
+    private SystemNotificationHelper(Context context) {
         this.mContext = context;
         manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         notifications = new HashMap<Integer, Notification>();
@@ -36,9 +36,9 @@ public class NotificationHelper {
     /**
      * Получение ссылки на синглтон
      */
-    public static NotificationHelper getInstance(Context context) {
+    public static SystemNotificationHelper getInstance(Context context) {
         if (instance == null) {
-            instance = new NotificationHelper(context);
+            instance = new SystemNotificationHelper(context);
         } else {
             instance.mContext = context;
         }

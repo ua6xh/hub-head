@@ -12,9 +12,12 @@ import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.hubhead.contentprovider.NotificationsContentProvider;
-import com.hubhead.helpers.TextHelper;
+import com.hubhead.helpers.AlarmHelper;
 import com.hubhead.helpers.AlertDataStructureJson;
 import com.hubhead.helpers.ParseHelper;
+import com.hubhead.helpers.SaverHelper;
+import com.hubhead.helpers.TextHelper;
+import com.hubhead.models.Reminder;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -27,8 +30,12 @@ import de.tavendo.autobahn.WampConnection;
 
 public class WampService extends Service {
     private static final int LOCAL_NOTIFICATION_ID = 1;
-    private final String TAG = getClass().getCanonicalName();
+    private static final String MY_PREF = "MY_PREF";
+    private static final String wsuri = "ws://tm.dev-lds.ru:12125";
     private static int mNotificationId = 0;
+    private final String TAG = getClass().getCanonicalName();
+    private final IBinder mBinder = new LocalBinder();
+    private final WampConnection mConnection = new WampConnection();
 
     public void onCreate() {
         super.onCreate();
@@ -50,18 +57,6 @@ public class WampService extends Service {
     public IBinder onBind(Intent intent) {
         return mBinder;
     }
-
-    private final IBinder mBinder = new LocalBinder();
-
-    public class LocalBinder extends Binder {
-        public WampService getService() {
-            return WampService.this;
-        }
-    }
-
-    private final WampConnection mConnection = new WampConnection();
-    private static final String MY_PREF = "MY_PREF";
-    private static final String wsuri = "ws://tm.dev-lds.ru:12125";
 
     private void start() {
 
@@ -113,13 +108,26 @@ public class WampService extends Service {
                                 String systemEvent = jsonObject.getString("event");
                                 if (systemEvent.equals("notification-read")) {
                                     long notificationId = TextHelper.convertToNotificationId(jsonObject.getString("model"), jsonObject.getString("model_id"));
-                                    Uri itemUri = ContentUris.withAppendedId(NotificationsContentProvider.NOTIFICATION_CONTENT_URI, notificationId);
+                                    Uri itemUri = ContentUris.withAppendedId(NotificationsContentProvider.CONTENT_URI, notificationId);
                                     getContentResolver().delete(itemUri, null, null);
-                                }else if (systemEvent.equals("notification-read-all")) {
+
+                                } else if (systemEvent.equals("notification-read-all")) {
                                     int circleId = jsonObject.getInt("circle_id");
-                                    getContentResolver().delete(NotificationsContentProvider.NOTIFICATION_CONTENT_URI, "circle_id = ?", new String[]{Integer.toString(circleId)});
-                                }else if (systemEvent.equals("update")) {
-                                    Log.d(TAG, "Event UPDATE local DB");
+                                    getContentResolver().delete(NotificationsContentProvider.CONTENT_URI, "circle_id = ?", new String[]{Integer.toString(circleId)});
+
+                                } else if (systemEvent.equals("update")) {
+                                    if (jsonObject.getString("model").equals("reminder")) {
+                                        saveReminderParse(jsonObject);
+                                    }
+
+                                } else if (systemEvent.equals("create")) {
+                                    if (jsonObject.getString("model").equals("reminder")) {
+                                        saveReminderParse(jsonObject);
+                                    }
+                                } else if (systemEvent.equals("remove")) {
+                                    if (jsonObject.getString("model").equals("reminder")) {
+                                        removeReminderParse(jsonObject);
+                                    }
                                 }
 
 
@@ -139,22 +147,16 @@ public class WampService extends Service {
         }, cookieSend);
     }
 
-    private static class Event {
-        public String type;
-        public Object data;
-        public AlertDataStructureJson alert;
+    private void saveReminderParse(JSONObject jsonObject) throws JSONException {
+        Reminder reminder = ParseHelper.parseReminder(jsonObject.getJSONObject("data").getJSONObject("reminder").toString());
+        SaverHelper.saveReminderSocket(getApplicationContext(), Reminder.createContentValues(reminder));
     }
 
-//    private void sendNotification (AlertDataStructureJson alert) {
-//        NotificationHelper notificationInstance = NotificationHelper.getInstance(this);
-//        String messageNotification = "in " + alert.model + " add " + alert.event + ": " + alert.value;
-//        Log.d(TAG, "mNotificationId: " + mNotificationId);
-//        if (mNotificationId != 0 && notificationInstance.issetNotification(mNotificationId)) {
-//            notificationInstance.updateInfoNotification(mNotificationId, messageNotification, alert.circle_id);
-//        } else {
-//            mNotificationId = notificationInstance.createInfoNotification(messageNotification, alert.circle_id);
-//        }
-//    }
+    private void removeReminderParse(JSONObject jsonObject) throws JSONException {
+        Reminder reminder = ParseHelper.parseReminder(jsonObject.getJSONObject("data").getJSONObject("reminder").toString());
+        AlarmHelper.setAlarm(getApplicationContext());
+        SaverHelper.removeReminderSocket(getApplicationContext(), reminder.getId());
+    }
 
     public void sendNotificationSetReaded(final long notificationId) {
         String roomName = TextHelper.getTypeAndModel(notificationId);
@@ -165,7 +167,7 @@ public class WampService extends Service {
                 public void onResult(Object result) {
                     Log.d(TAG, "notificationSetReaded: onResult:" + result);
 
-                    //Uri itemUri = ContentUris.withAppendedId(NotificationsContentProvider.NOTIFICATION_CONTENT_URI, notificationId);
+                    //Uri itemUri = ContentUris.withAppendedId(NotificationsContentProvider.CONTENT_URI, notificationId);
                     //getContentResolver().delete(itemUri, null, null);
                     Toast.makeText(getApplicationContext(), "Id record:" + notificationId, Toast.LENGTH_SHORT).show();
                 }
@@ -180,6 +182,29 @@ public class WampService extends Service {
             String err = (e.getMessage() == null) ? "Eron don don" : e.getMessage();
             Log.e(TAG, err);
             Toast.makeText(getApplicationContext(), "Error", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private static class Event {
+        public String type;
+        public Object data;
+        public AlertDataStructureJson alert;
+    }
+
+//    private void sendNotification (AlertDataStructureJson alert) {
+//        SystemNotificationHelper notificationInstance = SystemNotificationHelper.getInstance(this);
+//        String messageNotification = "in " + alert.model + " add " + alert.event + ": " + alert.value;
+//        Log.d(TAG, "mNotificationId: " + mNotificationId);
+//        if (mNotificationId != 0 && notificationInstance.issetNotification(mNotificationId)) {
+//            notificationInstance.updateInfoNotification(mNotificationId, messageNotification, alert.circle_id);
+//        } else {
+//            mNotificationId = notificationInstance.createInfoNotification(messageNotification, alert.circle_id);
+//        }
+//    }
+
+    public class LocalBinder extends Binder {
+        public WampService getService() {
+            return WampService.this;
         }
     }
 }

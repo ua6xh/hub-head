@@ -25,6 +25,7 @@ import com.hubhead.models.ContactModel;
 import com.hubhead.models.NotificationActionModel;
 import com.hubhead.models.NotificationGroupModel;
 import com.hubhead.models.NotificationModel;
+import com.hubhead.models.Reminder;
 import com.hubhead.models.SphereModel;
 
 import org.codehaus.jackson.map.ObjectMapper;
@@ -41,8 +42,8 @@ import java.util.Map;
 
 
 public class ParseHelper {
-    private final String TAG = ((Object) this).getClass().getCanonicalName();
     private static final String TAGst = "com.hubhead.helpers.ParseHelper";
+    private final String TAG = ((Object) this).getClass().getCanonicalName();
     private Context mContext;
 
     public ParseHelper(Context context) {
@@ -62,34 +63,17 @@ public class ParseHelper {
         return allDataStructureJson;
     }
 
-    public void parseNotifications(String response, boolean socket) {
+    public static Reminder parseReminder(String response) {
+        ObjectMapper mapper = new ObjectMapper();
+        Reminder reminder = null;
         try {
-            JSONObject json = new JSONObject(response);
-            JSONObject notificationsObj = json.getJSONObject("data");
-
-            Iterator objectsIterator = notificationsObj.keys();
-            Map<String, ContactModel> contactMap = ContactModel.getMap(mContext.getContentResolver(), null);
-            Map<Long, SphereModel> sphereMap = SphereModel.getMap(mContext.getContentResolver(), null);
-            if (objectsIterator.hasNext()) {
-                ArrayList<ContentValues> contentValuesArrayList = new ArrayList<ContentValues>();
-                while (objectsIterator.hasNext()) {
-                    String roomName = (String) objectsIterator.next();
-                    JSONObject room = notificationsObj.getJSONObject(roomName);
-                    NotificationModel notification = new NotificationModel(roomName, room, contactMap, sphereMap, mContext);
-                    contentValuesArrayList.add(notification.getContentValues());
-                }
-                ContentValues[] contentValueses = contentValuesArrayList.toArray(new ContentValues[contentValuesArrayList.size()]);
-                if (socket) {
-                    SaverHelper.saveNotificationsSocket(mContext, contentValueses);
-                } else {
-                    SaverHelper.saveNotifications(mContext, contentValueses);
-                }
-            }
-        } catch (JSONException e) {
-            Log.e(TAG, "Error parsing data in parseNotifications: ", e);
-        } catch (NullPointerException e) {
-            Log.e(TAG, "NullPointerException in ParserHelper", e);
+            reminder = mapper.readValue(response, Reminder.class);
+            System.out.println("JACKSON JSON PARSE REMINDER GOOD!");
+        } catch (IOException e) {
+            System.out.println("JACKSON json parse reminder bad!:" + response);
+            e.printStackTrace();
         }
+        return reminder;
     }
 
     public static List<NotificationGroupModel> parseNotificationGroup(String jsonGroup, Context context, Map<String, ContactModel> contactMap, Map<Long, SphereModel> sphereMap, long circleId) throws JSONException {
@@ -119,7 +103,7 @@ public class ParseHelper {
             Collections.sort(groups, new NotificationGroupComparator());
         } catch (JSONException e) {
             Log.e(TAGst, "Error parsing data in parseNotificationGroup", e);
-        } catch (Exception e){
+        } catch (Exception e) {
             Log.e(TAGst, "Error in parseNotificationGroup", e);
         }
         return groups;
@@ -306,6 +290,36 @@ public class ParseHelper {
             user.name = contactModel.name;
         }
         return user;
+    }
+
+    public void parseNotifications(String response, boolean socket) {
+        try {
+            JSONObject json = new JSONObject(response);
+            JSONObject notificationsObj = json.getJSONObject("data");
+
+            Iterator objectsIterator = notificationsObj.keys();
+            Map<String, ContactModel> contactMap = ContactModel.getMap(mContext.getContentResolver(), null);
+            Map<Long, SphereModel> sphereMap = SphereModel.getMap(mContext.getContentResolver(), null);
+            if (objectsIterator.hasNext()) {
+                ArrayList<ContentValues> contentValuesArrayList = new ArrayList<ContentValues>();
+                while (objectsIterator.hasNext()) {
+                    String roomName = (String) objectsIterator.next();
+                    JSONObject room = notificationsObj.getJSONObject(roomName);
+                    NotificationModel notification = new NotificationModel(roomName, room, contactMap, sphereMap, mContext);
+                    contentValuesArrayList.add(notification.getContentValues());
+                }
+                ContentValues[] contentValueses = contentValuesArrayList.toArray(new ContentValues[contentValuesArrayList.size()]);
+                if (socket) {
+                    SaverHelper.saveNotificationsSocket(mContext, contentValueses);
+                } else {
+                    SaverHelper.saveNotifications(mContext, contentValueses);
+                }
+            }
+        } catch (JSONException e) {
+            Log.e(TAG, "Error parsing data in parseNotifications: ", e);
+        } catch (NullPointerException e) {
+            Log.e(TAG, "NullPointerException in ParserHelper", e);
+        }
     }
 }
 

@@ -3,16 +3,13 @@ package com.hubhead.models;
 
 import android.content.ContentResolver;
 import android.database.Cursor;
-import android.util.Log;
 
 import com.hubhead.contentprovider.ContactsContentProvider;
-import com.hubhead.contentprovider.NotificationsContentProvider;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class ContactModel {
-    private String TAG = ((Object) this).getClass().getCanonicalName();
     public long id;
     public long create_date;
     public long update_time;
@@ -34,6 +31,7 @@ public class ContactModel {
     public String other;
     public String note;
     public int user_id;
+    private String TAG = ((Object) this).getClass().getCanonicalName();
 
     public ContactModel() {
     }
@@ -52,17 +50,9 @@ public class ContactModel {
         account_id = c.getLong(ContactsContentProvider.ACCOUNT_ID_INDEX);
     }
 
-    public long getId() {
-        return this.id;
-    }
-
-    public String getIdForMap(){
-        return circle_id + "_" + account_id;
-    }
-
     public static Map<String, ContactModel> getMap(ContentResolver contentResolver, String selection, String... selectionArgs) {
-        Cursor cursor = contentResolver.query(ContactsContentProvider.CONTACT_CONTENT_URI, ContactsContentProvider.QUERY_COLUMNS, selection, selectionArgs, null);
-        Map<String,ContactModel> result = new HashMap<String, ContactModel>();
+        Cursor cursor = contentResolver.query(ContactsContentProvider.CONTENT_URI, ContactsContentProvider.QUERY_COLUMNS, selection, selectionArgs, null);
+        Map<String, ContactModel> result = new HashMap<String, ContactModel>();
         if (cursor == null) {
             return result;
         }
@@ -79,6 +69,14 @@ public class ContactModel {
         }
 
         return result;
+    }
+
+    public long getId() {
+        return this.id;
+    }
+
+    public String getIdForMap() {
+        return circle_id + "_" + account_id;
     }
 
     @Override

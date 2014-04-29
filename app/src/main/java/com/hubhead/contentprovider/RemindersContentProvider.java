@@ -9,66 +9,67 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
-import android.widget.CursorAdapter;
 
 import com.hubhead.helpers.DBHelper;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-
-public class OverviewContentProvider extends ContentProvider {
-    public static final String AUTHORITY = "com.hubhead.contentproviders.OverviewContentProvider";
+public class RemindersContentProvider extends ContentProvider {
+    public static final String AUTHORITY = "com.hubhead.contentproviders.RemindersContentProvider";
+    public static final String _ID = "_id";
+    public static final String CIRCLE_ID = "circle_id";
+    public static final String SPHERE_ID = "sphere_id";
+    public static final String TASK_ID = "task_id";
+    public static final String TASK_NAME = "task_name";
+    public static final String TASK_STATUS = "task_status";
+    public static final String START_TIME = "start_time";
+    public static final String DEFAULT_SORT_ORDER = START_TIME + " DESC";
+    public static final String DEADLINE = "deadline";
+    public static final String TYPE = "type";
+    public static final String[] QUERY_COLUMNS = {
+            _ID,
+            CIRCLE_ID,
+            SPHERE_ID,
+            TASK_ID,
+            TASK_NAME,
+            TASK_STATUS,
+            START_TIME,
+            DEADLINE,
+            TYPE
+    };
+    public static final int ID_INDEX = 0;
+    public static final int CIRCLE_ID_INDEX = 1;
+    public static final int SPHERE_ID_INDEX = 2;
+    public static final int TASK_ID_INDEX = 3;
+    public static final int TASK_NAME_INDEX = 4;
+    public static final int TASK_STATUS_INDEX = 5;
+    public static final int START_TIME_INDEX = 6;
+    public static final int DEADLINE_INDEX = 7;
+    public static final int TYPE_INDEX = 8;
+    public static final int COLUMN_COUNT = TYPE_INDEX + 1;
     // path
-    static final String OVERVIEW_PATH = "overview";
-
+    static final String REMINDERS_PATH = "reminders";
     // Общий Uri
-    public static final Uri OVERVIEW_CONTENT_URI = Uri.parse("content://" + AUTHORITY + "/" + OVERVIEW_PATH);
-
+    public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY + "/" + REMINDERS_PATH);
     // Типы данных
     // набор строк
-    static final String OVERVIEW_CONTENT_TYPE = "vnd.android.cursor.dir/vnd." + AUTHORITY + "." + OVERVIEW_PATH;
-
+    static final String REMINDER_CONTENT_TYPE = "vnd.android.cursor.dir/vnd." + AUTHORITY + "." + REMINDERS_PATH;
     // одна строка
-    static final String OVERVIEW_CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd." + AUTHORITY + "." + OVERVIEW_PATH;
-
+    static final String REMINDER_CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd." + AUTHORITY + "." + REMINDERS_PATH;
     //// UriMatcher
     // общий Uri
     static final int URI_REMINDERS = 1;
-
     // Uri с указанным ID
-    static final int URI_REMINDER_ID = 2;
-
+    static final int URI_REMINDERS_ID = 2;
     // описание и создание UriMatcher
     private static final UriMatcher uriMatcher;
 
     static {
         uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
-        uriMatcher.addURI(AUTHORITY, OVERVIEW_PATH, URI_REMINDERS);
-        uriMatcher.addURI(AUTHORITY, OVERVIEW_PATH + "/#", URI_REMINDER_ID);
+        uriMatcher.addURI(AUTHORITY, REMINDERS_PATH, URI_REMINDERS);
+        uriMatcher.addURI(AUTHORITY, REMINDERS_PATH + "/#", URI_REMINDERS_ID);
     }
 
+    private static final String TABLE = "reminders";
     private final String TAG = ((Object) this).getClass().getCanonicalName();
-    public static final String REMINDER_ID = "_id";
-    public static final String REMINDER_CIRCLE_ID = "circle_id";
-    public static final String REMINDER_SPHERE_ID = "sphere_id";
-    public static final String REMINDER_TASK_ID = "task_id";
-    public static final String REMINDER_TASK_NAME = "task_name";
-    public static final String REMINDER_TASK_STATUS = "task_status";
-    public static final String REMINDER_START_TIME = "start_time";
-    public static final String REMINDER_DEADLINE = "deadline";
-    public static final String REMINDER_TYPE = "type_reminder";
-    private static final String REMINDERS_TABLE = "reminders";
-
-
-    private final String[] mProjection = new String[]{
-            REMINDER_ID,
-            REMINDER_TASK_NAME,
-
-            REMINDER_DEADLINE
-    };
-
     DBHelper dbHelper;
     SQLiteDatabase db;
 
@@ -84,16 +85,16 @@ public class OverviewContentProvider extends ContentProvider {
             case URI_REMINDERS: // общий Uri
                 // если сортировка не указана, ставим свою - по имени
                 if (TextUtils.isEmpty(sortOrder)) {
-                    sortOrder = REMINDER_START_TIME;
+                    sortOrder = DEFAULT_SORT_ORDER;
                 }
                 break;
-            case URI_REMINDER_ID: { // Uri с ID
+            case URI_REMINDERS_ID: { // Uri с ID
                 String id = uri.getLastPathSegment();
                 // добавляем ID к условию выборки
                 if (TextUtils.isEmpty(selection)) {
-                    selection = REMINDER_ID + " = " + id;
+                    selection = _ID + " = " + id;
                 } else {
-                    selection = selection + " AND " + REMINDER_ID + " = " + id;
+                    selection = selection + " AND " + _ID + " = " + id;
                 }
                 break;
             }
@@ -102,9 +103,10 @@ public class OverviewContentProvider extends ContentProvider {
             }
         }
         db = dbHelper.getWritableDatabase();
+        Log.d(TAG, selection);
 
-        Cursor cursor = db.query(REMINDERS_TABLE, mProjection, selection, selectionArgs, REMINDER_TASK_ID, null, sortOrder, null);
-        cursor.setNotificationUri(getContext().getContentResolver(), OVERVIEW_CONTENT_URI);
+        Cursor cursor = db.query(TABLE, QUERY_COLUMNS, selection, selectionArgs, null, null, sortOrder);
+        cursor.setNotificationUri(getContext().getContentResolver(), CONTENT_URI);
         return cursor;
     }
 
@@ -114,16 +116,16 @@ public class OverviewContentProvider extends ContentProvider {
         }
 
         db = dbHelper.getWritableDatabase();
-        long rowID = db.insertWithOnConflict(REMINDERS_TABLE, null, values, SQLiteDatabase.CONFLICT_REPLACE);
+        long rowID = db.insertWithOnConflict(TABLE, null, values, SQLiteDatabase.CONFLICT_REPLACE);
         if (rowID == -1) {
             Log.e(TAG, "db.insertWithOnConflict: -1");
         } else {
             Log.d(TAG, "db.insertWithOnConflict:" + rowID);
 
         }
-        Uri resultUri = ContentUris.withAppendedId(OVERVIEW_CONTENT_URI, rowID);
+        Uri resultUri = ContentUris.withAppendedId(CONTENT_URI, rowID);
         getContext().getContentResolver().notifyChange(resultUri, null);
-        //getContext().getContentResolver().notifyChange(CirclesContentProvider.CIRCLE_CONTENT_URI, null);
+        getContext().getContentResolver().notifyChange(CirclesContentProvider.CONTENT_URI, null);
 
         return resultUri;
     }
@@ -133,12 +135,12 @@ public class OverviewContentProvider extends ContentProvider {
             case URI_REMINDERS: {
                 break;
             }
-            case URI_REMINDER_ID: {
+            case URI_REMINDERS_ID: {
                 String id = uri.getLastPathSegment();
                 if (TextUtils.isEmpty(selection)) {
-                    selection = REMINDER_ID + " = " + id;
+                    selection = _ID + " = " + id;
                 } else {
-                    selection = selection + " AND " + REMINDER_ID + " = " + id;
+                    selection = selection + " AND " + _ID + " = " + id;
                 }
                 break;
             }
@@ -147,9 +149,9 @@ public class OverviewContentProvider extends ContentProvider {
             }
         }
         db = dbHelper.getWritableDatabase();
-        int cnt = db.delete(REMINDERS_TABLE, selection, selectionArgs);
+        int cnt = db.delete(TABLE, selection, selectionArgs);
         getContext().getContentResolver().notifyChange(uri, null);
-        //getContext().getContentResolver().notifyChange(CirclesContentProvider.CIRCLE_CONTENT_URI, null);
+        getContext().getContentResolver().notifyChange(CirclesContentProvider.CONTENT_URI, null);
         return cnt;
     }
 
@@ -158,12 +160,12 @@ public class OverviewContentProvider extends ContentProvider {
             case URI_REMINDERS: {
                 break;
             }
-            case URI_REMINDER_ID: {
+            case URI_REMINDERS_ID: {
                 String id = uri.getLastPathSegment();
                 if (TextUtils.isEmpty(selection)) {
-                    selection = REMINDER_ID + " = " + id;
+                    selection = _ID + " = " + id;
                 } else {
-                    selection = selection + " AND " + REMINDER_ID + " = " + id;
+                    selection = selection + " AND " + _ID + " = " + id;
                 }
                 break;
             }
@@ -172,10 +174,11 @@ public class OverviewContentProvider extends ContentProvider {
             }
         }
         db = dbHelper.getWritableDatabase();
-        int cnt = db.update(REMINDERS_TABLE, values, selection, selectionArgs);
+        int cnt = db.update(TABLE, values, selection, selectionArgs);
         getContext().getContentResolver().notifyChange(uri, null);
         return cnt;
     }
+
 
     @Override
     public int bulkInsert(Uri uri, ContentValues[] valueses) {
@@ -183,13 +186,13 @@ public class OverviewContentProvider extends ContentProvider {
             db = dbHelper.getWritableDatabase();
             db.beginTransaction();
             try {
-                db.delete(REMINDERS_TABLE, null, null);
+                db.delete(TABLE, null, null);
                 for (ContentValues values : valueses) {
-                    db.insert(REMINDERS_TABLE, null, values);
+                    db.insert(TABLE, null, values);
                 }
                 db.setTransactionSuccessful();
             } catch (NullPointerException e) {
-                Log.d(TAG, "NullPointerException bulkInsert: " + e.getMessage());
+                Log.e(TAG, e.getMessage(), e);
             } finally {
                 db.endTransaction();
                 db.close();
@@ -199,13 +202,14 @@ public class OverviewContentProvider extends ContentProvider {
         return 0;
     }
 
+
     public String getType(Uri uri) {
         switch (uriMatcher.match(uri)) {
             case URI_REMINDERS: {
-                return OVERVIEW_CONTENT_TYPE;
+                return REMINDER_CONTENT_TYPE;
             }
-            case URI_REMINDER_ID: {
-                return OVERVIEW_CONTENT_ITEM_TYPE;
+            case URI_REMINDERS_ID: {
+                return REMINDER_CONTENT_ITEM_TYPE;
             }
         }
         return null;

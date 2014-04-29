@@ -11,6 +11,7 @@ import com.hubhead.service.AlarmReceiver;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 
 public class AlarmHelper {
 
@@ -21,19 +22,19 @@ public class AlarmHelper {
         when.add(Calendar.SECOND, 10);
         setAlarm(context, when, "extra 1");
     }
+
     public static void testAlarm2(Context context) {
         Calendar when = Calendar.getInstance();
         when.add(Calendar.SECOND, 20);
         setAlarm(context, when, "extra 2");
     }
 
-    public static void setAlarm(Context context) {
+    public static void setAlarm(Context context, String timestamp, long reminderId) {
+        long timestampLong = Long.parseLong(timestamp) * 1000;
+        Date d = new Date(timestampLong);
         Calendar when = Calendar.getInstance();
-        when.add(Calendar.DAY_OF_YEAR, 1);
-        when.set(Calendar.HOUR_OF_DAY, 0);
-        when.set(Calendar.MINUTE, 0);
-        when.set(Calendar.SECOND, 0);
-        setAlarm(context, when, "extra 3");
+        when.setTime(d);
+        setAlarm(context, when, "alarm_" + reminderId);
     }
 
     @SuppressLint("SimpleDateFormat")

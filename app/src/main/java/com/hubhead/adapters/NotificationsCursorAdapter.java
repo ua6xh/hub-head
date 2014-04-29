@@ -41,12 +41,12 @@ public class NotificationsCursorAdapter extends CursorAdapter {
     public void bindView(View view, Context context, Cursor cursor) {
         ViewHolder holder = (ViewHolder) view.getTag();
         holder.v1.setText(cursor.getString(NotificationsContentProvider.MODEL_NAME_INDEX));
-        holder.v1.setTypeface(tf);
+        //holder.v1.setTypeface(tf);
 
         int count = cursor.getInt(NotificationsContentProvider.MESSAGES_COUNT_INDEX);
         String countText = count == 0 ? "" : Integer.toString(count);
         holder.v2.setText(countText);
-        holder.v2.setTypeface(tf);
+        //holder.v2.setTypeface(tf);
     }
 
     class ViewHolder {

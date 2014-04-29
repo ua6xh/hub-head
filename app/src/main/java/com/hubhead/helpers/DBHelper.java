@@ -9,14 +9,14 @@ import android.util.Log;
 
 public class DBHelper extends SQLiteOpenHelper {
 
-    private final String TAG = ((Object) this).getClass().getCanonicalName();
-    private static final int DB_VERSION = 9;
-    private static final String DB_NAME = "hubhead";
     public static final String CIRCLES_TABLE_NAME = "circles";
     public static final String SPHERES_TABLE_NAME = "spheres";
     public static final String CONTACTS_TABLE_NAME = "contacts";
     public static final String REMINDERS_TABLE_NAME = "reminders";
     public static final String NOTIFICATIONS_TABLE_NAME = "notifications";
+    private static final int DB_VERSION = 10;
+    private static final String DB_NAME = "hubhead";
+    private final String TAG = ((Object) this).getClass().getCanonicalName();
 
     public DBHelper(Context context) {
         super(context, DB_NAME, null, DB_VERSION);
@@ -61,7 +61,7 @@ public class DBHelper extends SQLiteOpenHelper {
                     + "task_status INTEGER,"
                     + "start_time INTEGER,"
                     + "deadline INTEGER,"
-                    + "type_reminder INTEGER"
+                    + "type INTEGER"
                     + ");");
 
             Log.d(TAG, "--- onCreate " + NOTIFICATIONS_TABLE_NAME + " ---");

@@ -10,7 +10,7 @@ import android.widget.CursorAdapter;
 import android.widget.TextView;
 
 import com.hubhead.R;
-import com.hubhead.contentprovider.OverviewContentProvider;
+import com.hubhead.contentprovider.RemindersContentProvider;
 import com.hubhead.helpers.TypefacesHelper;
 
 import java.text.SimpleDateFormat;
@@ -36,12 +36,12 @@ public class RemindersCursorAdapter extends CursorAdapter {
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
         TextView contentTV = (TextView) view.findViewById(R.id.text1);
-        contentTV.setText(cursor.getString(cursor.getColumnIndex(OverviewContentProvider.REMINDER_TASK_NAME)));
-        contentTV.setTypeface(tf);
+        contentTV.setText(cursor.getString(cursor.getColumnIndex(RemindersContentProvider.TASK_NAME)));
+        //contentTV.setTypeface(tf);
 
         TextView countTV = (TextView) view.findViewById(R.id.text2);
-        long deadline = cursor.getLong(cursor.getColumnIndex(OverviewContentProvider.REMINDER_DEADLINE));
-        countTV.setText(new SimpleDateFormat("d MMM, HH:mm").format(new Date(deadline * 1000)));
-        countTV.setTypeface(tf);
+        long startTime = cursor.getLong(RemindersContentProvider.START_TIME_INDEX);
+        countTV.setText(new SimpleDateFormat("d MMM, HH:mm").format(new Date(startTime * 1000)));
+        //countTV.setTypeface(tf);
     }
 }

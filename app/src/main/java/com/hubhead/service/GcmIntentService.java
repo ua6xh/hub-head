@@ -21,10 +21,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 
-
 import com.google.android.gms.gcm.GoogleCloudMessaging;
-
-import com.hubhead.helpers.NotificationHelper;
+import com.hubhead.helpers.SystemNotificationHelper;
 
 
 /**
@@ -35,13 +33,12 @@ import com.hubhead.helpers.NotificationHelper;
  * wake lock.
  */
 public class GcmIntentService extends IntentService {
+    public static final String TAG = "com.hubhead.GCMIntentService";
     private static int mNotificationId = 0;
 
     public GcmIntentService() {
         super("GcmIntentService");
     }
-
-    public static final String TAG = "com.hubhead.GCMIntentService";
 
     @Override
     protected void onHandleIntent(Intent intent) {
@@ -85,7 +82,7 @@ public class GcmIntentService extends IntentService {
     // This is just one simple example of what you might choose to do with
     // a GCM message.
     private void sendNotification(String msg, int circleId) {
-        NotificationHelper notificationInstance = NotificationHelper.getInstance(this);
+        SystemNotificationHelper notificationInstance = SystemNotificationHelper.getInstance(this);
         Log.d(TAG, "mNotificationId: " + mNotificationId);
         if (mNotificationId != 0 && notificationInstance.issetNotification(mNotificationId)) {
             notificationInstance.updateInfoNotification(mNotificationId, msg, circleId);

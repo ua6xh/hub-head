@@ -14,27 +14,35 @@ import com.hubhead.helpers.DBHelper;
 
 public class CirclesContentProvider extends ContentProvider {
     public static final String AUTHORITY = "com.hubhead.contentproviders.CirclesContentProvider";
-
+    public static final String CIRCLE_TABLE = "circles";
+    public static final String CIRCLE_ID = "_id";
+    public static final String CIRCLE_NAME = "name";
+    public static final String CIRCLE_ADD_DATE = "add_date";
+    public static final String CIRCLE_COUNT_NOTIFICATIONS = "count_notifications";
+    public static final String[] QUERY_COLUMNS = {
+            CIRCLE_ID,
+            CIRCLE_NAME,
+            "(SELECT COUNT(*) FROM notifications n WHERE circles._id = n.circle_id  AND n._id NOT IN (SELECT _id FROM notifications WHERE messages_count = 0 AND groups_count = 0)) as " + CIRCLE_COUNT_NOTIFICATIONS,
+            CIRCLE_ADD_DATE
+    };
+    public static final int ID_INDEX = 0;
+    public static final int NAME_INDEX = 1;
+    public static final int ADD_DATE_INDEX = 2;
+    public static final int COUNT_NOTIFICATIONS_INDEX = 3;
     // path
     static final String CIRCLES_PATH = "circles";
-
     // Общий Uri
-    public static final Uri CIRCLE_CONTENT_URI = Uri.parse("content://" + AUTHORITY + "/" + CIRCLES_PATH);
-
+    public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY + "/" + CIRCLES_PATH);
     // Типы данных
     // набор строк
     static final String CIRCLE_CONTENT_TYPE = "vnd.android.cursor.dir/vnd." + AUTHORITY + "." + CIRCLES_PATH;
-
     // одна строка
     static final String CIRCLE_CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd." + AUTHORITY + "." + CIRCLES_PATH;
-
     //// UriMatcher
     // общий Uri
     static final int URI_CIRCLES = 1;
-
     // Uri с указанным ID
     static final int URI_CIRCLES_ID = 2;
-
     // описание и создание UriMatcher
     private static final UriMatcher uriMatcher;
 
@@ -45,26 +53,7 @@ public class CirclesContentProvider extends ContentProvider {
     }
 
     private final String TAG = ((Object) this).getClass().getCanonicalName();
-    public static final String CIRCLE_TABLE = "circles";
-
-    public static final String CIRCLE_ID = "_id";
-    public static final String CIRCLE_NAME = "name";
-    public static final String CIRCLE_ADD_DATE = "add_date";
-    public static final String CIRCLE_COUNT_NOTIFICATIONS = "count_notifications";
-
-    public static final int ID_INDEX = 0;
-    public static final int NAME_INDEX = 1;
-    public static final int ADD_DATE_INDEX = 2;
-    public static final int COUNT_NOTIFICATIONS_INDEX = 3;
-
-    public static final String[] QUERY_COLUMNS = {
-            CIRCLE_ID,
-            CIRCLE_NAME,
-            "(SELECT COUNT(*) FROM notifications n WHERE circles._id = n.circle_id  AND n._id NOT IN (SELECT _id FROM notifications WHERE messages_count = 0 AND groups_count = 0)) as " + CIRCLE_COUNT_NOTIFICATIONS,
-            CIRCLE_ADD_DATE
-    };
     //private final String[] mProjection = new String[]{CIRCLE_ID, CIRCLE_NAME, "0 as " + CIRCLE_COUNT_NOTIFICATIONS, CIRCLE_ADD_DATE};
-
     DBHelper dbHelper;
     SQLiteDatabase db;
 
@@ -108,8 +97,8 @@ public class CirclesContentProvider extends ContentProvider {
         Cursor cursor = db.query(CIRCLE_TABLE, QUERY_COLUMNS, selection, selectionArgs, null, null, sortOrder);
         //  Cursor cursor = db.rawQuery("SELECT , name, _id FROM circles c;", null);
         // просим ContentResolver уведомлять этот курсор
-        // об изменениях данных в CIRCLE_CONTENT_URI
-        cursor.setNotificationUri(getContext().getContentResolver(), CIRCLE_CONTENT_URI);
+        // об изменениях данных в CONTENT_URI
+        cursor.setNotificationUri(getContext().getContentResolver(), CONTENT_URI);
         return cursor;
     }
 
@@ -122,7 +111,7 @@ public class CirclesContentProvider extends ContentProvider {
         db = dbHelper.getWritableDatabase();
         long rowID = db.insert(CIRCLE_TABLE, null, values);
 
-        Uri resultUri = ContentUris.withAppendedId(CIRCLE_CONTENT_URI, rowID);
+        Uri resultUri = ContentUris.withAppendedId(CONTENT_URI, rowID);
         getContext().getContentResolver().notifyChange(resultUri, null);
         return resultUri;
 

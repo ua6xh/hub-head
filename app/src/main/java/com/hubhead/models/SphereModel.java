@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class SphereModel {
-    private String TAG = ((Object) this).getClass().getCanonicalName();
     public long id = 0;
     public long circle_id = 0;
     public String name = "";
@@ -23,6 +22,7 @@ public class SphereModel {
     public long create_date;
     public long archived_time;
     public long update_time;
+    private String TAG = ((Object) this).getClass().getCanonicalName();
 
     public SphereModel() {
     }
@@ -39,23 +39,9 @@ public class SphereModel {
         circle_id = c.getLong(SpheresContentProvider.CIRCLE_ID_INDEX);
     }
 
-
-    public long getId() {
-        return this.id;
-    }
-
-    @Override
-    public String toString() {
-        return "id = "+ id + "\n name = " + name + "\n circle_id = " + circle_id + "\n\n";
-    }
-
-    public String getName(){
-        return name;
-    }
-
     public static Map<Long, SphereModel> getMap(ContentResolver contentResolver, String selection, String... selectionArgs) {
-        Cursor cursor = contentResolver.query(SpheresContentProvider.SPHERE_CONTENT_URI, SpheresContentProvider.QUERY_COLUMNS, selection, selectionArgs, null);
-        Map<Long,SphereModel> result = new HashMap<Long, SphereModel>();
+        Cursor cursor = contentResolver.query(SpheresContentProvider.CONTENT_URI, SpheresContentProvider.QUERY_COLUMNS, selection, selectionArgs, null);
+        Map<Long, SphereModel> result = new HashMap<Long, SphereModel>();
         if (cursor == null) {
             return result;
         }
@@ -72,5 +58,18 @@ public class SphereModel {
         }
 
         return result;
+    }
+
+    public long getId() {
+        return this.id;
+    }
+
+    @Override
+    public String toString() {
+        return "id = " + id + "\n name = " + name + "\n circle_id = " + circle_id + "\n\n";
+    }
+
+    public String getName() {
+        return name;
     }
 }

@@ -14,27 +14,35 @@ import com.hubhead.helpers.DBHelper;
 
 public class ContactsContentProvider extends ContentProvider {
     public static final String AUTHORITY = "com.hubhead.contentproviders.ContactsContentProvider";
-
+    public static final String CONTACT_ID = "_id";
+    public static final String CONTACT_NAME = "name";
+    public static final String CONTACT_CIRCLE_ID = "circle_id";
+    public static final String CONTACT_ACCOUNT_ID = "account_id";
+    public static final String[] QUERY_COLUMNS = {
+            CONTACT_ID,
+            CONTACT_NAME,
+            CONTACT_CIRCLE_ID,
+            CONTACT_ACCOUNT_ID
+    };
+    public static final int ID_INDEX = 0;
+    public static final int NAME_INDEX = 1;
+    public static final int CIRCLE_ID_INDEX = 2;
+    public static final int ACCOUNT_ID_INDEX = 3;
+    public static final String TABLE = "contacts";
     // path
     static final String CONTACTS_PATH = "contacts";
-
     // Общий Uri
-    public static final Uri CONTACT_CONTENT_URI = Uri.parse("content://" + AUTHORITY + "/" + CONTACTS_PATH);
-
+    public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY + "/" + CONTACTS_PATH);
     // Типы данных
     // набор строк
     static final String CONTACT_CONTENT_TYPE = "vnd.android.cursor.dir/vnd." + AUTHORITY + "." + CONTACTS_PATH;
-
     // одна строка
     static final String CONTACT_CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd." + AUTHORITY + "." + CONTACTS_PATH;
-
     //// UriMatcher
     // общий Uri
     static final int URI_CONTACTS = 1;
-
     // Uri с указанным ID
     static final int URI_CONTACTS_ID = 2;
-
     // описание и создание UriMatcher
     private static final UriMatcher uriMatcher;
 
@@ -45,24 +53,6 @@ public class ContactsContentProvider extends ContentProvider {
     }
 
     private final String TAG = ((Object) this).getClass().getCanonicalName();
-    public static final String CONTACT_ID = "_id";
-    public static final String CONTACT_NAME = "name";
-    public static final String CONTACT_CIRCLE_ID = "circle_id";
-    public static final String CONTACT_ACCOUNT_ID = "account_id";
-
-    public static final int ID_INDEX = 0;
-    public static final int NAME_INDEX = 1;
-    public static final int CIRCLE_ID_INDEX = 2;
-    public static final int ACCOUNT_ID_INDEX = 3;
-
-    public static final String CONTACT_TABLE = "contacts";
-    public static final String[] QUERY_COLUMNS = {
-            CONTACT_ID,
-            CONTACT_NAME,
-            CONTACT_CIRCLE_ID,
-            CONTACT_ACCOUNT_ID
-    };
-
     DBHelper dbHelper;
     SQLiteDatabase db;
 
@@ -79,7 +69,7 @@ public class ContactsContentProvider extends ContentProvider {
             case URI_CONTACTS: { // общий Uri
                 // если сортировка не указана, ставим свою - по времени добавления
                 if (TextUtils.isEmpty(sortOrder)) {
-                    sortOrder = CONTACT_CIRCLE_ID + " ASC, " + CONTACT_ACCOUNT_ID + " ASC" ;
+                    sortOrder = CONTACT_CIRCLE_ID + " ASC, " + CONTACT_ACCOUNT_ID + " ASC";
                 }
                 break;
             }
@@ -105,12 +95,12 @@ public class ContactsContentProvider extends ContentProvider {
         Cursor cursor = null;
         try {
 
-            cursor = db.query(CONTACT_TABLE, QUERY_COLUMNS, selection, selectionArgs, null, null, sortOrder);
+            cursor = db.query(TABLE, QUERY_COLUMNS, selection, selectionArgs, null, null, sortOrder);
             //  Cursor cursor = db.rawQuery("SELECT , name, _id FROM contacts c;", null);
             // просим ContentResolver уведомлять этот курсор
-            // об изменениях данных в CONTACT_CONTENT_URI
-            cursor.setNotificationUri(getContext().getContentResolver(), CONTACT_CONTENT_URI);
-        } catch (NullPointerException e){
+            // об изменениях данных в CONTENT_URI
+            cursor.setNotificationUri(getContext().getContentResolver(), CONTENT_URI);
+        } catch (NullPointerException e) {
             Log.e(TAG, "NullPointerException in ContactsContentProvider", e);
         }
         return cursor;
@@ -123,9 +113,9 @@ public class ContactsContentProvider extends ContentProvider {
         }
 
         db = dbHelper.getWritableDatabase();
-        long rowID = db.insert(CONTACT_TABLE, null, values);
+        long rowID = db.insert(TABLE, null, values);
 
-        Uri resultUri = ContentUris.withAppendedId(CONTACT_CONTENT_URI, rowID);
+        Uri resultUri = ContentUris.withAppendedId(CONTENT_URI, rowID);
         getContext().getContentResolver().notifyChange(resultUri, null);
         return resultUri;
 
@@ -151,7 +141,7 @@ public class ContactsContentProvider extends ContentProvider {
             }
         }
         db = dbHelper.getWritableDatabase();
-        int cnt = db.delete(CONTACT_TABLE, selection, selectionArgs);
+        int cnt = db.delete(TABLE, selection, selectionArgs);
         getContext().getContentResolver().notifyChange(uri, null);
         return cnt;
     }
@@ -176,7 +166,7 @@ public class ContactsContentProvider extends ContentProvider {
             }
         }
         db = dbHelper.getWritableDatabase();
-        int cnt = db.update(CONTACT_TABLE, values, selection, selectionArgs);
+        int cnt = db.update(TABLE, values, selection, selectionArgs);
 
         getContext().getContentResolver().notifyChange(uri, null);
         return cnt;
@@ -188,9 +178,9 @@ public class ContactsContentProvider extends ContentProvider {
             db = dbHelper.getWritableDatabase();
             db.beginTransaction();
             try {
-                db.delete(CONTACT_TABLE, null, null);
+                db.delete(TABLE, null, null);
                 for (ContentValues values : valueses) {
-                    db.insert(CONTACT_TABLE, null, values);
+                    db.insert(TABLE, null, values);
                 }
                 db.setTransactionSuccessful();
             } catch (NullPointerException e) {

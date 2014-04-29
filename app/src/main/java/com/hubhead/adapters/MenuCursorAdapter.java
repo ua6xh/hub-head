@@ -3,7 +3,6 @@ package com.hubhead.adapters;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Typeface;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,12 +35,12 @@ public class MenuCursorAdapter extends CursorAdapter {
         String name = cursor.getString(cursor.getColumnIndex(CirclesContentProvider.CIRCLE_NAME));
         name = name.substring(0, 1).toUpperCase() + name.substring(1);
         contentTV.setText(name);
-        contentTV.setTypeface(tf);
+        //contentTV.setTypeface(tf);
 
         TextView countTV = (TextView) view.findViewById(R.id.text2);
         int count = cursor.getInt(cursor.getColumnIndex(CirclesContentProvider.CIRCLE_COUNT_NOTIFICATIONS));
         String countText = count == 0 ? "" : Integer.toString(count);
         countTV.setText(countText);
-        countTV.setTypeface(tf);
+        //countTV.setTypeface(tf);
     }
 }

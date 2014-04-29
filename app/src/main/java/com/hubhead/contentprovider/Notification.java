@@ -10,7 +10,6 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.util.Log;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -20,137 +19,6 @@ public final class Notification implements Parcelable {
      * Alarms start with an invalid id when it hasn't been saved to the database.
      */
     public static final long INVALID_ID = -1;
-    private final String TAG = ((Object) this).getClass().getCanonicalName();
-
-    /**
-     * The default sort order for this table
-     */
-
-
-
-    public static ContentValues createContentValues(Notification notification) {
-        ContentValues values = new ContentValues(NotificationsContentProvider.COLUMN_COUNT);
-        if (notification.id != INVALID_ID) {
-            values.put(NotificationsContentProvider._ID, notification.id);
-        }
-
-        values.put(NotificationsContentProvider.TYPE_NOTIFICATION, notification.type_notification);
-        values.put(NotificationsContentProvider.MESSAGES_COUNT, notification.messages_count);
-        values.put(NotificationsContentProvider.CIRCLE_ID, notification.circle_id);
-        values.put(NotificationsContentProvider.SPHERE_ID, notification.sphere_id);
-        values.put(NotificationsContentProvider.MODEL_NAME, notification.model_name);
-        values.put(NotificationsContentProvider.GROUPS, notification.groups);
-        values.put(NotificationsContentProvider.CREATE_DATE, notification.create_date);
-        values.put(NotificationsContentProvider.DT, notification.dt);
-
-        return values;
-    }
-
-    public static Intent createIntent(String action, long notificationId) {
-        return new Intent(action).setData(getUri(notificationId));
-    }
-
-    public static Intent createIntent(Context context, Class<?> cls, long notificationId) {
-        return new Intent(context, cls).setData(getUri(notificationId));
-    }
-
-    public static Uri getUri(long notificationId) {
-        return ContentUris.withAppendedId(NotificationsContentProvider.NOTIFICATION_CONTENT_URI, notificationId);
-    }
-
-    public static long getId(Uri contentUri) {
-        return ContentUris.parseId(contentUri);
-    }
-
-    /**
-     * Get notification cursor loader for all notifications.
-     *
-     * @param context to query the database.
-     * @return cursor loader with all the notifications.
-     */
-    public static CursorLoader getNotificationsCursorLoader(Context context) {
-        return new CursorLoader(context, NotificationsContentProvider.NOTIFICATION_CONTENT_URI, NotificationsContentProvider.QUERY_COLUMNS, null, null, NotificationsContentProvider.DEFAULT_SORT_ORDER);
-    }
-
-    /**
-     * Get notification by id.
-     *
-     * @param contentResolver to perform the query on.
-     * @param notificationId  for the desired notification.
-     * @return notification if found, null otherwise
-     */
-    public static Notification getNotification(ContentResolver contentResolver, long notificationId) {
-        Cursor cursor = contentResolver.query(getUri(notificationId), NotificationsContentProvider.QUERY_COLUMNS, null, null, null);
-        Notification result = null;
-        if (cursor == null) {
-            return result;
-        }
-
-        try {
-            if (cursor.moveToFirst()) {
-                result = new Notification(cursor);
-            }
-        } finally {
-            cursor.close();
-        }
-
-        return result;
-    }
-
-    /**
-     * Get all notifications given conditions.
-     *
-     * @param contentResolver to perform the query on.
-     * @param selection       A filter declaring which rows to return, formatted as an
-     *                        SQL WHERE clause (excluding the WHERE itself). Passing null will
-     *                        return all rows for the given URI.
-     * @param selectionArgs   You may include ?s in selection, which will be
-     *                        replaced by the values from selectionArgs, in the order that they
-     *                        appear in the selection. The values will be bound as Strings.
-     * @return list of notifications matching where clause or empty list if none found.
-     */
-    public static List<Notification> getNotifications(ContentResolver contentResolver,
-                                                      String selection, String... selectionArgs) {
-        Cursor cursor = contentResolver.query(NotificationsContentProvider.NOTIFICATION_CONTENT_URI, NotificationsContentProvider.QUERY_COLUMNS,
-                selection, selectionArgs, null);
-        List<Notification> result = new LinkedList<Notification>();
-        if (cursor == null) {
-            return result;
-        }
-
-        try {
-            if (cursor.moveToFirst()) {
-                do {
-                    result.add(new Notification(cursor));
-                } while (cursor.moveToNext());
-            }
-        } finally {
-            cursor.close();
-        }
-
-        return result;
-    }
-
-    public static Notification addNotification(ContentResolver contentResolver, Notification notification) {
-        ContentValues values = createContentValues(notification);
-        Uri uri = contentResolver.insert(NotificationsContentProvider.NOTIFICATION_CONTENT_URI, values);
-        notification.id = getId(uri);
-        return notification;
-    }
-
-    public static boolean updateNotification(ContentResolver contentResolver, Notification notification) {
-        if (notification.id == Notification.INVALID_ID) return false;
-        ContentValues values = createContentValues(notification);
-        long rowsUpdated = contentResolver.update(getUri(notification.id), values, null, null);
-        return rowsUpdated == 1;
-    }
-
-    public static boolean deleteNotification(ContentResolver contentResolver, long notificationId) {
-        if (notificationId == INVALID_ID) return false;
-        int deletedRows = contentResolver.delete(getUri(notificationId), "", null);
-        return deletedRows == 1;
-    }
-
     public static final Creator<Notification> CREATOR = new Creator<Notification>() {
         public Notification createFromParcel(Parcel p) {
             return new Notification(p);
@@ -160,7 +28,7 @@ public final class Notification implements Parcelable {
             return new Notification[size];
         }
     };
-
+    private final String TAG = ((Object) this).getClass().getCanonicalName();
     // Public fields
     public long id;
     public int type_notification;
@@ -209,6 +77,134 @@ public final class Notification implements Parcelable {
         groups_count = p.readInt();
         create_date = p.readLong();
         dt = p.readLong();
+    }
+
+    /**
+     * The default sort order for this table
+     */
+
+
+    public static ContentValues createContentValues(Notification notification) {
+        ContentValues values = new ContentValues(NotificationsContentProvider.COLUMN_COUNT);
+        if (notification.id != INVALID_ID) {
+            values.put(NotificationsContentProvider._ID, notification.id);
+        }
+
+        values.put(NotificationsContentProvider.TYPE_NOTIFICATION, notification.type_notification);
+        values.put(NotificationsContentProvider.MESSAGES_COUNT, notification.messages_count);
+        values.put(NotificationsContentProvider.CIRCLE_ID, notification.circle_id);
+        values.put(NotificationsContentProvider.SPHERE_ID, notification.sphere_id);
+        values.put(NotificationsContentProvider.MODEL_NAME, notification.model_name);
+        values.put(NotificationsContentProvider.GROUPS, notification.groups);
+        values.put(NotificationsContentProvider.CREATE_DATE, notification.create_date);
+        values.put(NotificationsContentProvider.DT, notification.dt);
+
+        return values;
+    }
+
+    public static Intent createIntent(String action, long notificationId) {
+        return new Intent(action).setData(getUri(notificationId));
+    }
+
+    public static Intent createIntent(Context context, Class<?> cls, long notificationId) {
+        return new Intent(context, cls).setData(getUri(notificationId));
+    }
+
+    public static Uri getUri(long notificationId) {
+        return ContentUris.withAppendedId(NotificationsContentProvider.CONTENT_URI, notificationId);
+    }
+
+    public static long getId(Uri contentUri) {
+        return ContentUris.parseId(contentUri);
+    }
+
+    /**
+     * Get notification cursor loader for all notifications.
+     *
+     * @param context to query the database.
+     * @return cursor loader with all the notifications.
+     */
+    public static CursorLoader getNotificationsCursorLoader(Context context) {
+        return new CursorLoader(context, NotificationsContentProvider.CONTENT_URI, NotificationsContentProvider.QUERY_COLUMNS, null, null, NotificationsContentProvider.DEFAULT_SORT_ORDER);
+    }
+
+    /**
+     * Get notification by id.
+     *
+     * @param contentResolver to perform the query on.
+     * @param notificationId  for the desired notification.
+     * @return notification if found, null otherwise
+     */
+    public static Notification getNotification(ContentResolver contentResolver, long notificationId) {
+        Cursor cursor = contentResolver.query(getUri(notificationId), NotificationsContentProvider.QUERY_COLUMNS, null, null, null);
+        Notification result = null;
+        if (cursor == null) {
+            return result;
+        }
+
+        try {
+            if (cursor.moveToFirst()) {
+                result = new Notification(cursor);
+            }
+        } finally {
+            cursor.close();
+        }
+
+        return result;
+    }
+
+    /**
+     * Get all notifications given conditions.
+     *
+     * @param contentResolver to perform the query on.
+     * @param selection       A filter declaring which rows to return, formatted as an
+     *                        SQL WHERE clause (excluding the WHERE itself). Passing null will
+     *                        return all rows for the given URI.
+     * @param selectionArgs   You may include ?s in selection, which will be
+     *                        replaced by the values from selectionArgs, in the order that they
+     *                        appear in the selection. The values will be bound as Strings.
+     * @return list of notifications matching where clause or empty list if none found.
+     */
+    public static List<Notification> getNotifications(ContentResolver contentResolver,
+                                                      String selection, String... selectionArgs) {
+        Cursor cursor = contentResolver.query(NotificationsContentProvider.CONTENT_URI, NotificationsContentProvider.QUERY_COLUMNS,
+                selection, selectionArgs, null);
+        List<Notification> result = new LinkedList<Notification>();
+        if (cursor == null) {
+            return result;
+        }
+
+        try {
+            if (cursor.moveToFirst()) {
+                do {
+                    result.add(new Notification(cursor));
+                } while (cursor.moveToNext());
+            }
+        } finally {
+            cursor.close();
+        }
+
+        return result;
+    }
+
+    public static Notification addNotification(ContentResolver contentResolver, Notification notification) {
+        ContentValues values = createContentValues(notification);
+        Uri uri = contentResolver.insert(NotificationsContentProvider.CONTENT_URI, values);
+        notification.id = getId(uri);
+        return notification;
+    }
+
+    public static boolean updateNotification(ContentResolver contentResolver, Notification notification) {
+        if (notification.id == Notification.INVALID_ID) return false;
+        ContentValues values = createContentValues(notification);
+        long rowsUpdated = contentResolver.update(getUri(notification.id), values, null, null);
+        return rowsUpdated == 1;
+    }
+
+    public static boolean deleteNotification(ContentResolver contentResolver, long notificationId) {
+        if (notificationId == INVALID_ID) return false;
+        int deletedRows = contentResolver.delete(getUri(notificationId), "", null);
+        return deletedRows == 1;
     }
 
     public void writeToParcel(Parcel p, int flags) {

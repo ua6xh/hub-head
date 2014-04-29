@@ -6,7 +6,6 @@ import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
@@ -20,37 +19,6 @@ import java.util.Map;
 
 public class NotificationsContentProvider extends ContentProvider {
     public static final String AUTHORITY = "com.hubhead.contentproviders.NotificationsContentProvider";
-    // path
-    static final String NOTIFICATIONS_PATH = "notifications";
-
-    // Общий Uri
-    public static final Uri NOTIFICATION_CONTENT_URI = Uri.parse("content://" + AUTHORITY + "/" + NOTIFICATIONS_PATH);
-
-    // Типы данных
-    // набор строк
-    static final String NOTIFICATION_CONTENT_TYPE = "vnd.android.cursor.dir/vnd." + AUTHORITY + "." + NOTIFICATIONS_PATH;
-
-    // одна строка
-    static final String NOTIFICATION_CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd." + AUTHORITY + "." + NOTIFICATIONS_PATH;
-
-    //// UriMatcher
-    // общий Uri
-    static final int URI_NOTIFICATIONS = 1;
-
-    // Uri с указанным ID
-    static final int URI_NOTIFICATIONS_ID = 2;
-
-    // описание и создание UriMatcher
-    private static final UriMatcher uriMatcher;
-
-    static {
-        uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
-        uriMatcher.addURI(AUTHORITY, NOTIFICATIONS_PATH, URI_NOTIFICATIONS);
-        uriMatcher.addURI(AUTHORITY, NOTIFICATIONS_PATH + "/#", URI_NOTIFICATIONS_ID);
-    }
-
-    private final String TAG = ((Object) this).getClass().getCanonicalName();
-    private static final String TABLE = "notifications";
     public static final String _ID = "_id";
     public static final String TYPE_NOTIFICATION = "type_notification";
     public static final String MESSAGES_COUNT = "messages_count";
@@ -61,29 +29,11 @@ public class NotificationsContentProvider extends ContentProvider {
     public static final String GROUPS_COUNT = "groups_count";
     public static final String CREATE_DATE = "create_date";
     public static final String DT = "dt";
+    public static final String DEFAULT_SORT_ORDER = DT + " DESC";
     public static final String LAST_ACTION_USER_ID = "last_action_user_id";
     public static final String LAST_ACTION_DT = "last_action_dt";
     public static final String LAST_ACTION_TEXT = "last_action_text";
     public static final String LAST_ACTION_AUTHOR = "last_action_author";
-
-
-    public static final int ID_INDEX = 0;
-    public static final int TYPE_NOTIFICATION_INDEX = 1;
-    public static final int MESSAGES_COUNT_INDEX = 2;
-    public static final int CIRCLE_ID_INDEX = 3;
-    public static final int SPHERE_ID_INDEX = 4;
-    public static final int MODEL_NAME_INDEX = 5;
-    public static final int GROUPS_INDEX = 6;
-    public static final int GROUPS_COUNT_INDEX = 7;
-    public static final int CREATE_DATE_INDEX = 8;
-    public static final int DT_INDEX = 9;
-    public static final int LAST_ACTION_USER_ID_INDEX = 10;
-    public static final int LAST_ACTION_DT_INDEX = 11;
-    public static final int LAST_ACTION_TEXT_INDEX = 12;
-    public static final int LAST_ACTION_AUTHOR_INDEX = 13;
-
-    public static final int COLUMN_COUNT = LAST_ACTION_AUTHOR_INDEX + 1;
-
     public static final String[] QUERY_COLUMNS = {
             _ID,
             TYPE_NOTIFICATION,
@@ -100,9 +50,46 @@ public class NotificationsContentProvider extends ContentProvider {
             LAST_ACTION_TEXT,
             LAST_ACTION_AUTHOR
     };
+    public static final int ID_INDEX = 0;
+    public static final int TYPE_NOTIFICATION_INDEX = 1;
+    public static final int MESSAGES_COUNT_INDEX = 2;
+    public static final int CIRCLE_ID_INDEX = 3;
+    public static final int SPHERE_ID_INDEX = 4;
+    public static final int MODEL_NAME_INDEX = 5;
+    public static final int GROUPS_INDEX = 6;
+    public static final int GROUPS_COUNT_INDEX = 7;
+    public static final int CREATE_DATE_INDEX = 8;
+    public static final int DT_INDEX = 9;
+    public static final int LAST_ACTION_USER_ID_INDEX = 10;
+    public static final int LAST_ACTION_DT_INDEX = 11;
+    public static final int LAST_ACTION_TEXT_INDEX = 12;
+    public static final int LAST_ACTION_AUTHOR_INDEX = 13;
+    public static final int COLUMN_COUNT = LAST_ACTION_AUTHOR_INDEX + 1;
+    // path
+    static final String NOTIFICATIONS_PATH = "notifications";
+    // Общий Uri
+    public static final Uri CONTENT_URI = Uri.parse("content://" + AUTHORITY + "/" + NOTIFICATIONS_PATH);
+    // Типы данных
+    // набор строк
+    static final String NOTIFICATION_CONTENT_TYPE = "vnd.android.cursor.dir/vnd." + AUTHORITY + "." + NOTIFICATIONS_PATH;
+    // одна строка
+    static final String NOTIFICATION_CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd." + AUTHORITY + "." + NOTIFICATIONS_PATH;
+    //// UriMatcher
+    // общий Uri
+    static final int URI_NOTIFICATIONS = 1;
+    // Uri с указанным ID
+    static final int URI_NOTIFICATIONS_ID = 2;
+    // описание и создание UriMatcher
+    private static final UriMatcher uriMatcher;
 
-    public static final String DEFAULT_SORT_ORDER = DT + " DESC";
+    static {
+        uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
+        uriMatcher.addURI(AUTHORITY, NOTIFICATIONS_PATH, URI_NOTIFICATIONS);
+        uriMatcher.addURI(AUTHORITY, NOTIFICATIONS_PATH + "/#", URI_NOTIFICATIONS_ID);
+    }
 
+    private static final String TABLE = "notifications";
+    private final String TAG = ((Object) this).getClass().getCanonicalName();
     DBHelper dbHelper;
     SQLiteDatabase db;
 
@@ -139,7 +126,7 @@ public class NotificationsContentProvider extends ContentProvider {
         Log.d(TAG, selection);
 
         Cursor cursor = db.query(TABLE, QUERY_COLUMNS, selection, selectionArgs, null, null, sortOrder);
-        cursor.setNotificationUri(getContext().getContentResolver(), NOTIFICATION_CONTENT_URI);
+        cursor.setNotificationUri(getContext().getContentResolver(), CONTENT_URI);
         return cursor;
     }
 
@@ -156,9 +143,9 @@ public class NotificationsContentProvider extends ContentProvider {
             Log.d(TAG, "db.insertWithOnConflict:" + rowID);
 
         }
-        Uri resultUri = ContentUris.withAppendedId(NOTIFICATION_CONTENT_URI, rowID);
+        Uri resultUri = ContentUris.withAppendedId(CONTENT_URI, rowID);
         getContext().getContentResolver().notifyChange(resultUri, null);
-        getContext().getContentResolver().notifyChange(CirclesContentProvider.CIRCLE_CONTENT_URI, null);
+        getContext().getContentResolver().notifyChange(CirclesContentProvider.CONTENT_URI, null);
 
         return resultUri;
     }
@@ -184,7 +171,7 @@ public class NotificationsContentProvider extends ContentProvider {
         db = dbHelper.getWritableDatabase();
         int cnt = db.delete(TABLE, selection, selectionArgs);
         getContext().getContentResolver().notifyChange(uri, null);
-        getContext().getContentResolver().notifyChange(CirclesContentProvider.CIRCLE_CONTENT_URI, null);
+        getContext().getContentResolver().notifyChange(CirclesContentProvider.CONTENT_URI, null);
         return cnt;
     }
 
@@ -258,7 +245,7 @@ public class NotificationsContentProvider extends ContentProvider {
                 db.close();
                 if (update) {
                     getContext().getContentResolver().notifyChange(uri, null);
-                    getContext().getContentResolver().notifyChange(CirclesContentProvider.CIRCLE_CONTENT_URI, null);
+                    getContext().getContentResolver().notifyChange(CirclesContentProvider.CONTENT_URI, null);
                 }
             }
         }

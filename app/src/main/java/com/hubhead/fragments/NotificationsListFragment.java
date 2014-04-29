@@ -5,7 +5,6 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
-import android.support.v4.widget.SimpleCursorAdapter;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
@@ -38,12 +37,12 @@ public class NotificationsListFragment extends SFBaseListFragment implements Loa
 
     private static final int CM_READ_ID = 1;
     private static final int CM_OPEN_ID = 2;
-    private final String TAG = ((Object) this).getClass().getCanonicalName();
     private static final int NOTIFICATIONS_LOADER_DELTA = 10000;
+    private static int mRequestRefreshNotificationsId = -1;
+    private final String TAG = ((Object) this).getClass().getCanonicalName();
     private NotificationsCursorAdapter mNotificationsAdapter;
     private int mCircleIdSelected;
     private PullToRefreshLayout mPullToRefreshLayout;
-    private static int mRequestRefreshNotificationsId = -1;
 
 
     public NotificationsListFragment() {
@@ -94,8 +93,8 @@ public class NotificationsListFragment extends SFBaseListFragment implements Loa
     }
 
     public boolean onContextItemSelected(MenuItem item) {
-        switch (item.getItemId()){
-            case CM_OPEN_ID:{
+        switch (item.getItemId()) {
+            case CM_OPEN_ID: {
                 // получаем из пункта контекстного меню данные по пункту списка
                 AdapterView.AdapterContextMenuInfo acmi = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
 
@@ -107,7 +106,7 @@ public class NotificationsListFragment extends SFBaseListFragment implements Loa
 
                 break;
             }
-            case CM_READ_ID:{
+            case CM_READ_ID: {
                 // получаем из пункта контекстного меню данные по пункту списка
                 AdapterView.AdapterContextMenuInfo acmi = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
 
@@ -139,7 +138,7 @@ public class NotificationsListFragment extends SFBaseListFragment implements Loa
     @Override
     public android.support.v4.content.Loader<Cursor> onCreateLoader(int id, Bundle bundle) {
         String[] args = {Integer.toString(mCircleIdSelected)};
-        return new CursorLoader(getActivity(), NotificationsContentProvider.NOTIFICATION_CONTENT_URI, new String[]{"model_name"}, "circle_id=?", args, null);
+        return new CursorLoader(getActivity(), NotificationsContentProvider.CONTENT_URI, new String[]{"model_name"}, "circle_id=?", args, null);
     }
 
     @Override

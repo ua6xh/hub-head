@@ -3,7 +3,6 @@ package com.hubhead.ui;
 import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
-
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
@@ -46,7 +45,7 @@ import com.hubhead.handlers.impl.LoadCirclesDataActionCommand;
 import com.hubhead.handlers.impl.LoadNotificationsActionCommand;
 import com.hubhead.helpers.AlarmHelper;
 import com.hubhead.helpers.DBHelper;
-import com.hubhead.helpers.NotificationHelper;
+import com.hubhead.helpers.SystemNotificationHelper;
 import com.hubhead.service.WampService;
 
 import java.io.IOException;
@@ -57,46 +56,90 @@ import uk.co.senab.actionbarpulltorefresh.library.listeners.OnRefreshListener;
 
 
 public class CirclesActivity extends SFBaseActivity implements SFServiceCallbackListener, ListView.OnItemClickListener, LoaderManager.LoaderCallbacks<Cursor>, OnRefreshListener {
+    public static final String PROPERTY_REG_ID = "registration_id";
     private final static String MY_PREF = "MY_PREF";
-    private final String TAG = ((Object) this).getClass().getCanonicalName();
     private static final int CIRCLE_LOADER_ID = 1;
-    private DrawerLayout mDrawerLayout;
-    private ListView mDrawerList;
-    private ActionBarDrawerToggle mDrawerToggle;
-    private PullToRefreshLayout mPullToRefreshLayout;
-
-    private CharSequence mTitle;
-    private int mRequestCirclesDataId = -1;
-    private int mRequestNotificationsId = -1;
-    private int mRequestSendRegIdToServer = -1;
-
-    private MenuCursorAdapter mDrawerAdapter;
-    private int mCircleId = -1;
-    private Bundle mSavedInstanceState = null;
-    private int selectItemMenu = 0;
-    private int mNotificationFlag = 0;
-    private int mNotificationId = 0;
-
+    private static final String PROPERTY_APP_VERSION = "appVersion";
+    private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
     private static boolean mOpenDrawer = true;
-
-    private boolean mIsBound = false;
+    private final String TAG = ((Object) this).getClass().getCanonicalName();
     /*----- GCM -----*/
     GoogleCloudMessaging gcm;
     Context context;
     String regid;
-    public static final String PROPERTY_REG_ID = "registration_id";
-    private static final String PROPERTY_APP_VERSION = "appVersion";
-
-    private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
     /**
      * Substitute you own sender ID here. This is the project number you got
      * from the API Console, as described in "Getting Started."
      */
     String SENDER_ID = "685083954794";
-    private Context mContext;
+    private DrawerLayout mDrawerLayout;
+    private ListView mDrawerList;
+    private ActionBarDrawerToggle mDrawerToggle;
+    private PullToRefreshLayout mPullToRefreshLayout;
+    private CharSequence mTitle;
+    private int mRequestCirclesDataId = -1;
+    private int mRequestNotificationsId = -1;
+    private int mRequestSendRegIdToServer = -1;
+    private MenuCursorAdapter mDrawerAdapter;
+    private int mCircleId = -1;
+    private Bundle mSavedInstanceState = null;
+    private int selectItemMenu = 0;
+    private Handler handler = new Handler()  // handler for commiting fragment after data is loaded
+    {
+        @Override
+        public void handleMessage(Message msg) {
+            if (msg.what == 2) {
+                if (mSavedInstanceState == null) {
+                    selectItem(selectItemMenu);
+                    invalidateOptionsMenu();
+                }
+            }
+        }
+    };
+    private int mNotificationFlag = 0;
+    private int mNotificationId = 0;
+    private boolean mIsBound = false;
 
     /*------ GCM end ----*/
+    private Context mContext;
+    /*------------------ BindService ------------------*/
+    private WampService mBoundService;
+    private ServiceConnection mConnection = new ServiceConnection() {
 
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            // This is called when the connection with the service has been
+            // established, giving us the service object we can use to
+            // interact with the service.  Because we have bound to a explicit
+            // service that we know is running in our own process, we can
+            // cast its IBinder to a concrete class and directly access it.
+            mBoundService = ((WampService.LocalBinder) service).getService();
+
+            // Tell the user about this for our demo.
+        }
+
+        public void onServiceDisconnected(ComponentName className) {
+            // This is called when the connection with the service has been
+            // unexpectedly disconnected -- that is, its process crashed.
+            // Because it is running in our same process, we should never
+            // see this happen.
+            mBoundService = null;
+        }
+    };
+
+    /**
+     * @return Application's version code from the {@code PackageManager}.
+     */
+    private static int getAppVersion(Context context) {
+
+        String packageName = context.getPackageName();
+        PackageInfo pinfo = null;
+        try {
+            pinfo = context.getPackageManager().getPackageInfo(packageName, 0);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+        return pinfo.versionCode;
+    }
 
     public void sendNotificationSetReaded(long notificationId) {
         mBoundService.sendNotificationSetReaded(notificationId);
@@ -138,7 +181,7 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         } else if (savedInstanceState == null && mNotificationFlag == 1) {
             mOpenDrawer = false;
             loadCirclesDataFromServer(0);
-            NotificationHelper notificationHelper = NotificationHelper.getInstance(this);
+            SystemNotificationHelper notificationHelper = SystemNotificationHelper.getInstance(this);
             notificationHelper.removeNotification(mNotificationId);
         }
 
@@ -299,7 +342,6 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         return intent;
     }
 
-
     @Override
     public void onRefreshStarted(View view) {
         mPullToRefreshLayout.setRefreshComplete();
@@ -328,7 +370,6 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
             }
         }
     }
-
 
     private void loadCirclesDataFromServer(int mode) {
         if (mode == 1) {
@@ -362,11 +403,12 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         getSupportLoaderManager().restartLoader(CIRCLE_LOADER_ID, null, CirclesActivity.this);
         invalidateOptionsMenu();
     }
+    /*------------------------------End LoaderCallbacks---------------------------*/
 
     /*------------------------------LoaderCallbacks Override---------------------------*/
     @Override
     public android.support.v4.content.Loader<Cursor> onCreateLoader(int id, Bundle bundle) {
-        return new CursorLoader(this, CirclesContentProvider.CIRCLE_CONTENT_URI, new String[]{"name"}, null, null, null);
+        return new CursorLoader(this, CirclesContentProvider.CONTENT_URI, new String[]{"name"}, null, null, null);
     }
 
     @Override
@@ -391,20 +433,6 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         }
     }
 
-    private Handler handler = new Handler()  // handler for commiting fragment after data is loaded
-    {
-        @Override
-        public void handleMessage(Message msg) {
-            if (msg.what == 2) {
-                if (mSavedInstanceState == null) {
-                    selectItem(selectItemMenu);
-                    invalidateOptionsMenu();
-                }
-            }
-        }
-    };
-    /*------------------------------End LoaderCallbacks---------------------------*/
-
     public void cancelCommand() {
         if (mRequestCirclesDataId != -1) {
             getServiceHelper().cancelCommand(mRequestCirclesDataId);
@@ -416,31 +444,6 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
             getServiceHelper().cancelCommand(mRequestSendRegIdToServer);
         }
     }
-
-    /*------------------ BindService ------------------*/
-    private WampService mBoundService;
-
-    private ServiceConnection mConnection = new ServiceConnection() {
-
-        public void onServiceConnected(ComponentName className, IBinder service) {
-            // This is called when the connection with the service has been
-            // established, giving us the service object we can use to
-            // interact with the service.  Because we have bound to a explicit
-            // service that we know is running in our own process, we can
-            // cast its IBinder to a concrete class and directly access it.
-            mBoundService = ((WampService.LocalBinder) service).getService();
-
-            // Tell the user about this for our demo.
-        }
-
-        public void onServiceDisconnected(ComponentName className) {
-            // This is called when the connection with the service has been
-            // unexpectedly disconnected -- that is, its process crashed.
-            // Because it is running in our same process, we should never
-            // see this happen.
-            mBoundService = null;
-        }
-    };
 
     void doBindService() {
         // Establish a connection with the service.  We use an explicit
@@ -459,13 +462,13 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
         }
     }
 
+    /*---------------------- GCM Start -----------------------*/
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
         doUnbindService();
     }
-
-    /*---------------------- GCM Start -----------------------*/
 
     /**
      * Check the device to make sure it has the Google Play Services APK. If
@@ -574,22 +577,6 @@ public class CirclesActivity extends SFBaseActivity implements SFServiceCallback
                 //Toast.makeText(mContext, "registerInBackground: " + msg + "\n", Toast.LENGTH_LONG).show();
             }
         }.execute(null, null, null);
-    }
-
-
-    /**
-     * @return Application's version code from the {@code PackageManager}.
-     */
-    private static int getAppVersion(Context context) {
-
-        String packageName = context.getPackageName();
-        PackageInfo pinfo = null;
-        try {
-            pinfo = context.getPackageManager().getPackageInfo(packageName, 0);
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-        }
-        return pinfo.versionCode;
     }
 
     /**

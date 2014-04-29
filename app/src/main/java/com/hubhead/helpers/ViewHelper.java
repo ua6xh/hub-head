@@ -41,7 +41,7 @@ public class ViewHelper {
             } else {
                 tvSphereName.setText(context.getResources().getString(R.string.word_notifications) + " " + notificationModel.sphere_id);
             }
-            tvSphereName.setTypeface(mMuseosancyrl, Typeface.BOLD);
+            //tvSphereName.setTypeface(mMuseosancyrl, Typeface.BOLD);
 
 //            switch (notificationModel.type_notification) {
 //                case NotificationModel.TYPE_SPHERE: {
@@ -76,11 +76,11 @@ public class ViewHelper {
                     } else {
                         tvGroupName.setText(context.getResources().getString(R.string.word_delete) + " " + group.user_id);
                     }
-                    tvGroupName.setTypeface(mMuseosancyrl, Typeface.BOLD);
+                    //tvGroupName.setTypeface(mMuseosancyrl, Typeface.BOLD);
 
                     TextView tvGroupDate = (TextView) groupView.findViewById(R.id.text_view_group_date);
                     tvGroupDate.setText(group.getDt());
-                    tvGroupDate.setTypeface(mMuseosancyrl);
+                    //tvGroupDate.setTypeface(mMuseosancyrl);
 
                     llNotification.addView(groupView);
 
@@ -91,7 +91,7 @@ public class ViewHelper {
                         ImageView imgIconAction = (ImageView) actionView.findViewById(R.id.icon_action);
 
                         tvActionName.setText(Html.fromHtml(group.actions.get(actCnt).toString()));
-                        tvActionName.setTypeface(mMuseosancyrl);
+                        //tvActionName.setTypeface(mMuseosancyrl);
                         imgIconAction.setImageResource(group.actions.get(actCnt).getImgResource());
 
                         llNotification.addView(actionView);
